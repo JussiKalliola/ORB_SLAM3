@@ -25,6 +25,7 @@
 #include "GeometricCamera.h"
 #include "Pinhole.h"
 #include "KannalaBrandt8.h"
+#include "Observer.h"
 
 #include <set>
 #include <mutex>
@@ -42,6 +43,7 @@ class KeyFrameDatabase;
 class Frame;
 class KannalaBrandt8;
 class Pinhole;
+class Observer;
 
 //BOOST_CLASS_EXPORT_GUID(Pinhole, "Pinhole")
 //BOOST_CLASS_EXPORT_GUID(KannalaBrandt8, "KannalaBrandt8")
@@ -139,6 +141,11 @@ public:
 
     long unsigned int GetNumLivedMP();
 
+
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
+
 protected:
 
     std::set<Map*> mspMaps;
@@ -161,6 +168,15 @@ protected:
 
     // Mutex
     std::mutex mMutexAtlas;
+
+private:
+    std::shared_ptr<Observer> observer_;
+    
+    void notifyObserverKeyframeAdded(KeyFrame* kf) {
+      if (observer_) {
+        observer_->onKeyframeAdded(kf);
+      }
+    }
 
 
 }; // class Atlas

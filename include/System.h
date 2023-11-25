@@ -40,6 +40,8 @@
 #include "ImuTypes.h"
 #include "Settings.h"
 
+#include "Observer.h"
+
 
 namespace ORB_SLAM3
 {
@@ -51,7 +53,7 @@ public:
     {
         VERBOSITY_QUIET=0,
         VERBOSITY_NORMAL=1,
-        VERBOSITY_VERBOSE=2,
+    VERBOSITY_VERBOSE=2,
         VERBOSITY_VERY_VERBOSE=3,
         VERBOSITY_DEBUG=4
     };
@@ -79,6 +81,7 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 class Settings;
+class Observer;
 
 class System
 {
@@ -102,7 +105,7 @@ public:
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const int initFr = 0, const string &strSequence = std::string());
+    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const string &strSaveToPath = std::string("/"), std::shared_ptr<Observer> observer = nullptr, const int initFr = 0, const string &strSequence = std::string());
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
@@ -186,6 +189,10 @@ public:
 
     float GetImageScale();
 
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);
@@ -258,10 +265,22 @@ private:
     //
     string mStrLoadAtlasFromFile;
     string mStrSaveAtlasToFile;
+    string mStrSaveToPath;
 
     string mStrVocabularyFilePath;
 
     Settings* settings_;
+
+    std::shared_ptr<Observer> observer_;
+    
+    void notifyObserver(int keyframeId) {
+      if (observer_) {
+        observer_->onKeyframeChanged(keyframeId);
+      }
+    }
+
+
+
 };
 
 }// namespace ORB_SLAM

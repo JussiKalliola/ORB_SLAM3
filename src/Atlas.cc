@@ -18,6 +18,7 @@
 
 #include "Atlas.h"
 #include "Viewer.h"
+#include "System.h"
 
 #include "GeometricCamera.h"
 #include "Pinhole.h"
@@ -103,6 +104,10 @@ void Atlas::SetViewer(Viewer* pViewer)
 void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();
+
+    cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
+    notifyObserverKeyframeAdded(pKF);
+
     pMapKF->AddKeyFrame(pKF);
 }
 

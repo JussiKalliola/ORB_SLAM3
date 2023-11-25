@@ -36,10 +36,11 @@
 namespace ORB_SLAM3
 {
 
+
 Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer, const int initFr, const string &strSequence):
+System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
+               const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
     mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false)
 {
@@ -50,6 +51,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     "This program comes with ABSOLUTELY NO WARRANTY;" << endl  <<
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
+
+    mStrSaveToPath = strSaveToPath; 
 
     cout << "Input sensor was set to: ";
 
@@ -222,6 +225,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+
+    // Set observers of all classes
+    if (observer != nullptr) {
+      attachObserver(observer);
+      mpAtlas->attachObserver(observer);
+    }
 
     //usleep(10*1000*1000);
 
@@ -661,8 +671,8 @@ void System::SaveKeyFrameTrajectoryTUM(const string &filename)
 
 void System::SaveTrajectoryEuRoC(const string &filename)
 {
-
-    cout << endl << "Saving trajectory to " << filename << " ..." << endl;
+    string strTrajectorySavePath = mStrSaveToPath + filename;
+    cout << endl << "Saving trajectory to " << strTrajectorySavePath << " ..." << endl;
     /*if(mSensor==MONOCULAR)
     {
         cerr << "ERROR: SaveTrajectoryEuRoC cannot be used for monocular." << endl;
@@ -695,7 +705,7 @@ void System::SaveTrajectoryEuRoC(const string &filename)
         Twb = vpKFs[0]->GetPoseInverse();
 
     ofstream f;
-    f.open(filename.c_str());
+    f.open(strTrajectorySavePath.c_str());
     // cout << "file open" << endl;
     f << fixed;
 

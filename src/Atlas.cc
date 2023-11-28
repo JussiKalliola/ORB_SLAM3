@@ -58,19 +58,20 @@ Atlas::~Atlas()
 
 void Atlas::CreateNewMap()
 {
+    
     unique_lock<mutex> lock(mMutexAtlas);
-    cout << "Creation of new map with id: " << Map::nNextId << endl;
+    cout << "Thread1=Atlas::CreateNewMap : Creation of new map with id: " << Map::nNextId << endl;
     if(mpCurrentMap){
         if(!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
             mnLastInitKFidMap = mpCurrentMap->GetMaxKFid()+1; //The init KF is the next of current maximum
 
         mpCurrentMap->SetStoredMap();
-        cout << "Stored map with ID: " << mpCurrentMap->GetId() << endl;
+        cout << "Thread1=Atlas::CreateNewMap : Stored map with ID: " << mpCurrentMap->GetId() << endl;
 
         //if(mHasViewer)
         //    mpViewer->AddMapToCreateThumbnail(mpCurrentMap);
     }
-    cout << "Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
+    cout << "Thread1=Atlas::CreateNewMap : Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
 
     mpCurrentMap = new Map(mnLastInitKFidMap);
     mpCurrentMap->SetCurrentMap();
@@ -105,7 +106,7 @@ void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();
 
-    cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
+    //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
     notifyObserverKeyframeAdded(pKF);
 
     pMapKF->AddKeyFrame(pKF);

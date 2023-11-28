@@ -38,6 +38,7 @@ LoopClosing::LoopClosing(Atlas *pAtlas, KeyFrameDatabase *pDB, ORBVocabulary *pV
     mbStopGBA(false), mpThreadGBA(NULL), mbFixScale(bFixScale), mnFullBAIdx(0), mnLoopNumCoincidences(0), mnMergeNumCoincidences(0),
     mbLoopDetected(false), mbMergeDetected(false), mnLoopNumNotFound(0), mnMergeNumNotFound(0), mbActiveLC(bActiveLC)
 {
+    Verbose::PrintMess("      Thread3=LoopClosing::LoopClosing : Constructing the class;", Verbose::VERBOSITY_NORMAL);
     mnCovisibilityConsistencyTh = 3;
     mpLastCurrentKF = static_cast<KeyFrame*>(NULL);
 
@@ -89,6 +90,8 @@ void LoopClosing::SetLocalMapper(LocalMapping *pLocalMapper)
 
 void LoopClosing::Run()
 {
+    
+    std::cout << " **************** Starting LoopClosing::Run() **************** " << std::endl;
     mbFinished =false;
 
     while(1)
@@ -100,6 +103,7 @@ void LoopClosing::Run()
 
         if(CheckNewKeyFrames())
         {
+            Verbose::PrintMess("      Thread3=LoopClosing::Run : CheckNewKeyFrames()=true;", Verbose::VERBOSITY_NORMAL);
             if(mpLastCurrentKF)
             {
                 mpLastCurrentKF->mvpLoopCandKFs.clear();
@@ -128,6 +132,7 @@ void LoopClosing::Run()
                     }
                     else
                     {
+                        Verbose::PrintMess("      Thread3=LoopClosing::Run : bFindedRegion and mbMergeDetected -> ;", Verbose::VERBOSITY_NORMAL);
                         Sophus::SE3d mTmw = mpMergeMatchedKF->GetPose().cast<double>();
                         g2o::Sim3 gSmw2(mTmw.unit_quaternion(), mTmw.translation(), 1.0);
                         Sophus::SE3d mTcw = mpCurrentKF->GetPose().cast<double>();
@@ -169,6 +174,7 @@ void LoopClosing::Run()
 
                         //mpTracker->SetStepByStep(true);
 
+                        Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge detected;", Verbose::VERBOSITY_NORMAL);
                         Verbose::PrintMess("*Merge detected", Verbose::VERBOSITY_QUIET);
 
 #ifdef REGISTER_TIMES
@@ -189,6 +195,7 @@ void LoopClosing::Run()
                         vdMergeTotal_ms.push_back(timeMergeTotal);
 #endif
 
+                        Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge finished;", Verbose::VERBOSITY_NORMAL);
                         Verbose::PrintMess("Merge finished!", Verbose::VERBOSITY_QUIET);
                     }
 
@@ -196,6 +203,7 @@ void LoopClosing::Run()
                     vdPR_MatchedTime.push_back(mpMergeMatchedKF->mTimeStamp);
                     vnPR_TypeRecogn.push_back(1);
 
+                    Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
                     // Reset all variables
                     mpMergeLastCurrentKF->SetErase();
                     mpMergeMatchedKF->SetErase();
@@ -221,6 +229,7 @@ void LoopClosing::Run()
 
                 if(mbLoopDetected)
                 {
+                    Verbose::PrintMess("      Thread3=LoopClosing::Run : mbLoopDetected=true;", Verbose::VERBOSITY_NORMAL);
                     bool bGoodLoop = true;
                     vdPR_CurrentTime.push_back(mpCurrentKF->mTimeStamp);
                     vdPR_MatchedTime.push_back(mpLoopMatchedKF->mTimeStamp);
@@ -263,6 +272,7 @@ void LoopClosing::Run()
 
                     if (bGoodLoop) {
 
+                        Verbose::PrintMess("      Thread3=LoopClosing::Run : bGoodLoop=true;", Verbose::VERBOSITY_NORMAL);
                         mvpLoopMapPoints = mvpLoopMPs;
 
 #ifdef REGISTER_TIMES
@@ -281,7 +291,8 @@ void LoopClosing::Run()
 
                         mnNumCorrection += 1;
                     }
-
+                    
+                    Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
                     // Reset all variables
                     mpLoopLastCurrentKF->SetErase();
                     mpLoopMatchedKF->SetErase();
@@ -294,6 +305,8 @@ void LoopClosing::Run()
 
             }
             mpLastCurrentKF = mpCurrentKF;
+            
+            Verbose::PrintMess("      Thread3=LoopClosing::Run : End of the function;", Verbose::VERBOSITY_NORMAL);
         }
 
         ResetIfRequested();
@@ -323,6 +336,7 @@ bool LoopClosing::CheckNewKeyFrames()
 
 bool LoopClosing::NewDetectCommonRegions()
 {
+    Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : Detect loop closures and merge;", Verbose::VERBOSITY_NORMAL);
     // To deactivate placerecognition. No loopclosing nor merging will be performed
     if(!mbActiveLC)
         return false;
@@ -373,6 +387,7 @@ bool LoopClosing::NewDetectCommonRegions()
 #endif
     if(mnLoopNumCoincidences > 0)
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : mnLoopNumCoincidences>0 -> Loop candidates?;", Verbose::VERBOSITY_NORMAL);
         bCheckSpatial = true;
         // Find from the last KF candidates
         Sophus::SE3d mTcl = (mpCurrentKF->GetPose() * mpLoopLastCurrentKF->GetPoseInverse()).cast<double>();
@@ -423,6 +438,7 @@ bool LoopClosing::NewDetectCommonRegions()
     bool bMergeDetectedInKF = false;
     if(mnMergeNumCoincidences > 0)
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : mnMegerNumCoincidences>0 -> Merge candidates?;", Verbose::VERBOSITY_NORMAL);
         // Find from the last KF candidates
         Sophus::SE3d mTcl = (mpCurrentKF->GetPose() * mpMergeLastCurrentKF->GetPoseInverse()).cast<double>();
 
@@ -484,6 +500,7 @@ bool LoopClosing::NewDetectCommonRegions()
     vector<KeyFrame*> vpMergeBowCand, vpLoopBowCand;
     if(!bMergeDetectedInKF || !bLoopDetectedInKF)
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : !bMergeDetectedInKF || !bLoopDetectedInKF -> Extract candidates from bag of words;", Verbose::VERBOSITY_NORMAL);
         // Search in BoW
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_StartQuery = std::chrono::steady_clock::now();
@@ -523,11 +540,14 @@ bool LoopClosing::NewDetectCommonRegions()
 
     if(mbMergeDetected || mbLoopDetected)
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : bMergeDetectedInKF || bLoopDetectedInKF -> return true;", Verbose::VERBOSITY_NORMAL);
         return true;
     }
 
     mpCurrentKF->SetErase();
     mpCurrentKF->mbCurrentPlaceRecognition = false;
+    
+    Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : No common regions found;", Verbose::VERBOSITY_NORMAL);
 
     return false;
 }
@@ -968,6 +988,7 @@ int LoopClosing::FindMatchesByProjection(KeyFrame* pCurrentKF, KeyFrame* pMatche
 
 void LoopClosing::CorrectLoop()
 {
+    Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : Loop detected, stop local mapping, process KFs, abort Global BA, ...;", Verbose::VERBOSITY_NORMAL);
     //cout << "Loop detected!" << endl;
 
     // Send a stop signal to Local Mapping
@@ -1033,6 +1054,7 @@ void LoopClosing::CorrectLoop()
     }
     vnLoopKFs.push_back(numKFinLoop);*/
 
+    Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : Correct KF poses and MapPoints;", Verbose::VERBOSITY_NORMAL);
     std::chrono::steady_clock::time_point time_StartFusion = std::chrono::steady_clock::now();
 #endif
 
@@ -1112,6 +1134,7 @@ void LoopClosing::CorrectLoop()
         // TODO Check this index increasement
         mpAtlas->GetCurrentMap()->IncreaseChangeIndex();
 
+        Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : Start Loop fusion;", Verbose::VERBOSITY_NORMAL);
 
         // Start Loop Fusion
         // Update matched map points and replace if duplicated
@@ -1180,6 +1203,7 @@ void LoopClosing::CorrectLoop()
     else
     {
         //cout << "Loop -> Scale correction: " << mg2oLoopScw.scale() << endl;
+        Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : Optimizer::OptimizeEssentialGraph;", Verbose::VERBOSITY_NORMAL);
         Optimizer::OptimizeEssentialGraph(pLoopMap, mpLoopMatchedKF, mpCurrentKF, NonCorrectedSim3, CorrectedSim3, LoopConnections, bFixedScale);
     }
 #ifdef REGISTER_TIMES
@@ -1189,6 +1213,7 @@ void LoopClosing::CorrectLoop()
     vdLoopOptEss_ms.push_back(timeOptEss);
 #endif
 
+    Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : Inform new big change in atlas and map;", Verbose::VERBOSITY_NORMAL);
     mpAtlas->InformNewBigChange();
 
     // Add loop edge
@@ -1203,6 +1228,7 @@ void LoopClosing::CorrectLoop()
         mbStopGBA = false;
         mnCorrectionGBA = mnNumCorrection;
 
+        Verbose::PrintMess("      Thread3=LoopClosing::CorrectLoop : new thread to perform Global BA;", Verbose::VERBOSITY_NORMAL);
         mpThreadGBA = new thread(&LoopClosing::RunGlobalBundleAdjustment, this, pLoopMap, mpCurrentKF->mnId);
     }
 
@@ -1214,6 +1240,7 @@ void LoopClosing::CorrectLoop()
 
 void LoopClosing::MergeLocal()
 {
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal;", Verbose::VERBOSITY_NORMAL);
     int numTemporalKFs = 25; //Temporal KFs in the local window if the map is inertial.
 
     //Relationship to rebuild the essential graph, it is used two times, first in the local window and later in the rest of the map
@@ -1230,6 +1257,7 @@ void LoopClosing::MergeLocal()
     // If a Global Bundle Adjustment is running, abort it
     if(isRunningGBA())
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : IF Global BA is running, abort it;", Verbose::VERBOSITY_NORMAL);
         unique_lock<mutex> lock(mMutexGBA);
         mbStopGBA = true;
 
@@ -1255,10 +1283,13 @@ void LoopClosing::MergeLocal()
 
     mpLocalMapper->EmptyQueue();
 
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : mpLocalMapper is stopped, and queue is empty;", Verbose::VERBOSITY_NORMAL);
     // Merge map will become in the new active map with the local window of KFs and MPs from the current map.
     // Later, the elements of the current map will be transform to the new active map reference, in order to keep real time tracking
     Map* pCurrentMap = mpCurrentKF->GetMap();
     Map* pMergeMap = mpMergeMatchedKF->GetMap();
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge Local, Active map: " + to_string(pCurrentMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge local, Non-Active map: " + to_string(pMergeMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
 
     //std::cout << "Merge local, Active map: " << pCurrentMap->GetId() << std::endl;
     //std::cout << "Merge local, Non-Active map: " << pMergeMap->GetId() << std::endl;
@@ -1303,6 +1334,7 @@ void LoopClosing::MergeLocal()
     {
         spLocalWindowKFs.insert(mpCurrentKF);
     }
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : get spatial and temporal neighbors;", Verbose::VERBOSITY_NORMAL);
 
     vector<KeyFrame*> vpCovisibleKFs = mpCurrentKF->GetBestCovisibilityKeyFrames(numTemporalKFs);
     spLocalWindowKFs.insert(vpCovisibleKFs.begin(), vpCovisibleKFs.end());
@@ -1340,6 +1372,7 @@ void LoopClosing::MergeLocal()
     }
 
     //std::cout << "[Merge]: Ma = " << to_string(pCurrentMap->GetId()) << "; #KFs = " << to_string(spLocalWindowKFs.size()) << "; #MPs = " << to_string(spLocalWindowMPs.size()) << std::endl;
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Ma=" + to_string(pCurrentMap->GetId()) + "; #KFs=" + to_string(spLocalWindowKFs.size()) + "; #MPs=" + to_string(spLocalWindowMPs.size()) + ";", Verbose::VERBOSITY_NORMAL);
 
     set<KeyFrame*> spMergeConnectedKFs;
     if(pCurrentMap->IsInertial() && pMergeMap->IsInertial()) //TODO Check the correct initialization
@@ -1507,6 +1540,7 @@ void LoopClosing::MergeLocal()
         unique_lock<mutex> currentLock(pCurrentMap->mMutexMapUpdate); // We update the current map with the Merge information
         unique_lock<mutex> mergeLock(pMergeMap->mMutexMapUpdate); // We remove the Kfs and MPs in the merged area from the old map
 
+        Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge local window: " + to_string(spLocalWindowKFs.size()), Verbose::VERBOSITY_NORMAL);
         //std::cout << "Merge local window: " << spLocalWindowKFs.size() << std::endl;
         //std::cout << "[Merge]: init merging maps " << std::endl;
         for(KeyFrame* pKFi : spLocalWindowKFs)
@@ -1556,6 +1590,7 @@ void LoopClosing::MergeLocal()
         //std::cout << "[Merge]: merging maps finished" << std::endl;
     }
 
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Rebuild the essential graph in the local window;", Verbose::VERBOSITY_NORMAL);
     //Rebuild the essential graph in the local window
     pCurrentMap->GetOriginKF()->SetFirstConnection(false);
     pNewChild = mpCurrentKF->GetParent(); // Old parent, it will be the new child of this KF
@@ -1573,6 +1608,7 @@ void LoopClosing::MergeLocal()
 
     }
 
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Update the connections between the local window;", Verbose::VERBOSITY_NORMAL);
     //Update the connections between the local window
     mpMergeMatchedKF->UpdateConnections();
 
@@ -1624,6 +1660,7 @@ void LoopClosing::MergeLocal()
     }
     else
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Optimizer::LocalBundleAdjustment;", Verbose::VERBOSITY_NORMAL);
         Optimizer::LocalBundleAdjustment(mpCurrentKF, vpLocalCurrentWindowKFs, vpMergeConnectedKFs,&bStop);
     }
 
@@ -1638,6 +1675,7 @@ void LoopClosing::MergeLocal()
     // Loop closed. Release Local Mapping.
     mpLocalMapper->Release();
 
+    Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Update non critical area from the current map to the merged map;", Verbose::VERBOSITY_NORMAL);
     //Update the non critical area from the current map to the merged map
     vector<KeyFrame*> vpCurrentMapKFs = pCurrentMap->GetAllKeyFrames();
     vector<MapPoint*> vpCurrentMapMPs = pCurrentMap->GetAllMapPoints();
@@ -1762,6 +1800,7 @@ void LoopClosing::MergeLocal()
 
     if(bRelaunchBA && (!pCurrentMap->isImuInitialized() || (pCurrentMap->KeyFramesInMap()<200 && mpAtlas->CountMaps()==1)))
     {
+        Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : relaunchBA=true and KFsInMap<200 and CountMaps==1 -> Launch a new thread to perfrom Global BA;", Verbose::VERBOSITY_NORMAL);
         // Launch a new thread to perform Global Bundle Adjustment
         mbRunningGBA = true;
         mbFinishedGBA = false;
@@ -2156,6 +2195,7 @@ void LoopClosing::SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap, vector
 
 void LoopClosing::SearchAndFuse(const vector<KeyFrame*> &vConectedKFs, vector<MapPoint*> &vpMapPoints)
 {
+    Verbose::PrintMess("      Thread3=LoopClosing::SearchAndFuse : project MapPoints from neighbors to current frame and fuse duplicatins.;", Verbose::VERBOSITY_NORMAL);
     ORBmatcher matcher(0.8);
 
     int total_replaces = 0;

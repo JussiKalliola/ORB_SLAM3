@@ -29,6 +29,7 @@ long unsigned int Map::nNextId=0;
 Map::Map():mnMaxKFid(0),mnBigChangeIdx(0), mbImuInitialized(false), mnMapChange(0), mpFirstRegionKF(static_cast<KeyFrame*>(NULL)),
 mbFail(false), mIsInUse(false), mHasTumbnail(false), mbBad(false), mnMapChangeNotified(0), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false)
 {
+    std::cout << "Thread1=Map::Map : Create a new map without KFid" << std::endl;
     mnId=nNextId++;
     mThumbnail = static_cast<GLubyte*>(NULL);
 }
@@ -37,6 +38,7 @@ Map::Map(int initKFid):mnInitKFid(initKFid), mnMaxKFid(initKFid),/*mnLastLoopKFi
                        mHasTumbnail(false), mbBad(false), mbImuInitialized(false), mpFirstRegionKF(static_cast<KeyFrame*>(NULL)),
                        mnMapChange(0), mbFail(false), mnMapChangeNotified(0), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false)
 {
+    std::cout << "Thread1=Map::Map : Create a new map with KFid" << std::endl;
     mnId=nNextId++;
     mThumbnail = static_cast<GLubyte*>(NULL);
 }
@@ -59,9 +61,10 @@ Map::~Map()
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
+    cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << mnInitKFid << endl;
     unique_lock<mutex> lock(mMutexMap);
     if(mspKeyFrames.empty()){
-        cout << "First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
+        cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
         mnInitKFid = pKF->mnId;
         mpKFinitial = pKF;
         mpKFlowerID = pKF;

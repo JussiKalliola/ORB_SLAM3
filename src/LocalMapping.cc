@@ -63,16 +63,19 @@ void LocalMapping::SetTracker(Tracking *pTracker)
 
 void LocalMapping::Run()
 {
+    std::cout << " **************** Starting LocalMapping::Run() **************** " << std::endl;
     mbFinished = false;
 
     while(1)
     {
+        //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
 
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames() && !mbBadImu)
         {
+            std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
 #ifdef REGISTER_TIMES
             double timeLBA_ms = 0;
             double timeKFCulling_ms = 0;
@@ -104,6 +107,7 @@ void LocalMapping::Run()
 
             if(!CheckNewKeyFrames())
             {
+                std::cout << "  Thread2=LocalMapping::Run : No new KFs -> Search neighbor KFs;" << std::endl; 
                 // Find more matches in neighbor keyframes and fuse point duplications
                 SearchInNeighbors();
             }
@@ -146,11 +150,14 @@ void LocalMapping::Run()
                         }
 
                         bool bLarge = ((mpTracker->GetMatchesInliers()>75)&&mbMonocular)||((mpTracker->GetMatchesInliers()>100)&&!mbMonocular);
+
+                        std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=true -> LocalInertialBA;" << std::endl; 
                         Optimizer::LocalInertialBA(mpCurrentKeyFrame, &mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA, bLarge, !mpCurrentKeyFrame->GetMap()->GetIniertialBA2());
                         b_doneLBA = true;
                     }
                     else
                     {
+                        std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
                         b_doneLBA = true;
                     }
@@ -161,6 +168,7 @@ void LocalMapping::Run()
 
                 if(b_doneLBA)
                 {
+                    std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2 -> LocalBA done;" << std::endl; 
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
@@ -247,6 +255,8 @@ void LocalMapping::Run()
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
 
+            std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
+            //TODO: Here, broadcast KF/inform network of new KF for loop closure
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
 #ifdef REGISTER_TIMES
@@ -274,7 +284,8 @@ void LocalMapping::Run()
 
         if(CheckFinish())
             break;
-
+      
+        //std::cout << "  Thread2=LocalMapping::Run : End of the loop, sleep(3000)" << std::endl;
         usleep(3000);
     }
 
@@ -283,6 +294,8 @@ void LocalMapping::Run()
 
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 {
+    //TODO: subscirber node will insert KF broadcasted by Tracking
+    Verbose::PrintMess("Thread1=LocalMapping::InsertKeyFrame", Verbose::VERBOSITY_NORMAL);
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
@@ -297,6 +310,7 @@ bool LocalMapping::CheckNewKeyFrames()
 
 void LocalMapping::ProcessNewKeyFrame()
 {
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
     {
         unique_lock<mutex> lock(mMutexNewKFs);
         mpCurrentKeyFrame = mlNewKeyFrames.front();
@@ -345,6 +359,7 @@ void LocalMapping::EmptyQueue()
 
 void LocalMapping::MapPointCulling()
 {
+    std::cout << "  Thread2=LocalMapping::MapPointCulling : Check recently added map points and erase if not in observation;" << std::endl; 
     // Check Recent Added MapPoints
     list<MapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
     const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
@@ -387,6 +402,7 @@ void LocalMapping::MapPointCulling()
 
 void LocalMapping::CreateNewMapPoints()
 {
+    std::cout << "  Thread2=LocalMapping::CreateNewMapPoints : Triangulate new map points;" << std::endl; 
     // Retrieve neighbor keyframes in covisibility graph
     int nn = 10;
     // For stereo inertial case
@@ -713,6 +729,7 @@ void LocalMapping::CreateNewMapPoints()
 
 void LocalMapping::SearchInNeighbors()
 {
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
     // Retrieve neighbor keyframes
     int nn = 10;
     if(mbMonocular)
@@ -901,6 +918,7 @@ void LocalMapping::InterruptBA()
 
 void LocalMapping::KeyFrameCulling()
 {
+    std::cout << "  Thread2=LocalMapping::KeyFrameCulling : Check redundancy in local KFs -> redundant if 90% map points are seen also in other 3 KFs;" << std::endl; 
     // Check redundant keyframes (only local keyframes)
     // A keyframe is considered redundant if the 90% of the MapPoints it sees, are seen
     // in at least other 3 keyframes (in the same or finer scale)

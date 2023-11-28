@@ -37,7 +37,7 @@ namespace ORB_SLAM3
 {
 
 
-Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
+Verbose::eLevel Verbose::th = Verbose::VERBOSITY_VERY_VERBOSE;
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
                const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const int initFr, const string &strSequence):
@@ -197,6 +197,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
                                      mSensor==IMU_MONOCULAR || mSensor==IMU_STEREO || mSensor==IMU_RGBD, strSequence);
+    std::cout << "Just before starting the thread LocalMapping in System::System() " << std::endl;
     mptLocalMapping = new thread(&ORB_SLAM3::LocalMapping::Run,mpLocalMapper);
     mpLocalMapper->mInitFr = initFr;
     if(settings_)
@@ -214,6 +215,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Loop Closing thread and launch
     // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
     mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
+    std::cout << "Just before starting the thread for LoopClosing in System::System() " << std::endl;
     mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
 
     //Set pointers between threads
@@ -247,7 +249,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
 
     // Fix verbosity
-    Verbose::SetTh(Verbose::VERBOSITY_QUIET);
+    Verbose::SetTh(Verbose::VERBOSITY_NORMAL);
 
 }
 

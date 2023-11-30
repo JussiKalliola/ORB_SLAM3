@@ -272,6 +272,18 @@ public:
     void SetBadFlag();
     bool isBad();
 
+    inline bool GetNotErase()
+    {
+      unique_lock<mutex> lock(mMutexConnections);
+      return mbNotErase;
+    }
+
+    inline bool GetToBeErased()
+    {
+      unique_lock<mutex> lock(mMutexConnections);
+      return mbToBeErased;
+    }
+
     // Compute Scene Depth (q=2 median). Used in monocular.
     float ComputeSceneMedianDepth(const int q);
 

@@ -249,7 +249,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
 
     // Fix verbosity
-    Verbose::SetTh(Verbose::VERBOSITY_NORMAL);
+    Verbose::SetTh(Verbose::VERBOSITY_QUIET);
 
 }
 

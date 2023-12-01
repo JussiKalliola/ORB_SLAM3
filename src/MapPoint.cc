@@ -631,4 +631,13 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsi
     mBackupObservationsId2.clear();
 }
 
+std::map<long unsigned int, int> MapPoint::GetObservationsBackup1() {
+  unique_lock<mutex> lock(mMutexFeatures);
+  return mBackupObservationsId1; 
+}
+
+std::map<long unsigned int, int> MapPoint::GetObservationsBackup2() {
+  unique_lock<mutex> lock(mMutexFeatures);
+  return mBackupObservationsId2; 
+}
 } //namespace ORB_SLAM

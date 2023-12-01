@@ -223,6 +223,7 @@ public:
 
     void UpdateConnections(bool upParent=true);
     void UpdateBestCovisibles();
+    std::map<long unsigned int, int> GetBackupConnectedKeyFrameIdWeights();
     std::set<KeyFrame *> GetConnectedKeyFrames();
     std::vector<KeyFrame* > GetVectorCovisibleKeyFrames();
     std::vector<KeyFrame*> GetBestCovisibilityKeyFrames(const int &N);
@@ -282,6 +283,10 @@ public:
     {
       unique_lock<mutex> lock(mMutexConnections);
       return mbToBeErased;
+    }
+
+    inline std::vector<std::vector<std::vector<size_t>>> GetMGrid() {
+      return mGrid;
     }
 
     // Compute Scene Depth (q=2 median). Used in monocular.
@@ -535,6 +540,10 @@ public:
     Eigen::Vector3f GetRightCameraCenter();
     Eigen::Matrix<float,3,3> GetRightRotation();
     Eigen::Vector3f GetRightTranslation();
+
+    inline Eigen::Matrix3f GetCalibrationMatrix() {
+      return mK_;
+    }
 
     void PrintPointDistribution(){
         int left = 0, right = 0;

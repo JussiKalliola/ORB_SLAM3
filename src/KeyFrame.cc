@@ -1156,4 +1156,17 @@ void KeyFrame::SetKeyFrameDatabase(KeyFrameDatabase* pKFDB)
     mpKeyFrameDB = pKFDB;
 }
 
+std::map<long unsigned int, int> KeyFrame::GetBackupConnectedKeyFrameIdWeights(){
+  unique_lock<mutex> lock(mMutexConnections);
+  std::map<long unsigned int, int> mBackupConnKFweigths;
+  for(const auto& entry : mConnectedKeyFrameWeights) {
+    long unsigned int id = entry.first->mnId;
+    int weight = entry.second;
+    mBackupConnKFweigths.insert(std::make_pair(id, weight));
+  }
+
+  return mBackupConnKFweigths;
+
+}
+
 } //namespace ORB_SLAM

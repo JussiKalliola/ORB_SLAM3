@@ -193,6 +193,10 @@ public:
       observer_ = observer;
     }
 
+    Atlas* GetAtlas() {
+      return mpAtlas;
+    }
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);

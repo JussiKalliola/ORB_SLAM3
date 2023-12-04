@@ -558,6 +558,166 @@ public:
     }
 
 
+    // Protected setters
+    inline void SetmTcw(Sophus::SE3<float> tcw) {
+      // mutex
+      mTcw = tcw;
+    }
+
+    inline void SetmRcw(Eigen::Matrix3f rcw) {
+      // mutex
+      mRcw = rcw;
+    }
+
+    inline void SetmTwc(Sophus::SE3<float> twc) {
+      // mutex
+      mTwc = twc;
+    }
+
+    inline void SetmRwc(Eigen::Matrix3f rwc) {
+      // mutex
+      mRwc = rwc;
+    }
+
+    inline void SetmOwb(Eigen::Vector3f owb) {
+      // mutex
+      mOwb = owb;
+    }
+
+    inline void SetmVw(Eigen::Vector3f vw) {
+      // mutex
+      mVw = vw;
+    }
+
+
+    inline void SetmbHasVelocity(bool hasVelocity) {
+      // mutex
+      mbHasVelocity = hasVelocity;
+    }
+
+    inline void SetmTlr(Sophus::SE3<float> tlr) {
+      // mutex
+      mTlr = tlr;
+    }
+
+
+    inline void SetmTrl(Sophus::SE3<float> trl) {
+      // mutex
+      mTrl = trl;
+    }
+
+    inline void SetMvpMapPoints(std::vector<MapPoint*> mapPoints) {
+      // mutex
+      mvpMapPoints = mapPoints;
+    }
+    
+    inline void SetMvBackupMapPointsId(std::vector<long long int> backupMapPointsId) {
+      // mutex
+      mvBackupMapPointsId = backupMapPointsId;
+    }
+
+
+    inline void SetMpKeyFrameDB(KeyFrameDatabase* keyframeDb) {
+      // mutex
+      mpKeyFrameDB = keyframeDb;
+    }
+
+
+    inline void SetMpORBvocabulary(ORBVocabulary* orbVocab) {
+      // mutex
+      mpORBvocabulary = orbVocab;
+    }
+
+
+    inline void SetmGrid(std::vector< std::vector <std::vector<size_t> > > grid) {
+      // mutex
+      mGrid = grid;
+    }
+
+
+    inline void SetmConnectedKeyFrameWeights(std::map<KeyFrame*,int> connectedKeyFrameWeights) {
+      // mutex
+      mConnectedKeyFrameWeights = connectedKeyFrameWeights;
+    }
+
+
+    inline void SetMvOrderedConnectedKeyFrames(std::vector<KeyFrame*> orderedConnectedKeyFrames) {
+      // mutex
+      mvpOrderedConnectedKeyFrames = orderedConnectedKeyFrames;
+    }
+
+
+    inline void SetMvOrderedWeights(std::vector<int> orderedWeights) {
+      // mutex
+      mvOrderedWeights = orderedWeights;
+    }
+
+    inline void SetmBackupConnectedKeyFrameIdWeights(std::map<long unsigned int, int> backupConnectedKeyFrameIdWeights) {
+      // mutex
+      mBackupConnectedKeyFrameIdWeights = backupConnectedKeyFrameIdWeights;
+    }
+
+
+    inline void SetMbFirstConnection(bool firstConnection) {
+      // mutex
+      mbFirstConnection = firstConnection;
+    }
+
+    inline void SetMpParent(KeyFrame* parent) {
+      // mutex
+      mpParent = parent;
+    }
+
+    inline void SetMspChildrens(std::set<KeyFrame*> childrens) {
+      // mutex
+      mspChildrens = childrens;
+    }
+
+    inline void SetMspLoopEdges(std::set<KeyFrame*> loopEdges) {
+      // mutex
+      mspLoopEdges = loopEdges;
+    }
+
+    inline void SetMspMergeEdges(std::set<KeyFrame*> mergeEdges) {
+      // mutex
+      mspMergeEdges = mergeEdges;
+    }
+
+    inline void SetmBackupParentId(long long int backupParentId) {
+      // mutex
+      mBackupParentId = backupParentId;
+    }
+
+    inline void SetMvBackupChildrensId(std::vector<long unsigned int> backupChildrensId) {
+      // mutex
+      mvBackupChildrensId = backupChildrensId;
+    }
+
+    inline void SetMvBackupLoopEdgesId(std::vector<long unsigned int> backupLoopEdgesId) {
+      // mutex
+      mvBackupLoopEdgesId = backupLoopEdgesId;
+    }
+
+    inline void SetMvBackupParentId(std::vector<long unsigned int> backupMergeEdgesId) {
+      // mutex
+      mvBackupMergeEdgesId = backupMergeEdgesId;
+    }
+
+    inline void SetMbNotErase(bool notErase) {
+      // mutex
+      mbNotErase = notErase;
+    }
+
+    inline void SetMbToBeErased(bool toBeErased) {
+      // mutex
+      mbToBeErased = toBeErased;
+    }
+
+    inline void SetMbBad(bool bad) {
+      // mutex
+      mbBad = bad;
+    }
+
 };
 
 } //namespace ORB_SLAM

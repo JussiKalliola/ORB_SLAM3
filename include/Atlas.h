@@ -146,6 +146,8 @@ public:
       observer_ = observer;
     }
 
+    void AddKeyframeFromRos(KeyFrame* kf);
+
 protected:
 
     std::set<Map*> mspMaps;
@@ -177,6 +179,7 @@ private:
         observer_->onKeyframeAdded(kf);
       }
     }
+
 
 
 }; // class Atlas

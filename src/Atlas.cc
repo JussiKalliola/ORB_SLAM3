@@ -102,6 +102,13 @@ void Atlas::SetViewer(Viewer* pViewer)
     mHasViewer = true;
 }
 
+void Atlas::AddKeyframeFromRos(KeyFrame* kf) {
+    //Map* pMapKF = pKF->GetMap();
+
+    cout << "============== Adding keyframe from ros network in Atlas ==============" << endl;
+
+    //pMapKF->AddKeyFrame(pKF);
+}
 void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();

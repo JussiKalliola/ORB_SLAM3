@@ -102,6 +102,18 @@ public:
     int GetNumberDataset();
     int GetMatchesInliers();
 
+    
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
+    
+
+    void notifyObserverAddKeyframe(KeyFrame* pKF) {
+      if (observer_) {
+        observer_->onKeyframeAdded(pKF);
+      }
+    }
+    
     //DEBUG
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, string strFolder="");
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, Map* pMap);
@@ -366,7 +378,12 @@ protected:
     std::mutex mMutexStop;
 #endif
 
+private:
+    std::shared_ptr<Observer> observer_;
+
+
 public:
+
     cv::Mat mImRight;
 };
 

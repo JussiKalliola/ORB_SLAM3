@@ -188,6 +188,15 @@ public:
     void ChangeDataset();
 
     float GetImageScale();
+    
+    inline Tracking* GetTrackerPtr() {
+      return mpTracker;
+    }
+
+
+    inline LocalMapping* GetMapperPtr() {
+      return mpLocalMapper;
+    }
 
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
@@ -277,9 +286,9 @@ private:
 
     std::shared_ptr<Observer> observer_;
     
-    void notifyObserver(int keyframeId) {
+    void notifyObserverAddKeyframe(KeyFrame* pKF) {
       if (observer_) {
-        observer_->onKeyframeChanged(keyframeId);
+        observer_->onKeyframeAdded(pKF);
       }
     }
 

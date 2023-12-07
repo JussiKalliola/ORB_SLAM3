@@ -233,6 +233,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     if (observer != nullptr) {
       attachObserver(observer);
       mpAtlas->attachObserver(observer);
+      mpTracker->attachObserver(observer);
     }
 
     //usleep(10*1000*1000);

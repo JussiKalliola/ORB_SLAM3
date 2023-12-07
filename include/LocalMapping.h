@@ -129,6 +129,11 @@ public:
     int nLBA_exec;
     int nLBA_abort;
 #endif
+
+
+    void InsertKeyframeFromRos(KeyFrame* pKF);
+
+
 protected:
 
     bool CheckNewKeyFrames();

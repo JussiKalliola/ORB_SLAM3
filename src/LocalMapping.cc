@@ -292,6 +292,15 @@ void LocalMapping::Run()
     SetFinish();
 }
 
+void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
+    //TODO: subscirber node will insert KF broadcasted by Tracking
+    Verbose::PrintMess("Thread1=LocalMapping::AddKeyframeFromRos **************************", Verbose::VERBOSITY_NORMAL);
+    unique_lock<mutex> lock(mMutexNewKFs);
+    mlNewKeyFrames.push_back(pKF);
+    mbAbortBA=true;
+}
+
+
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 {
     //TODO: subscirber node will insert KF broadcasted by Tracking

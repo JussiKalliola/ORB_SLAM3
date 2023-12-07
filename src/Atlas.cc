@@ -102,19 +102,19 @@ void Atlas::SetViewer(Viewer* pViewer)
     mHasViewer = true;
 }
 
-void Atlas::AddKeyframeFromRos(KeyFrame* kf) {
+//void Atlas::AddKeyframeFromRos(KeyFrame* kf) {
     //Map* pMapKF = pKF->GetMap();
 
-    cout << "============== Adding keyframe from ros network in Atlas ==============" << endl;
+//    cout << "============== Adding keyframe from ros network in Atlas ==============" << endl;
 
-    //pMapKF->AddKeyFrame(pKF);
-}
+//    pMapKF->AddKeyFrame(pKF);
+//}
 void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();
 
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
-    notifyObserverKeyframeAdded(pKF);
+    //notifyObserverKeyframeAdded(pKF);
 
     pMapKF->AddKeyFrame(pKF);
 }

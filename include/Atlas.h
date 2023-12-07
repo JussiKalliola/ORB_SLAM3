@@ -146,7 +146,7 @@ public:
       observer_ = observer;
     }
 
-    void AddKeyframeFromRos(KeyFrame* kf);
+    //void AddKeyframeFromRos(KeyFrame* kf);
 
 protected:
 

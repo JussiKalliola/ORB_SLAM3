@@ -75,6 +75,9 @@ void Atlas::CreateNewMap()
 
     mpCurrentMap = new Map(mnLastInitKFidMap);
     mpCurrentMap->SetCurrentMap();
+
+    // Notify ROS node about new map and broadcast
+    notifyObserverMapAdded(mpCurrentMap); 
     mspMaps.insert(mpCurrentMap);
 }
 

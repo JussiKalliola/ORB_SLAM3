@@ -493,5 +493,36 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc/*, map<long u
     mvpBackupMapPoints.clear();
 }
 
+std::vector<long unsigned int> Map::GetBackupMapPointsId() {
+  std::vector<long unsigned int> ids;
+  for(MapPoint* mp : mspMapPoints) {
+    ids.push_back(mp->mnId);
+  }
+  return ids;
+}
+std::vector<long unsigned int> Map::GetBackupKeyFrames() {
+  std::vector<long unsigned int> ids;
+  for(KeyFrame* kf : mspKeyFrames) {
+    ids.push_back(kf->mnId);
+  }
+  return ids;
+}
+
+long int Map::GetBackupKFInitialID() {
+  std::cout << mnBackupKFinitialID << std::endl;
+  return (mpKFinitial) ? mpKFinitial->mnId : -1; 
+}
+
+long unsigned int Map::GetBackupKFLowerID() {
+ return mnBackupKFlowerID;
+}
+
+std::vector<long unsigned int> Map::GetBackupReferenceMapPointsId() {
+  std::vector<long unsigned int> ids;
+  for(MapPoint* mp : mvpReferenceMapPoints) {
+    ids.push_back(mp->mnId);
+  } 
+  return ids;
+}
 
 } //namespace ORB_SLAM3

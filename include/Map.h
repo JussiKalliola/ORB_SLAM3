@@ -99,7 +99,10 @@ public:
     void SetCurrentMap();
     void SetStoredMap();
 
-    bool HasThumbnail();
+    inline bool HasThumbnail() {
+      return mHasTumbnail;
+    }
+
     bool IsInUse();
 
     void SetBad();
@@ -155,12 +158,40 @@ public:
     std::set<long unsigned int> msOptKFs;
     std::set<long unsigned int> msFixedKFs;
 
-    inline std::vector<long unsigned int> GetBackupMapPointsId() {
-      std::vector<long unsigned int> ids = std::vector<long unsigned int>();
-      for(MapPoint* mp : mvpBackupMapPoints) {
-        ids.push_back(mp->mnId);
-      }
+    inline std::vector<long unsigned int> GetOptKFs() {
+      std::vector<long unsigned int> ids(msOptKFs.begin(), msOptKFs.end());
       return ids;
+    }
+
+    std::vector<long unsigned int> GetFixedKFs() {
+      std::vector<long unsigned int> ids(msFixedKFs.begin(), msFixedKFs.end());
+      return ids;
+    }
+    
+    std::vector<long unsigned int> GetBackupMapPointsId();
+    std::vector<long unsigned int> GetBackupKeyFrames();
+    long int GetBackupKFInitialID();
+    long unsigned int GetBackupKFLowerID();
+    std::vector<long unsigned int> GetBackupReferenceMapPointsId();
+
+    inline bool GetImuInitialized() {
+      return mbImuInitialized;
+    }
+
+    inline int GetMapChange() {
+      return mnMapChange;
+    }
+
+    inline int GetMapChangeNotified() {
+      return mnMapChangeNotified;
+    }
+
+    inline int GetBigChangeIdx() {
+      return mnBigChangeIdx;
+    }
+
+    inline bool GetIsBad() {
+      return mbBad;
     }
 
 protected:

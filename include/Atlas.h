@@ -180,6 +180,11 @@ private:
       }
     }
 
+    void notifyObserverMapAdded(Map* pM) {
+      if (observer_) {
+        observer_->onMapAdded(pM);
+      }
+    }
 
 
 }; // class Atlas

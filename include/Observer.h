@@ -3,6 +3,7 @@
 #define OBSERVER_H
 
 #include "KeyFrame.h"
+#include "Map.h"
 
 namespace ORB_SLAM3
 {
@@ -11,6 +12,7 @@ class Observer {
   public:
         virtual void onKeyframeChanged(int keyframeId) = 0;
         virtual void onKeyframeAdded(KeyFrame* kf) = 0;
+        virtual void onMapAdded(Map* pM) = 0;
         virtual ~Observer() {}
 };
 

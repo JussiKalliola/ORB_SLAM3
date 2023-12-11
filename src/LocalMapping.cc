@@ -329,6 +329,7 @@ void LocalMapping::ProcessNewKeyFrame()
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW" << std::endl; 
     // Associate MapPoints to the new keyframe and update normal and descriptor
     const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
 
@@ -353,11 +354,14 @@ void LocalMapping::ProcessNewKeyFrame()
         }
     }
 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Observations added to map points." << std::endl; 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections();
 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
 }
 
 void LocalMapping::EmptyQueue()

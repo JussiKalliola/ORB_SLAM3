@@ -155,6 +155,14 @@ public:
     std::set<long unsigned int> msOptKFs;
     std::set<long unsigned int> msFixedKFs;
 
+    inline std::vector<long unsigned int> GetBackupMapPointsId() {
+      std::vector<long unsigned int> ids = std::vector<long unsigned int>();
+      for(MapPoint* mp : mvpBackupMapPoints) {
+        ids.push_back(mp->mnId);
+      }
+      return ids;
+    }
+
 protected:
 
     long unsigned int mnId;

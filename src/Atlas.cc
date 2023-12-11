@@ -109,12 +109,14 @@ void Atlas::SetViewer(Viewer* pViewer)
 
 //    pMapKF->AddKeyFrame(pKF);
 //}
-void Atlas::AddKeyFrame(KeyFrame* pKF)
+void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
 {
     Map* pMapKF = pKF->GetMap();
 
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
-    //notifyObserverKeyframeAdded(pKF);
+    if (!fromRos) {
+      notifyObserverKeyframeAdded(pKF);
+    }
 
     pMapKF->AddKeyFrame(pKF);
 }

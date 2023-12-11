@@ -3361,8 +3361,8 @@ void Tracking::CreateNewKeyFrame()
     
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     // TODO: Here the keyframe needs to be sent to ros network!!
-    notifyObserverAddKeyframe(pKF);
-
+    //notifyObserverAddKeyframe(pKF);
+    
     mpLocalMapper->InsertKeyFrame(pKF);
 
     mpLocalMapper->SetNotStop(false);

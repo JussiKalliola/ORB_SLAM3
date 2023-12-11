@@ -115,6 +115,70 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     mnId=nNextId++;
 }
 
+MapPoint::MapPoint(
+    long unsigned int mnId = 0,
+    long int mnFirstKFid = 0,
+    long int mnFirstFrame = 0,
+    int nObs = 0,
+    float mTrackProjX = 0.0,
+    float mTrackProjY = 0.0,
+    float mTrackDepth = 0.0,
+    float mTrackDepthR = 0.0,
+    float mTrackProjXR = 0.0,
+    float mTrackProjYR = 0.0,
+    bool mbTrackInView = false, 
+    bool mbTrackInViewR = false,
+    int mnTrackScaleLevel = 0, 
+    int mnTrackScaleLevelR = 0,
+    float mTrackViewCos = 0.0, 
+    float mTrackViewCosR = 0.0,
+    long unsigned int mnTrackReferenceForFrame = 0,
+    long unsigned int mnLastFrameSeen = 0,
+    long unsigned int mnBALocalForKF = 0,
+    long unsigned int mnFuseCandidateForKF = 0,
+    long unsigned int mnLoopPointForKF = 0,
+    long unsigned int mnCorrectedByKF = 0,
+    long unsigned int mnCorrectedReference = 0,    
+    Eigen::Vector3f mPosGBA = Eigen::Vector3f(),
+    long unsigned int mnBAGlobalForKF = 0,
+    long unsigned int mnBALocalForMerge = 0,
+    Eigen::Vector3f mPosMerge = Eigen::Vector3f(),
+    Eigen::Vector3f mNormalVectorMerge = Eigen::Vector3f(),
+    double mInvDepth = 0.0,
+    double mInitU = 0.0,
+    double mInitV = 0.0,
+    KeyFrame* mpHostKF = nullptr,
+    unsigned int mnOriginMapId = 0,
+    Eigen::Vector3f mWorldPos = Eigen::Vector3f(),
+    std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),
+    std::map<long unsigned int, int> mBackupObservationsId1 = std::map<long unsigned int, int>(),
+    std::map<long unsigned int, int> mBackupObservationsId2 = std::map<long unsigned int, int>(),
+    Eigen::Vector3f mNormalVector = Eigen::Vector3f(),
+    cv::Mat mDescriptor = cv::Mat(),
+    KeyFrame* mpRefKF = nullptr,
+    long unsigned int mBackupRefKFId = 0,
+    int mnVisible = 0,
+    int mnFound = 0,
+    bool mbBad = false,
+    MapPoint* mpReplaced = nullptr,
+    long long int mBackupReplacedId = 0,
+    float mfMinDistance = 0.0,
+    float mfMaxDistance = 0.0,
+    Map* mpMap = nullptr
+    ):
+    mnId(mnId), mnFirstKFid(mnFirstKFid), mnFirstFrame(mnFirstFrame), nObs(nObs), mTrackProjX(mTrackProjX), mTrackProjY(mTrackProjY), mTrackDepth(mTrackDepth), mTrackDepthR(mTrackDepthR), mTrackProjXR(mTrackProjXR), mTrackProjYR(mTrackProjYR), mbTrackInView(mbTrackInView), mbTrackInViewR(mbTrackInViewR), mnTrackScaleLevel(mnTrackScaleLevel), mnTrackScaleLevelR(mnTrackScaleLevelR), mTrackViewCos(mTrackViewCos), mTrackViewCosR(mTrackViewCosR), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnLastFrameSeen(mnLastFrameSeen), mnBALocalForKF(mnBALocalForKF), mnFuseCandidateForKF(mnFuseCandidateForKF), mnLoopPointForKF(mnLoopPointForKF), mnCorrectedByKF(mnCorrectedByKF), mnCorrectedReference(mnCorrectedReference), mPosGBA(mPosGBA), mnBAGlobalForKF(mnBAGlobalForKF), mnBALocalForMerge(mnBALocalForMerge), mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), mpHostKF(mpHostKF), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), mObservations(mObservations), mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), mDescriptor(mDescriptor), mpRefKF(mpRefKF), mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), mpReplaced(mpReplaced), mBackupReplacedId(mBackupReplacedId), mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance), mpMap(mpMap)
+{
+    //SetWorldPos(Pos);
+
+    //mNormalVector.setZero();
+
+    //mbTrackInViewR = false;
+    //mbTrackInView = false;
+
+    //// MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
+    //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    //mnId=nNextId++;
+}
 void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);

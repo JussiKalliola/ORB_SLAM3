@@ -39,7 +39,6 @@ KeyFrame::KeyFrame():
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
         NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false)
 {
-
 }
 
 KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
@@ -62,6 +61,8 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false)
 {
     mnId=nNextId++;
+    
+    attachObserver(mpMap->GetObserver());
 
     mGrid.resize(mnGridCols);
     if(F.Nleft != -1)  mGridRight.resize(mnGridCols);
@@ -640,6 +641,7 @@ void KeyFrame::AddChild(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
     mspChildrens.insert(pKF);
+    notifyObserverAddChild(this->mnId, pKF->mnId);
 }
 
 void KeyFrame::EraseChild(KeyFrame *pKF)

@@ -2,17 +2,22 @@
 #ifndef OBSERVER_H
 #define OBSERVER_H
 
-#include "KeyFrame.h"
-#include "Map.h"
+//#include "KeyFrame.h"
+//#include "Map.h"
 
 namespace ORB_SLAM3
 {
+class KeyFrame;
 
 class Observer {
   public:
         virtual void onKeyframeChanged(int keyframeId) = 0;
         virtual void onKeyframeAdded(KeyFrame* kf) = 0;
-        virtual void onMapAdded(Map* pM) = 0;
+        //virtual void onMapAdded(Map* pM) = 0;
+        virtual void onMapAddedById(unsigned long int id) = 0;
+        virtual void onAtlasAction(int actionId, unsigned long int id) = 0;
+        virtual void onAtlasAction(int actionId, bool boolAction) = 0;
+        virtual void onKFActionAddChild(unsigned long int hostKfId, unsigned long int targetKfId) = 0;
         virtual ~Observer() {}
 };
 

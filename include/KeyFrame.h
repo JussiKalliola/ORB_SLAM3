@@ -28,6 +28,7 @@
 #include "Frame.h"
 #include "KeyFrameDatabase.h"
 #include "ImuTypes.h"
+#include "Observer.h"
 
 #include "GeometricCamera.h"
 #include "SerializationUtils.h"
@@ -46,6 +47,7 @@ class Map;
 class MapPoint;
 class Frame;
 class KeyFrameDatabase;
+class Observer;
 
 class GeometricCamera;
 
@@ -328,6 +330,9 @@ public:
 
     bool bImu;
 
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
 
@@ -518,6 +523,13 @@ protected:
     // Calibration
     Eigen::Matrix3f mK_;
 
+    std::shared_ptr<Observer> observer_;
+
+    void notifyObserverAddChild(unsigned long int hostKfId, unsigned long int targetKfId) {
+      if (observer_) {
+        observer_->onKFActionAddChild(hostKfId, targetKfId);
+      }
+    }
     // Mutex
     std::mutex mMutexPose; // for pose, velocity and biases
     std::mutex mMutexConnections;
@@ -562,6 +574,13 @@ public:
         }
         cout << "Point distribution in KeyFrame: left-> " << left << " --- right-> " << right << endl;
     }
+
+
+
+
+
+
+
 
 
     // Protected setters

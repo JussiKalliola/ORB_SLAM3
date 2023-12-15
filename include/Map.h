@@ -22,6 +22,7 @@
 
 #include "MapPoint.h"
 #include "KeyFrame.h"
+#include "Observer.h"
 
 #include <set>
 #include <pangolin/pangolin.h>
@@ -37,6 +38,7 @@ class MapPoint;
 class KeyFrame;
 class Atlas;
 class KeyFrameDatabase;
+class Observer;
 
 class Map
 {
@@ -194,8 +196,18 @@ public:
       return mbBad;
     }
 
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
+    
+    std::shared_ptr<Observer> GetObserver() {
+      return observer_;
+    }
+
 protected:
 
+    std::shared_ptr<Observer> observer_;
+    
     long unsigned int mnId;
 
     std::set<MapPoint*> mspMapPoints;

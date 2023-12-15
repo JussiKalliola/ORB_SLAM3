@@ -144,6 +144,10 @@ public:
 
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
+
+      if (this->mpCurrentMap) {
+        this->mpCurrentMap->attachObserver(this->observer_);
+      }
     }
 
     //void AddKeyframeFromRos(KeyFrame* kf);
@@ -179,12 +183,36 @@ private:
         observer_->onKeyframeAdded(kf);
       }
     }
-
-    void notifyObserverMapAdded(Map* pM) {
+    
+    void notifyObserverMapPointAddedAction(unsigned long int mpId) {
       if (observer_) {
-        observer_->onMapAdded(pM);
+        //observer_->onAtlasActionAddMapPoint(mpId);
       }
     }
+    
+    void notifyObserverAtlasAction(int actionId, bool boolAction) {
+      if (observer_) {
+        observer_->onAtlasAction(actionId, boolAction);
+      }
+    }
+    
+    void notifyObserverAtlasAction(int actionId, unsigned long int kfId) {
+      if (observer_) {
+        observer_->onAtlasAction(actionId, kfId);
+      }
+    }
+    
+    void notifyObserverMapAddedById(unsigned long int id) {
+      if (observer_) {
+        observer_->onMapAddedById(id);
+      }
+    }
+
+    //void notifyObserverMapAdded(Map* pM) {
+    //  if (observer_) {
+    //    observer_->onMapAdded(pM);
+    //  }
+    //}
 
 
 }; // class Atlas

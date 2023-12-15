@@ -73,11 +73,15 @@ void Atlas::CreateNewMap()
     }
     cout << "Thread1=Atlas::CreateNewMap : Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
 
+    std::cout << mnLastInitKFidMap << std::endl;
     mpCurrentMap = new Map(mnLastInitKFidMap);
     mpCurrentMap->SetCurrentMap();
-
+    std::cout << mnLastInitKFidMap << std::endl;
+    
     // Notify ROS node about new map and broadcast
-    notifyObserverMapAdded(mpCurrentMap); 
+    //notifyObserverMapAdded(mpCurrentMap); 
+    notifyObserverAtlasAction(4, true);
+    //notifyObserverMapAddedById(mnLastInitKFidMap); 
     mspMaps.insert(mpCurrentMap);
 }
 
@@ -128,6 +132,7 @@ void Atlas::AddMapPoint(MapPoint* pMP)
 {
     Map* pMapMP = pMP->GetMap();
     pMapMP->AddMapPoint(pMP);
+    notifyObserverMapPointAddedAction(pMP->mnId);
 }
 
 GeometricCamera* Atlas::AddCamera(GeometricCamera* pCam)

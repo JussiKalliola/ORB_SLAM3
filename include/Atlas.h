@@ -78,8 +78,8 @@ public:
     Atlas(int initKFid); // When its initialization the first map is created
     ~Atlas();
 
-    void CreateNewMap();
-    void ChangeMap(Map* pMap);
+    void CreateNewMap(bool fromRos=false);
+    void ChangeMap(Map* pMap, bool fromRos=false);
 
     unsigned long int GetLastInitKFid();
 
@@ -87,7 +87,7 @@ public:
 
     // Method for change components in the current map
     void AddKeyFrame(KeyFrame* pKF, bool fromRos=false);
-    void AddMapPoint(MapPoint* pMP);
+    void AddMapPoint(MapPoint* pMP, bool fromRos=false);
     //void EraseMapPoint(MapPoint* pMP);
     //void EraseKeyFrame(KeyFrame* pKF);
 
@@ -96,7 +96,7 @@ public:
 
     /* All methods without Map pointer work on current map */
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
-    void InformNewBigChange();
+    void InformNewBigChange(bool fromRos=false);
     int GetLastBigChangeIdx();
 
     long unsigned int MapPointsInMap();
@@ -111,18 +111,18 @@ public:
 
     int CountMaps();
 
-    void clearMap();
+    void clearMap(bool fromRos=false);
 
-    void clearAtlas();
+    void clearAtlas(bool fromRos=false);
 
     Map* GetCurrentMap();
 
-    void SetMapBad(Map* pMap);
-    void RemoveBadMaps();
+    void SetMapBad(Map* pMap, bool fromRos=false);
+    void RemoveBadMaps(bool fromRos=false);
 
     bool isInertial();
-    void SetInertialSensor();
-    void SetImuInitialized();
+    void SetInertialSensor(bool fromRos=false);
+    void SetImuInitialized(bool fromRos=false);
     bool isImuInitialized();
 
     // Function for garantee the correction of serialization of this object

@@ -56,7 +56,7 @@ Atlas::~Atlas()
     }
 }
 
-void Atlas::CreateNewMap()
+void Atlas::CreateNewMap(bool fromRos)
 {
     
     unique_lock<mutex> lock(mMutexAtlas);
@@ -80,12 +80,14 @@ void Atlas::CreateNewMap()
     
     // Notify ROS node about new map and broadcast
     //notifyObserverMapAdded(mpCurrentMap); 
-    notifyObserverAtlasAction(4, true);
+    if (!fromRos) {
+      notifyObserverAtlasAction(4, true);
+    }
     //notifyObserverMapAddedById(mnLastInitKFidMap); 
     mspMaps.insert(mpCurrentMap);
 }
 
-void Atlas::ChangeMap(Map* pMap)
+void Atlas::ChangeMap(Map* pMap, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     cout << "Change to map with id: " << pMap->GetId() << endl;
@@ -95,6 +97,9 @@ void Atlas::ChangeMap(Map* pMap)
 
     mpCurrentMap = pMap;
     mpCurrentMap->SetCurrentMap();
+    if(!fromRos) {
+      notifyObserverAtlasAction(1, pMap->GetId());
+    }
 }
 
 unsigned long int Atlas::GetLastInitKFid()
@@ -109,13 +114,6 @@ void Atlas::SetViewer(Viewer* pViewer)
     mHasViewer = true;
 }
 
-//void Atlas::AddKeyframeFromRos(KeyFrame* kf) {
-    //Map* pMapKF = pKF->GetMap();
-
-//    cout << "============== Adding keyframe from ros network in Atlas ==============" << endl;
-
-//    pMapKF->AddKeyFrame(pKF);
-//}
 void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
 {
     Map* pMapKF = pKF->GetMap();
@@ -123,16 +121,19 @@ void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
     if (!fromRos) {
       notifyObserverKeyframeAdded(pKF);
+      //notifyObserverAtlasAction(2, pKF->mnId);
     }
 
     pMapKF->AddKeyFrame(pKF);
 }
 
-void Atlas::AddMapPoint(MapPoint* pMP)
+void Atlas::AddMapPoint(MapPoint* pMP, bool fromRos)
 {
     Map* pMapMP = pMP->GetMap();
     pMapMP->AddMapPoint(pMP);
-    notifyObserverMapPointAddedAction(pMP->mnId);
+    if(!fromRos) {
+      notifyObserverAtlasAction(0, pMP->mnId);
+    }
 }
 
 GeometricCamera* Atlas::AddCamera(GeometricCamera* pCam)
@@ -187,10 +188,13 @@ void Atlas::SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs)
     mpCurrentMap->SetReferenceMapPoints(vpMPs);
 }
 
-void Atlas::InformNewBigChange()
+void Atlas::InformNewBigChange(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     mpCurrentMap->InformNewBigChange();
+    if(!fromRos) {
+      notifyObserverAtlasAction(5, true);
+    }
 }
 
 int Atlas::GetLastBigChangeIdx()
@@ -250,13 +254,16 @@ int Atlas::CountMaps()
     return mspMaps.size();
 }
 
-void Atlas::clearMap()
+void Atlas::clearMap(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     mpCurrentMap->clear();
+    if(!fromRos) {
+      notifyObserverAtlasAction(6, true);
+    }
 }
 
-void Atlas::clearAtlas()
+void Atlas::clearAtlas(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     /*for(std::set<Map*>::iterator it=mspMaps.begin(), send=mspMaps.end(); it!=send; it++)
@@ -267,6 +274,9 @@ void Atlas::clearAtlas()
     mspMaps.clear();
     mpCurrentMap = static_cast<Map*>(NULL);
     mnLastInitKFidMap = 0;
+    if(!fromRos) {
+      notifyObserverAtlasAction(7, true);
+    }
 }
 
 Map* Atlas::GetCurrentMap()
@@ -280,21 +290,26 @@ Map* Atlas::GetCurrentMap()
     return mpCurrentMap;
 }
 
-void Atlas::SetMapBad(Map* pMap)
+void Atlas::SetMapBad(Map* pMap, bool fromRos)
 {
     mspMaps.erase(pMap);
     pMap->SetBad();
-
+    if(!fromRos) {
+      notifyObserverAtlasAction(3, pMap->GetId());
+    }
     mspBadMaps.insert(pMap);
 }
 
-void Atlas::RemoveBadMaps()
+void Atlas::RemoveBadMaps(bool fromRos)
 {
     /*for(Map* pMap : mspBadMaps)
     {
         delete pMap;
         pMap = static_cast<Map*>(NULL);
     }*/
+    if(!fromRos) {
+      notifyObserverAtlasAction(8, true);
+    }
     mspBadMaps.clear();
 }
 
@@ -304,16 +319,22 @@ bool Atlas::isInertial()
     return mpCurrentMap->IsInertial();
 }
 
-void Atlas::SetInertialSensor()
+void Atlas::SetInertialSensor(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     mpCurrentMap->SetInertialSensor();
+    if(!fromRos) {
+      notifyObserverAtlasAction(9, true);
+    }
 }
 
-void Atlas::SetImuInitialized()
+void Atlas::SetImuInitialized(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexAtlas);
     mpCurrentMap->SetImuInitialized();
+    if(!fromRos) {
+      notifyObserverAtlasAction(10, true);
+    }
 }
 
 bool Atlas::isImuInitialized()

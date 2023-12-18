@@ -527,7 +527,7 @@ protected:
 
     void notifyObserverAddChild(unsigned long int hostKfId, unsigned long int targetKfId) {
       if (observer_) {
-        observer_->onKFActionAddChild(hostKfId, targetKfId);
+        //observer_->onKFActionAddChild(hostKfId, targetKfId);
       }
     }
     // Mutex

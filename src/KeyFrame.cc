@@ -258,8 +258,13 @@ bImu(bImu), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols(mnGridCols)
 
 
 
-void KeyFrame::ComputeBoW()
+void KeyFrame::ComputeBoW(bool fromRos)
 {
+
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 15, true);
+    }
+
     if(mBowVec.empty() || mFeatVec.empty())
     {
         vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
@@ -269,10 +274,14 @@ void KeyFrame::ComputeBoW()
     }
 }
 
-void KeyFrame::SetPose(const Sophus::SE3f &Tcw)
+void KeyFrame::SetPose(const Sophus::SE3f &Tcw, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexPose);
 
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 0, Tcw);
+    }
+    
     mTcw = Tcw;
     mRcw = mTcw.rotationMatrix();
     mTwc = mTcw.inverse();
@@ -284,9 +293,12 @@ void KeyFrame::SetPose(const Sophus::SE3f &Tcw)
     }
 }
 
-void KeyFrame::SetVelocity(const Eigen::Vector3f &Vw)
+void KeyFrame::SetVelocity(const Eigen::Vector3f &Vw, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexPose);
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 1, Vw);
+    }
     mVw = Vw;
     mbHasVelocity = true;
 }
@@ -349,10 +361,15 @@ bool KeyFrame::isVelocitySet()
     return mbHasVelocity;
 }
 
-void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
+void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight, bool fromRos)
 {
     {
         unique_lock<mutex> lock(mMutexConnections);
+        
+        if(!fromRos) {
+          notifyObserverKFAction(mnId, 2, pKF->mnId, weight);
+        }
+
         if(!mConnectedKeyFrameWeights.count(pKF))
             mConnectedKeyFrameWeights[pKF]=weight;
         else if(mConnectedKeyFrameWeights[pKF]!=weight)
@@ -364,9 +381,14 @@ void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
     UpdateBestCovisibles();
 }
 
-void KeyFrame::UpdateBestCovisibles()
+void KeyFrame::UpdateBestCovisibles(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 16, true);
+    }
+
     vector<pair<int,KeyFrame*> > vPairs;
     vPairs.reserve(mConnectedKeyFrameWeights.size());
     for(map<KeyFrame*,int>::iterator mit=mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
@@ -457,21 +479,36 @@ int KeyFrame::GetNumberMPs()
     return numberMPs;
 }
 
-void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx)
+void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     //mvpMapPoints.push_back(pMP);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
+    }
+
     mvpMapPoints[idx]=pMP;
 }
 
-void KeyFrame::EraseMapPointMatch(const int &idx)
+void KeyFrame::EraseMapPointMatch(const int &idx, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 4, static_cast<unsigned long int>(idx));
+    }
+
     mvpMapPoints[idx]=static_cast<MapPoint*>(NULL);
 }
 
-void KeyFrame::EraseMapPointMatch(MapPoint* pMP)
+void KeyFrame::EraseMapPointMatch(MapPoint* pMP, bool fromRos)
 {
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 5, pMP->mnId);
+    }
+
     tuple<size_t,size_t> indexes = pMP->GetIndexInKeyFrame(this);
     size_t leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
     if(leftIndex != -1)
@@ -481,8 +518,13 @@ void KeyFrame::EraseMapPointMatch(MapPoint* pMP)
 }
 
 
-void KeyFrame::ReplaceMapPointMatch(const int &idx, MapPoint* pMP)
+void KeyFrame::ReplaceMapPointMatch(const int &idx, MapPoint* pMP, bool fromRos)
 {
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 6, pMP->mnId, idx);
+    }
+
     mvpMapPoints[idx]=pMP;
 }
 
@@ -540,8 +582,13 @@ MapPoint* KeyFrame::GetMapPoint(const size_t &idx)
     return mvpMapPoints[idx];
 }
 
-void KeyFrame::UpdateConnections(bool upParent)
+void KeyFrame::UpdateConnections(bool upParent, bool fromRos)
 {
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 17, true);
+    }
+
     map<KeyFrame*,int> KFcounter;
 
     vector<MapPoint*> vpMP;
@@ -637,20 +684,30 @@ void KeyFrame::UpdateConnections(bool upParent)
     }
 }
 
-void KeyFrame::AddChild(KeyFrame *pKF)
+void KeyFrame::AddChild(KeyFrame *pKF, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 7, pKF->mnId);
+    }
+    
     mspChildrens.insert(pKF);
-    notifyObserverAddChild(this->mnId, pKF->mnId);
+    //notifyObserverAddChild(mnId, pKF->mnId);
 }
 
-void KeyFrame::EraseChild(KeyFrame *pKF)
+void KeyFrame::EraseChild(KeyFrame *pKF, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 8, pKF->mnId);
+    }
+    
     mspChildrens.erase(pKF);
 }
 
-void KeyFrame::ChangeParent(KeyFrame *pKF)
+void KeyFrame::ChangeParent(KeyFrame *pKF, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
     if(pKF == this)
@@ -658,6 +715,11 @@ void KeyFrame::ChangeParent(KeyFrame *pKF)
         cout << "ERROR: Change parent KF, the parent and child are the same KF" << endl;
         throw std::invalid_argument("The parent and child can not be the same");
     }
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 9, pKF->mnId);
+    }
+    
 
     mpParent = pKF;
     pKF->AddChild(this);
@@ -681,15 +743,25 @@ bool KeyFrame::hasChild(KeyFrame *pKF)
     return mspChildrens.count(pKF);
 }
 
-void KeyFrame::SetFirstConnection(bool bFirst)
+void KeyFrame::SetFirstConnection(bool bFirst, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 18, true);
+    }
+    
     mbFirstConnection=bFirst;
 }
 
-void KeyFrame::AddLoopEdge(KeyFrame *pKF)
+void KeyFrame::AddLoopEdge(KeyFrame *pKF, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 10, pKF->mnId);
+    }
+    
     mbNotErase = true;
     mspLoopEdges.insert(pKF);
 }
@@ -700,9 +772,14 @@ set<KeyFrame*> KeyFrame::GetLoopEdges()
     return mspLoopEdges;
 }
 
-void KeyFrame::AddMergeEdge(KeyFrame* pKF)
+void KeyFrame::AddMergeEdge(KeyFrame* pKF, bool fromRos)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 11, pKF->mnId);
+    }
+    
     mbNotErase = true;
     mspMergeEdges.insert(pKF);
 }
@@ -713,14 +790,24 @@ set<KeyFrame*> KeyFrame::GetMergeEdges()
     return mspMergeEdges;
 }
 
-void KeyFrame::SetNotErase()
+void KeyFrame::SetNotErase(bool fromRos)
 {
     unique_lock<mutex> lock(mMutexConnections);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 19, true);
+    }
+    
     mbNotErase = true;
 }
 
-void KeyFrame::SetErase()
+void KeyFrame::SetErase(bool fromRos)
 {
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 20, true);
+    }
+    
     {
         unique_lock<mutex> lock(mMutexConnections);
         if(mspLoopEdges.empty())
@@ -735,10 +822,15 @@ void KeyFrame::SetErase()
     }
 }
 
-void KeyFrame::SetBadFlag()
+void KeyFrame::SetBadFlag(bool fromRos)
 {
     {
         unique_lock<mutex> lock(mMutexConnections);
+    
+        if(!fromRos) {
+          notifyObserverKFAction(mnId, 21, true);
+        }
+    
         if(mnId==mpMap->GetInitKFid())
         {
             return;
@@ -849,7 +941,7 @@ bool KeyFrame::isBad()
     return mbBad;
 }
 
-void KeyFrame::EraseConnection(KeyFrame* pKF)
+void KeyFrame::EraseConnection(KeyFrame* pKF, bool fromRos)
 {
     bool bUpdate = false;
     {
@@ -971,9 +1063,14 @@ float KeyFrame::ComputeSceneMedianDepth(const int q)
     return vDepths[(vDepths.size()-1)/q];
 }
 
-void KeyFrame::SetNewBias(const IMU::Bias &b)
+void KeyFrame::SetNewBias(const IMU::Bias &b, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexPose);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 13, b);
+    }
+    
     mImuBias = b;
     if(mpImuPreintegrated)
         mpImuPreintegrated->SetNewBias(b);
@@ -1003,9 +1100,14 @@ Map* KeyFrame::GetMap()
     return mpMap;
 }
 
-void KeyFrame::UpdateMap(Map* pMap)
+void KeyFrame::UpdateMap(Map* pMap, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexMap);
+    
+    if(!fromRos) {
+      notifyObserverKFAction(mnId, 14, pMap->GetId());
+    }
+    
     mpMap = pMap;
 }
 

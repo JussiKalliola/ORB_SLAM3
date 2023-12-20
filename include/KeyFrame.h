@@ -206,8 +206,8 @@ public:
         //IMU::Preintegrated* mBackupImuPreintegrated, 
         unsigned int mnBackupIdCamera, unsigned int mnBackupIdCamera2, Eigen::Matrix3f mK_, GeometricCamera* mpCamera, GeometricCamera* mpCamera2, std::vector<int> mvLeftToRightMatch, std::vector<int> mvRightToLeftMatch, const std::vector<cv::KeyPoint> mvKeysRight, const int NLeft, const int NRight, std::vector< std::vector <std::vector<size_t> > > mGridRight);
     // Pose functions
-    void SetPose(const Sophus::SE3f &Tcw);
-    void SetVelocity(const Eigen::Vector3f &Vw_);
+    void SetPose(const Sophus::SE3f &Tcw, bool fromRos=false);
+    void SetVelocity(const Eigen::Vector3f &Vw_, bool fromRos=false);
 
     Sophus::SE3f GetPose();
 
@@ -223,14 +223,14 @@ public:
     bool isVelocitySet();
 
     // Bag of Words Representation
-    void ComputeBoW();
+    void ComputeBoW(bool fromRos=false);
 
     // Covisibility graph functions
-    void AddConnection(KeyFrame* pKF, const int &weight);
-    void EraseConnection(KeyFrame* pKF);
+    void AddConnection(KeyFrame* pKF, const int &weight, bool fromRos=false);
+    void EraseConnection(KeyFrame* pKF, bool fromRos=false);
 
-    void UpdateConnections(bool upParent=true);
-    void UpdateBestCovisibles();
+    void UpdateConnections(bool upParent=true, bool fromRos=false);
+    void UpdateBestCovisibles(bool fromRos=false);
     std::map<long unsigned int, int> GetBackupConnectedKeyFrameIdWeights();
     std::set<KeyFrame *> GetConnectedKeyFrames();
     std::vector<KeyFrame* > GetVectorCovisibleKeyFrames();
@@ -239,28 +239,28 @@ public:
     int GetWeight(KeyFrame* pKF);
 
     // Spanning tree functions
-    void AddChild(KeyFrame* pKF);
-    void EraseChild(KeyFrame* pKF);
-    void ChangeParent(KeyFrame* pKF);
+    void AddChild(KeyFrame* pKF, bool fromRos=false);
+    void EraseChild(KeyFrame* pKF, bool fromRos=false);
+    void ChangeParent(KeyFrame* pKF, bool fromRos=false);
     std::set<KeyFrame*> GetChilds();
     KeyFrame* GetParent();
     bool hasChild(KeyFrame* pKF);
-    void SetFirstConnection(bool bFirst);
+    void SetFirstConnection(bool bFirst, bool fromRos=false);
 
     // Loop Edges
-    void AddLoopEdge(KeyFrame* pKF);
+    void AddLoopEdge(KeyFrame* pKF, bool fromRos=false);
     std::set<KeyFrame*> GetLoopEdges();
 
     // Merge Edges
-    void AddMergeEdge(KeyFrame* pKF);
+    void AddMergeEdge(KeyFrame* pKF, bool fromRos=false);
     set<KeyFrame*> GetMergeEdges();
 
     // MapPoint observation functions
     int GetNumberMPs();
-    void AddMapPoint(MapPoint* pMP, const size_t &idx);
-    void EraseMapPointMatch(const int &idx);
-    void EraseMapPointMatch(MapPoint* pMP);
-    void ReplaceMapPointMatch(const int &idx, MapPoint* pMP);
+    void AddMapPoint(MapPoint* pMP, const size_t &idx, bool fromRos=false);
+    void EraseMapPointMatch(const int &idx, bool fromRos=false);
+    void EraseMapPointMatch(MapPoint* pMP, bool fromRos=false);
+    void ReplaceMapPointMatch(const int &idx, MapPoint* pMP, bool fromRos=false);
     std::set<MapPoint*> GetMapPoints();
     std::vector<MapPoint*> GetMapPointMatches();
     int TrackedMapPoints(const int &minObs);
@@ -274,11 +274,11 @@ public:
     bool IsInImage(const float &x, const float &y) const;
 
     // Enable/Disable bad flag changes
-    void SetNotErase();
-    void SetErase();
+    void SetNotErase(bool fromRos=false);
+    void SetErase(bool fromRos=false);
 
     // Set/check bad flag
-    void SetBadFlag();
+    void SetBadFlag(bool fromRos=false);
     bool isBad();
 
     inline bool GetNotErase()
@@ -309,9 +309,9 @@ public:
     }
 
     Map* GetMap();
-    void UpdateMap(Map* pMap);
+    void UpdateMap(Map* pMap, bool fromRos=false);
 
-    void SetNewBias(const IMU::Bias &b);
+    void SetNewBias(const IMU::Bias &b, bool fromRos=false);
     Eigen::Vector3f GetGyroBias();
 
     Eigen::Vector3f GetAccBias();
@@ -525,6 +525,41 @@ protected:
 
     std::shared_ptr<Observer> observer_;
 
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, unsigned long int id) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, id);
+      }
+    }
+
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, bool boolAction) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, boolAction);
+      }
+    }
+
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, unsigned long int id, long int vectorIdx) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, id, vectorIdx);
+      }
+    }
+
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, Eigen::Vector3f t) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, t);
+      }
+    }
+
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, Sophus::SE3<float> p) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, p);
+      }
+    }
+
+    void notifyObserverKFAction(unsigned long int hostKfId, int actionId, ORB_SLAM3::IMU::Bias b) {
+      if(observer_) {
+        observer_->onKFAction(hostKfId, actionId, b);
+      }
+    }
     void notifyObserverAddChild(unsigned long int hostKfId, unsigned long int targetKfId) {
       if (observer_) {
         //observer_->onKFActionAddChild(hostKfId, targetKfId);

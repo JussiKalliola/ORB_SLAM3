@@ -117,14 +117,19 @@ void Atlas::SetViewer(Viewer* pViewer)
 void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
 {
     Map* pMapKF = pKF->GetMap();
+    std::cout << "Adding key frame to atlas" << std::endl;
 
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
     if (!fromRos) {
       notifyObserverKeyframeAdded(pKF);
-      //notifyObserverAtlasAction(2, pKF->mnId);
+      notifyObserverAtlasAction(2, pKF->mnId);
     }
+    
+    if(pKF == nullptr) std::cout << "kf is nullptr" << std::endl;
+    if(pMapKF == nullptr) std::cout << "map is nullptr" << std::endl;
 
     pMapKF->AddKeyFrame(pKF);
+    std::cout << "Adding key frame to atlas" << std::endl;
 }
 
 void Atlas::AddMapPoint(MapPoint* pMP, bool fromRos)
@@ -132,7 +137,7 @@ void Atlas::AddMapPoint(MapPoint* pMP, bool fromRos)
     Map* pMapMP = pMP->GetMap();
     pMapMP->AddMapPoint(pMP);
     if(!fromRos) {
-      notifyObserverAtlasAction(0, pMP->mnId);
+      //notifyObserverAtlasAction(0, pMP->mnId);
     }
 }
 

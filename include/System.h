@@ -206,6 +206,9 @@ public:
       return mpAtlas;
     }
 
+    KeyFrameDatabase* GetKeyFrameDatabase() {
+      return mpKeyFrameDatabase;
+    }
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);

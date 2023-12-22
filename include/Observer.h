@@ -35,6 +35,10 @@ class Observer {
         virtual void onAtlasAction(int actionId, unsigned long int id) = 0;
         virtual void onAtlasAction(int actionId, bool boolAction) = 0;
 
+        virtual void onKFDBAction(int actionId, bool boolAction) = 0;
+        virtual void onKFDBAction(int actionId, unsigned long int id) = 0;
+        virtual void onKFDBAction(int actionId, unsigned long int id, float minScore, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId) = 0;
+        virtual void onKFDBAction(int actionId, unsigned long int id, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId, int nMinWords) = 0;
 
         virtual ~Observer() {}
 };

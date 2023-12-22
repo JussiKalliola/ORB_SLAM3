@@ -485,7 +485,7 @@ void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx, bool fromRos)
     //mvpMapPoints.push_back(pMP);
     
     if(!fromRos) {
-      //notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
+      notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
     }
 
     mvpMapPoints[idx]=pMP;
@@ -848,7 +848,6 @@ void KeyFrame::SetBadFlag(bool fromRos)
     {
         mit->first->EraseConnection(this);
     }
-    std::cout << "after erasing connections" << std::endl;
     for(size_t i=0; i<mvpMapPoints.size(); i++)
     {
         if(mvpMapPoints[i])
@@ -856,7 +855,6 @@ void KeyFrame::SetBadFlag(bool fromRos)
             mvpMapPoints[i]->EraseObservation(this);
         }
     }
-    std::cout << "after erasing observations" << std::endl;
     {
         unique_lock<mutex> lock(mMutexConnections);
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -865,13 +863,11 @@ void KeyFrame::SetBadFlag(bool fromRos)
         mvpOrderedConnectedKeyFrames.clear();
 
 
-        std::cout << "after clearing" << std::endl;
         // Update Spanning Tree
         set<KeyFrame*> sParentCandidates;
         if(mpParent)
             sParentCandidates.insert(mpParent);
 
-        std::cout << "before children loop" << std::endl;
         // Assign at each iteration one children with a parent (the pair with highest covisibility weight)
         // Include that children as new parent candidate for the rest
         while(!mspChildrens.empty())
@@ -919,7 +915,6 @@ void KeyFrame::SetBadFlag(bool fromRos)
                 break;
         }
 
-        std::cout << "before mspChildrens" << std::endl;
         // If a children has no covisibility links with any parent candidate, assign to the original parent of this KF
         if(!mspChildrens.empty())
         {
@@ -929,7 +924,6 @@ void KeyFrame::SetBadFlag(bool fromRos)
             }
         }
 
-        std::cout << "before mpParent" << std::endl;
         if(mpParent){
             mpParent->EraseChild(this);
             mTcp = mTcw * mpParent->GetPoseInverse();
@@ -937,11 +931,8 @@ void KeyFrame::SetBadFlag(bool fromRos)
         mbBad = true;
     }
 
-    std::cout << "before map" << std::endl;
     mpMap->EraseKeyFrame(this);
-    std::cout << "before db" << std::endl;
     mpKeyFrameDB->erase(this);
-    std::cout << "after db" << std::endl;
 }
 
 bool KeyFrame::isBad()

@@ -129,6 +129,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
+        mpKeyFrameDatabase->attachObserver(observer);
 
         //Create the Atlas
         cout << "Initialization of Atlas from scratch " << endl;
@@ -151,6 +152,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
+        mpKeyFrameDatabase->attachObserver(observer);
 
         cout << "Load File" << endl;
 

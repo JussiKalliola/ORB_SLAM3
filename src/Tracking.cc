@@ -2383,7 +2383,8 @@ void Tracking::StereoInitialization()
 
         // Insert KeyFrame in the map
         mpAtlas->AddKeyFrame(pKFini);
-
+        
+        
         // Create MapPoints and asscoiate to KeyFrame
         if(!mpCamera2){
             for(int i=0; i<mCurrentFrame.N;i++)
@@ -2557,6 +2558,7 @@ void Tracking::CreateInitialMapMonocular()
         //Create MapPoint.
         Eigen::Vector3f worldPos;
         worldPos << mvIniP3D[i].x, mvIniP3D[i].y, mvIniP3D[i].z;
+        
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
 
         pKFini->AddMapPoint(pMP,i);

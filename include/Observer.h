@@ -16,11 +16,13 @@
 namespace ORB_SLAM3
 {
 class KeyFrame;
+class MapPoint;
 
 class Observer {
   public:
         virtual void onKeyframeChanged(int keyframeId) = 0;
         virtual void onKeyframeAdded(KeyFrame* kf) = 0;
+        virtual void onMapPointAdded(MapPoint* pMp) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
         virtual void onMapAddedById(unsigned long int id) = 0;
         
@@ -39,6 +41,13 @@ class Observer {
         virtual void onKFDBAction(int actionId, unsigned long int id) = 0;
         virtual void onKFDBAction(int actionId, unsigned long int id, float minScore, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId) = 0;
         virtual void onKFDBAction(int actionId, unsigned long int id, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId, int nMinWords) = 0;
+
+
+        virtual void onMapPointAction(unsigned long int hostMpId, int actionId, bool boolAction) = 0;
+        virtual void onMapPointAction(unsigned long int hostMpId,int actionId, unsigned long int id) = 0;
+        virtual void onMapPointAction(unsigned long int hostMpId,int actionId, unsigned long int id, int idx) = 0;
+        virtual void onMapPointAction(unsigned long int hostMpId,int actionId, int n) = 0;
+        virtual void onMapPointAction(unsigned long int hostMpId,int actionId, Eigen::Vector3f vec) = 0;
 
         virtual ~Observer() {}
 };

@@ -201,6 +201,10 @@ public:
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
     }
+    
+    void deleteObserver() {
+      observer_ = nullptr;
+    }
 
     Atlas* GetAtlas() {
       return mpAtlas;
@@ -208,6 +212,11 @@ public:
 
     KeyFrameDatabase* GetKeyFrameDatabase() {
       return mpKeyFrameDatabase;
+    }
+
+    ORBVocabulary* GetORBVocabulary()
+    { 
+        return mpVocabulary;
     }
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);

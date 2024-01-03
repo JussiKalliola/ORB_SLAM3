@@ -37,7 +37,7 @@ MapPoint::MapPoint():
 }
 
 MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
-    mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
+    mnFirstKFid(pRefKF->mnId), mpHostKF(static_cast<KeyFrame*>(NULL)), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
@@ -50,9 +50,16 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     mbTrackInViewR = false;
     mbTrackInView = false;
 
+    if(pMap->GetObserver()){
+      attachObserver(pMap->GetObserver());
+    }
+
+    
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
+    
+    notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap):
@@ -68,11 +75,18 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     mpHostKF = pHostKF;
 
     mNormalVector.setZero();
+    
+    if(pMap->GetObserver()){
+      attachObserver(pMap->GetObserver());
+    }
 
+    
     // Worldpos is not set
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
+
+    notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF):
@@ -110,9 +124,16 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
 
     pFrame->mDescriptors.row(idxF).copyTo(mDescriptor);
 
+    if(pMap->GetObserver()){
+      attachObserver(pMap->GetObserver());
+    }
+
+    
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
+    
+    notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(
@@ -179,10 +200,11 @@ MapPoint::MapPoint(
     //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     //mnId=nNextId++;
 }
-void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos) {
+void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
     mWorldPos = Pos;
+    if(!fromRos) notifyObserverMapPointAction(mnId, 0, Pos);
 }
 
 Eigen::Vector3f MapPoint::GetWorldPos() {
@@ -202,11 +224,12 @@ KeyFrame* MapPoint::GetReferenceKeyFrame()
     return mpRefKF;
 }
 
-void MapPoint::AddObservation(KeyFrame* pKF, int idx)
+void MapPoint::AddObservation(KeyFrame* pKF, int idx, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     tuple<int,int> indexes;
 
+    if(!fromRos) notifyObserverMapPointAction(mnId, 1, pKF->mnId, idx);
     if(mObservations.count(pKF)){
         indexes = mObservations[pKF];
     }
@@ -229,8 +252,9 @@ void MapPoint::AddObservation(KeyFrame* pKF, int idx)
         nObs++;
 }
 
-void MapPoint::EraseObservation(KeyFrame* pKF)
+void MapPoint::EraseObservation(KeyFrame* pKF, bool fromRos)
 {
+    if(!fromRos) notifyObserverMapPointAction(mnId, 2, pKF->mnId);
     bool bBad=false;
     {
         unique_lock<mutex> lock(mMutexFeatures);
@@ -277,8 +301,10 @@ int MapPoint::Observations()
     return nObs;
 }
 
-void MapPoint::SetBadFlag()
+void MapPoint::SetBadFlag(bool fromRos)
 {
+    if(!fromRos) notifyObserverMapPointAction(mnId, 3, true);
+    
     map<KeyFrame*, tuple<int,int>> obs;
     {
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -309,11 +335,13 @@ MapPoint* MapPoint::GetReplaced()
     return mpReplaced;
 }
 
-void MapPoint::Replace(MapPoint* pMP)
+void MapPoint::Replace(MapPoint* pMP, bool fromRos)
 {
     if(pMP->mnId==this->mnId)
         return;
 
+    if(!fromRos) notifyObserverMapPointAction(mnId, 4, pMP->mnId);
+    
     int nvisible, nfound;
     map<KeyFrame*,tuple<int,int>> obs;
     {
@@ -372,15 +400,17 @@ bool MapPoint::isBad()
     return mbBad;
 }
 
-void MapPoint::IncreaseVisible(int n)
+void MapPoint::IncreaseVisible(int n, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    if(!fromRos) notifyObserverMapPointAction(mnId, 5, n);
     mnVisible+=n;
 }
 
-void MapPoint::IncreaseFound(int n)
+void MapPoint::IncreaseFound(int n, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    if(!fromRos) notifyObserverMapPointAction(mnId, 6, n);
     mnFound+=n;
 }
 
@@ -390,7 +420,7 @@ float MapPoint::GetFoundRatio()
     return static_cast<float>(mnFound)/mnVisible;
 }
 
-void MapPoint::ComputeDistinctiveDescriptors()
+void MapPoint::ComputeDistinctiveDescriptors(bool fromRos)
 {
     // Retrieve all observed descriptors
     vector<cv::Mat> vDescriptors;
@@ -406,6 +436,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
 
     if(observations.empty())
         return;
+    
 
     vDescriptors.reserve(observations.size());
 
@@ -429,6 +460,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
     if(vDescriptors.empty())
         return;
 
+    if(!fromRos) notifyObserverMapPointAction(mnId, 7, true);
     // Compute distances between them
     const size_t N = vDescriptors.size();
 
@@ -487,7 +519,7 @@ bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
     return (mObservations.count(pKF));
 }
 
-void MapPoint::UpdateNormalAndDepth()
+void MapPoint::UpdateNormalAndDepth(bool fromRos)
 {
     map<KeyFrame*,tuple<int,int>> observations;
     KeyFrame* pRefKF;
@@ -505,6 +537,8 @@ void MapPoint::UpdateNormalAndDepth()
     if(observations.empty())
         return;
 
+    if(!fromRos) notifyObserverMapPointAction(mnId, 8, true);
+    
     Eigen::Vector3f normal;
     normal.setZero();
     int n=0;
@@ -528,7 +562,7 @@ void MapPoint::UpdateNormalAndDepth()
             n++;
         }
     }
-
+    
     Eigen::Vector3f PC = Pos - pRefKF->GetCameraCenter();
     const float dist = PC.norm();
 
@@ -557,9 +591,10 @@ void MapPoint::UpdateNormalAndDepth()
     }
 }
 
-void MapPoint::SetNormalVector(const Eigen::Vector3f& normal)
+void MapPoint::SetNormalVector(const Eigen::Vector3f& normal, bool fromRos)
 {
     unique_lock<mutex> lock3(mMutexPos);
+    if (!fromRos) notifyObserverMapPointAction(mnId, 9, normal);
     mNormalVector = normal;
 }
 
@@ -627,9 +662,10 @@ Map* MapPoint::GetMap()
     return mpMap;
 }
 
-void MapPoint::UpdateMap(Map* pMap)
+void MapPoint::UpdateMap(Map* pMap, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexMap);
+    if (!fromRos) notifyObserverMapPointAction(mnId, 10, pMap->GetId());
     mpMap = pMap;
 }
 

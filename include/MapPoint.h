@@ -112,11 +112,11 @@ public:
     MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
     MapPoint(long unsigned int mnId,long int mnFirstKFid, long int mnFirstFrame, int nObs, float mTrackProjX, float mTrackProjY, float mTrackDepth, float mTrackDepthR, float mTrackProjXR, float mTrackProjYR, bool mbTrackInView, bool mbTrackInViewR, int mnTrackScaleLevel, int mnTrackScaleLevelR,float mTrackViewCos, float mTrackViewCosR,long unsigned int mnTrackReferenceForFrame, long unsigned int mnLastFrameSeen,long unsigned int mnBALocalForKF,long unsigned int mnFuseCandidateForKF,long unsigned int mnLoopPointForKF, long unsigned int mnCorrectedByKF, long unsigned int mnCorrectedReference, Eigen::Vector3f mPosGBA, long unsigned int mnBAGlobalForKF, long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth,double mInitU, double mInitV, KeyFrame* mpHostKF, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos, std::map<KeyFrame*,std::tuple<int,int> > mObservations, std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector, cv::Mat mDescriptor, KeyFrame* mpRefKF, long unsigned int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad, MapPoint* mpReplaced, long long int mBackupReplacedId, float mfMinDistance, float mfMaxDistance,Map* mpMap);
 
-    void SetWorldPos(const Eigen::Vector3f &Pos);
+    void SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos=false);
     Eigen::Vector3f GetWorldPos();
 
     Eigen::Vector3f GetNormal();
-    void SetNormalVector(const Eigen::Vector3f& normal);
+    void SetNormalVector(const Eigen::Vector3f& normal, bool fromRos=false);
 
     KeyFrame* GetReferenceKeyFrame();
 
@@ -125,20 +125,20 @@ public:
     std::map<long unsigned int, int> GetObservationsBackup2();
     int Observations();
 
-    void AddObservation(KeyFrame* pKF,int idx);
-    void EraseObservation(KeyFrame* pKF);
+    void AddObservation(KeyFrame* pKF,int idx, bool fromRos=false);
+    void EraseObservation(KeyFrame* pKF, bool fromRos=false);
 
     std::tuple<int,int> GetIndexInKeyFrame(KeyFrame* pKF);
     bool IsInKeyFrame(KeyFrame* pKF);
 
-    void SetBadFlag();
+    void SetBadFlag(bool fromRos=false);
     bool isBad();
 
-    void Replace(MapPoint* pMP);    
+    void Replace(MapPoint* pMP, bool fromRos=false);    
     MapPoint* GetReplaced();
 
-    void IncreaseVisible(int n=1);
-    void IncreaseFound(int n=1);
+    void IncreaseVisible(int n=1, bool fromRos=false);
+    void IncreaseFound(int n=1, bool fromRos=false);
     float GetFoundRatio();
     inline int GetVisible(){
         return mnVisible;
@@ -147,11 +147,11 @@ public:
         return mnFound;
     }
 
-    void ComputeDistinctiveDescriptors();
+    void ComputeDistinctiveDescriptors(bool fromRos=false);
 
     cv::Mat GetDescriptor();
 
-    void UpdateNormalAndDepth();
+    void UpdateNormalAndDepth(bool fromRos=false);
 
     float GetMinDistanceInvariance();
     float GetMaxDistanceInvariance();
@@ -159,12 +159,16 @@ public:
     int PredictScale(const float &currentDist, Frame* pF);
 
     Map* GetMap();
-    void UpdateMap(Map* pMap);
+    void UpdateMap(Map* pMap, bool fromRos=false);
 
     void PrintObservations();
 
     void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
     void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid);
+    
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    }
 
 public:
     long unsigned int mnId;
@@ -213,6 +217,10 @@ public:
 
     unsigned int mnOriginMapId;
 
+    inline void SetMpRefKF(KeyFrame* mpKF) {
+      mpRefKF = mpKF;
+    }
+
 protected:    
 
      // Position in absolute coordinates
@@ -255,6 +263,40 @@ protected:
      std::mutex mMutexFeatures;
      std::mutex mMutexMap;
 
+    std::shared_ptr<Observer> observer_;
+    
+    void notifyObserverMapPointAdded(MapPoint* pMp) {
+      if (observer_) {
+        observer_->onMapPointAdded(pMp);
+      }
+    }
+    
+
+    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, bool boolAction) {
+      if (observer_) {
+        observer_->onMapPointAction(hostMpId, actionId, boolAction);
+      }
+    }
+    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, unsigned long int id) {
+      if (observer_) {
+        observer_->onMapPointAction(hostMpId, actionId, id);
+      }
+    }
+    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, unsigned long int id, int idx) {
+      if (observer_) {
+        observer_->onMapPointAction(hostMpId, actionId, id, idx);
+      }
+    }
+    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, int n) {
+      if (observer_) {
+        observer_->onMapPointAction(hostMpId, actionId, n);
+      }
+    }
+    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, Eigen::Vector3f vec) {
+      if (observer_) {
+        observer_->onMapPointAction(hostMpId, actionId, vec);
+      }
+    }
 };
 
 } //namespace ORB_SLAM

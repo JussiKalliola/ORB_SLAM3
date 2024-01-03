@@ -118,7 +118,7 @@ void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
 
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
     if (!fromRos) {
-      notifyObserverKeyframeAdded(pKF);
+      //notifyObserverKeyframeAdded(pKF);
       notifyObserverAtlasAction(2, pKF->mnId);
     }
     
@@ -406,7 +406,8 @@ KeyFrameDatabase* Atlas::GetKeyFrameDatabase()
 
 void Atlas::SetORBVocabulary(ORBVocabulary* pORBVoc)
 {
-    mpORBVocabulary = pORBVoc;
+  std::cout << "*** Setting orb vocabulary ***" << std::endl;  
+  mpORBVocabulary = pORBVoc;
 }
 
 ORBVocabulary* Atlas::GetORBVocabulary()

@@ -333,6 +333,7 @@ public:
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
     }
+
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
 
@@ -524,6 +525,12 @@ protected:
     Eigen::Matrix3f mK_;
 
     std::shared_ptr<Observer> observer_;
+
+    void notifyObserverKeyframeAdded(KeyFrame* kf) {
+      if (observer_) {
+        observer_->onKeyframeAdded(kf);
+      }
+    }
 
     void notifyObserverKFAction(unsigned long int hostKfId, int actionId, unsigned long int id) {
       if(observer_) {

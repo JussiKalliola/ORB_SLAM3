@@ -292,7 +292,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
      mImuCalib(ImuCalib), mpImuPreintegrated(NULL),mpPrevFrame(pPrevF),mpImuPreintegratedFrame(NULL), mpReferenceKF(static_cast<KeyFrame*>(NULL)), mbIsSet(false), mbImuPreintegrated(false), mpCamera(pCamera),
      mpCamera2(nullptr), mbHasPose(false), mbHasVelocity(false)
 {
-    std::cout << "Thread1=Frame::Frame : Constructing new Monocular frame." << std::endl;
+    //std::cout << "Thread1=Frame::Frame : Constructing new Monocular frame." << std::endl;
     // Verbose::PrintMess("Thread1=Frame::Frame : Constructing new Monocular frame.", Verbose::VERBOSITY_NORMAL);
     // Frame ID
     mnId=nNextId++;
@@ -387,7 +387,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 
 void Frame::AssignFeaturesToGrid()
 {
-    std::cout << "Thread1=Frame::AssignFeaturesToGrid : Put ORB features into a grid." << std::endl;
+    //std::cout << "Thread1=Frame::AssignFeaturesToGrid : Put ORB features into a grid." << std::endl;
     //Verbose::PrintMess("Thread1=Frame::AssignFeaturesToGrid : Put ORB features into a grid.", Verbose::VERBOSITY_NORMAL);
     // Fill matrix with points
     const int nCells = FRAME_GRID_COLS*FRAME_GRID_ROWS;
@@ -422,7 +422,7 @@ void Frame::AssignFeaturesToGrid()
 
 void Frame::ExtractORB(int flag, const cv::Mat &im, const int x0, const int x1)
 {
-    std::cout << "Thread1=Frame::ExtractORB : Extract ORB features." << std::endl;
+    //std::cout << "Thread1=Frame::ExtractORB : Extract ORB features." << std::endl;
     // Verbose::PrintMess("Thread1=Frame::ExtractORB : Extract ORB features.", Verbose::VERBOSITY_NORMAL);
     vector<int> vLapping = {x0,x1};
     if(flag==0)
@@ -464,7 +464,7 @@ Eigen::Vector3f Frame::GetVelocity() const
 void Frame::SetImuPoseVelocity(const Eigen::Matrix3f &Rwb, const Eigen::Vector3f &twb, const Eigen::Vector3f &Vwb)
 {
     
-    std::cout << "Thread1=Frame::SetImuPoseVelocity" << std::endl;
+    //std::cout << "Thread1=Frame::SetImuPoseVelocity" << std::endl;
     mVw = Vwb;
     mbHasVelocity = true;
 
@@ -480,7 +480,7 @@ void Frame::SetImuPoseVelocity(const Eigen::Matrix3f &Rwb, const Eigen::Vector3f
 
 void Frame::UpdatePoseMatrices()
 {
-    std::cout << "Thread1=Frame::UpdatePoseMatrices : from camera frame to world frame (M^(-1))" << std::endl;
+   // std::cout << "Thread1=Frame::UpdatePoseMatrices : from camera frame to world frame (M^(-1))" << std::endl;
     Sophus::SE3<float> Twc = mTcw.inverse();
     mRwc = Twc.rotationMatrix();
     mOw = Twc.translation();

@@ -1339,12 +1339,13 @@ namespace ORB_SLAM3
 
     int ORBmatcher::Fuse(KeyFrame *pKF, Sophus::Sim3f &Scw, const vector<MapPoint *> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint)
     {
+        std::cout << "start of fuse" << std::endl;
         // Get Calibration Parameters for later projection
         const float &fx = pKF->fx;
         const float &fy = pKF->fy;
         const float &cx = pKF->cx;
         const float &cy = pKF->cy;
-
+        std::cout << "decompose scw" << std::endl;
         // Decompose Scw
         Sophus::SE3f Tcw = Sophus::SE3f(Scw.rotationMatrix(),Scw.translation()/Scw.scale());
         Eigen::Vector3f Ow = Tcw.inverse().translation();
@@ -1356,6 +1357,7 @@ namespace ORB_SLAM3
 
         const int nPoints = vpPoints.size();
 
+        std::cout << "project matches" << std::endl;
         // For each candidate MapPoint project and match
         for(int iMP=0; iMP<nPoints; iMP++)
         {
@@ -1408,6 +1410,7 @@ namespace ORB_SLAM3
             if(vIndices.empty())
                 continue;
 
+            std::cout << "match to most similar kp" << std::endl;
             // Match to the most similar keypoint in the radius
 
             const cv::Mat dMP = pMP->GetDescriptor();
@@ -1433,6 +1436,7 @@ namespace ORB_SLAM3
                 }
             }
 
+            std::cout << "replace mp" << std::endl;
             // If there is already a MapPoint replace otherwise add new measurement
             if(bestDist<=TH_LOW)
             {
@@ -1451,6 +1455,7 @@ namespace ORB_SLAM3
             }
         }
 
+        std::cout << "end of fuse" << std::endl;
         return nFused;
     }
 

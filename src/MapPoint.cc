@@ -59,7 +59,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
     
-    notifyObserverMapPointAdded(this);
+    //notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap):
@@ -86,7 +86,7 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
 
-    notifyObserverMapPointAdded(this);
+    //notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF):
@@ -133,7 +133,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
     
-    notifyObserverMapPointAdded(this);
+    //notifyObserverMapPointAdded(this);
 }
 
 MapPoint::MapPoint(

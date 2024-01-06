@@ -307,6 +307,10 @@ public:
     static bool lId(KeyFrame* pKF1, KeyFrame* pKF2){
         return pKF1->mnId<pKF2->mnId;
     }
+    inline bool GetFirstConnection()
+    {
+      return mbFirstConnection;
+    }
 
     Map* GetMap();
     void UpdateMap(Map* pMap, bool fromRos=false);

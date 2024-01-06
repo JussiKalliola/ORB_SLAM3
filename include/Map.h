@@ -173,7 +173,7 @@ public:
     std::vector<long unsigned int> GetBackupMapPointsId();
     std::vector<long unsigned int> GetBackupKeyFrames();
     long int GetBackupKFInitialID();
-    long unsigned int GetBackupKFLowerID();
+    long int GetBackupKFLowerID();
     std::vector<long unsigned int> GetBackupReferenceMapPointsId();
 
     inline bool GetImuInitialized() {
@@ -202,6 +202,70 @@ public:
     
     std::shared_ptr<Observer> GetObserver() {
       return observer_;
+    }
+    
+    void UpdateMapPoints(std::set<MapPoint*> mspMPs)
+    {
+      unique_lock<mutex> lock(mMutexMap);
+      mspMapPoints=mspMPs;
+      // UPDATE BACKUP IDS
+    }
+
+
+    void UpdateKeyFrames(std::set<KeyFrame*> mspKFs)
+    {
+      unique_lock<mutex> lock(mMutexMap);
+      mspKeyFrames=mspKFs;
+      // UPDATE BACKUP IDS
+    }
+
+    void UpdateInitialKF(KeyFrame* pKF)
+    {
+      unique_lock<mutex> lock(mMutexMap);
+      mpKFinitial=pKF;
+      // UPDATE BACKUP IDS
+    }
+
+    void UpdateLowerKF(KeyFrame* pKF)
+    {
+      unique_lock<mutex> lock(mMutexMap);
+      mpKFlowerID=pKF;
+      // UPDATE BACKUP IDS
+    }
+
+    void UpdateReferenceMapPoints(std::vector<MapPoint*> mvpMPs)
+    {
+      unique_lock<mutex> lock(mMutexMap);
+      mvpReferenceMapPoints=mvpMPs;
+      // UPDATE BACKUP IDS
+    }
+
+
+
+
+    void UpdateMap(Map* pM) {
+      
+      mbImuInitialized = pM->mbImuInitialized;
+
+      mnMapChange = pM->mnMapChange;
+      mnMapChangeNotified = pM->mnMapChangeNotified;
+
+      mnInitKFid = pM->mnInitKFid;
+      mnMaxKFid = pM->mnMaxKFid;
+    //long unsigned int mnLastLoopKFid;
+
+    // Index related to a big change in the map (loop closure, global BA)
+      mnBigChangeIdx = pM->mnBigChangeIdx;
+
+
+      mIsInUse = pM->mIsInUse;
+      mHasTumbnail = pM->mHasTumbnail;
+      mbBad = pM->mbBad;
+
+      mbIsInertial = pM->mbIsInertial;
+      mbIMU_BA1 = pM->mbIMU_BA1;
+      mbIMU_BA2 = pM->mbIMU_BA2;
+      // HERE UPDATE BACKUP IDS
     }
 
 protected:

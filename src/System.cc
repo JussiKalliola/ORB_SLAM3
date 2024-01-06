@@ -40,9 +40,9 @@ namespace ORB_SLAM3
 Verbose::eLevel Verbose::th = Verbose::VERBOSITY_VERY_VERBOSE;
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
-               const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const int initFr, const string &strSequence):
+               const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const bool mbOnlyTrack, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
-    mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false)
+    mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(mbOnlyTrack), mbShutDown(false)
 {
     // Output welcome message
     cout << endl <<
@@ -216,26 +216,27 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Initialize the Loop Closing thread and launch
     // mSensor!=MONOCULAR && mSensor!=IMU_MONOCULAR
-    mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
-    std::cout << "Just before starting the thread for LoopClosing in System::System() " << std::endl;
-    mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
+    //mpLoopCloser = new LoopClosing(mpAtlas, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR, activeLC); // mSensor!=MONOCULAR);
+    //std::cout << "Just before starting the thread for LoopClosing in System::System() " << std::endl;
+    //mptLoopClosing = new thread(&ORB_SLAM3::LoopClosing::Run, mpLoopCloser);
 
     //Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
-    mpTracker->SetLoopClosing(mpLoopCloser);
+    //mpTracker->SetLoopClosing(mpLoopCloser);
 
     mpLocalMapper->SetTracker(mpTracker);
     mpLocalMapper->SetLoopCloser(mpLoopCloser);
 
-    mpLoopCloser->SetTracker(mpTracker);
-    mpLoopCloser->SetLocalMapper(mpLocalMapper);
+    //mpLoopCloser->SetTracker(mpTracker);
+    //mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
 
     // Set observers of all classes
     if (observer != nullptr) {
       attachObserver(observer);
       mpAtlas->attachObserver(observer);
-      mpTracker->attachObserver(observer);
+      mpTracker->attachObserver(observer); 
+      mpLocalMapper->attachObserver(observer);
     }
 
     //usleep(10*1000*1000);
@@ -247,7 +248,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile,settings_);
         mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
-        mpLoopCloser->mpViewer = mpViewer;
+        //mpLoopCloser->mpViewer = mpViewer;
         mpViewer->both = mpFrameDrawer->both;
     }
 
@@ -537,7 +538,7 @@ void System::Shutdown()
     cout << "Shutdown" << endl;
 
     mpLocalMapper->RequestFinish();
-    mpLoopCloser->RequestFinish();
+    //mpLoopCloser->RequestFinish();
     /*if(mpViewer)
     {
         mpViewer->RequestFinish();

@@ -45,6 +45,8 @@ public:
     LocalMapping(System* pSys, Atlas* pAtlas, const float bMonocular, bool bInertial, const string &_strSeqName=std::string());
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
+    
+    void AllowLocalMapping(bool mbAllow);
 
     void SetTracker(Tracking* pTracker);
 
@@ -133,6 +135,15 @@ public:
 
     void InsertKeyframeFromRos(KeyFrame* pKF);
 
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    } 
+
+    void notifyObserverLocalMapUpdated(Map* pM) {
+      if (observer_) { 
+        observer_->onLocalMapUpdated(pM);
+      }
+    }
 
 protected:
 
@@ -173,7 +184,9 @@ protected:
     std::list<MapPoint*> mlpRecentAddedMapPoints;
 
     std::mutex mMutexNewKFs;
-
+    
+    bool mbAllowLM;
+    
     bool mbAbortBA;
 
     bool mbStopped;
@@ -200,7 +213,18 @@ protected:
     //DEBUG
     ofstream f_lm;
 
-    };
+    std::chrono::high_resolution_clock::time_point msLastMUStart;
+    std::chrono::high_resolution_clock::time_point msLastMUStop;
+
+    int MAP_FREQ;  // Set to: after how many ms from last map update, a new map update should be sent
+    int KF_NUM;    // Set to: how many keyframes should a map update consist of
+    int CONN_KF;   // Set to: for every keyframe, how many connected keyframes should be included in a map update
+
+private:
+    std::shared_ptr<Observer> observer_;
+
+
+};
 
 } //namespace ORB_SLAM
 

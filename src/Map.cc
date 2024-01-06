@@ -509,12 +509,11 @@ std::vector<long unsigned int> Map::GetBackupKeyFrames() {
 }
 
 long int Map::GetBackupKFInitialID() {
-  std::cout << mnBackupKFinitialID << std::endl;
   return (mpKFinitial) ? mpKFinitial->mnId : -1; 
 }
 
-long unsigned int Map::GetBackupKFLowerID() {
- return mnBackupKFlowerID;
+long int Map::GetBackupKFLowerID() {
+ return (mpKFlowerID) ? mpKFlowerID->mnId : -1;
 }
 
 std::vector<long unsigned int> Map::GetBackupReferenceMapPointsId() {

@@ -83,7 +83,8 @@ void LocalMapping::Run()
         //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
-
+        if(!mlNewKeyFrames.empty()) 
+          SetLocalMappingActive(true);
         bool mbLocalMappingDone=false;
 
         // Check if there are keyframes in the queue
@@ -315,6 +316,8 @@ void LocalMapping::Run()
 
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(true);
+        if(!mlNewKeyFrames.empty()) 
+          SetLocalMappingActive(false);
 
         if(CheckFinish())
             break;
@@ -960,6 +963,12 @@ void LocalMapping::SetAcceptKeyFrames(bool flag)
 {
     unique_lock<mutex> lock(mMutexAccept);
     mbAcceptKeyFrames=flag;
+}
+
+void LocalMapping::SetLocalMappingActive(bool flag)
+{
+    unique_lock<mutex> lock(mMutexAccept);
+    //notifyObserverLMActive(flag);
 }
 
 bool LocalMapping::SetNotStop(bool flag)

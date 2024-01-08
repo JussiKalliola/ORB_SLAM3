@@ -61,10 +61,10 @@ Map::~Map()
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
-    cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << mnInitKFid << endl;
+    //cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << mnInitKFid << endl;
     unique_lock<mutex> lock(mMutexMap);
     if(mspKeyFrames.empty()){
-        cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
+        //cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
         mnInitKFid = pKF->mnId;
         mpKFinitial = pKF;
         mpKFlowerID = pKF;

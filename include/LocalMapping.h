@@ -67,6 +67,7 @@ public:
     bool AcceptKeyFrames();
     void SetAcceptKeyFrames(bool flag);
     bool SetNotStop(bool flag);
+    void SetLocalMappingActive(bool flag);
 
     void InterruptBA();
 
@@ -144,6 +145,13 @@ public:
         observer_->onLocalMapUpdated(pM);
       }
     }
+
+    void notifyObserverLMActive(bool bActive) {
+      if (observer_) { 
+        observer_->onChangeLMActive(bActive);
+      }
+    }
+
 
 protected:
 

@@ -103,6 +103,8 @@ public:
     int GetMatchesInliers();
 
     
+    void SetLocalMappingIsInIdle(bool flag);
+
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
     }
@@ -368,6 +370,8 @@ protected:
     Sophus::SE3f mTlr;
 
     void newParameterLoader(Settings* settings);
+    
+    bool mbLocalMappingIdle;
 
 #ifdef REGISTER_LOOP
     bool Stop();

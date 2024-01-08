@@ -27,6 +27,7 @@ class Observer {
         //virtual void onMapAdded(Map* pM) = 0;
         virtual void onMapAddedById(unsigned long int id) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;
+        virtual void onChangeLMActive(bool bActive) = 0;
 
         virtual void onKFAction(unsigned long int hostKfId, int actionId, unsigned long int id) = 0;
         virtual void onKFAction(unsigned long int hostKfId, int actionId, bool boolAction) = 0;

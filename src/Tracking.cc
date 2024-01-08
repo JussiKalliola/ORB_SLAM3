@@ -3088,6 +3088,11 @@ bool Tracking::TrackLocalMap()
     }
 }
 
+void Tracking::SetLocalMappingIsInIdle(bool flag)
+{
+  mbLocalMappingIdle = flag;
+}
+
 bool Tracking::NeedNewKeyFrame()
 {
     Verbose::PrintMess("Thread1=Tracking::NeedNewKeyFrame : based on the time between frames, check if new KF is needed.", Verbose::VERBOSITY_NORMAL);
@@ -3129,7 +3134,7 @@ bool Tracking::NeedNewKeyFrame()
     int nRefMatches = mpReferenceKF->TrackedMapPoints(nMinObs);
 
     // Local Mapping accept keyframes?
-    bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
+    //bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
 
     // Check how many "close" points are being tracked and how many could be potentially created.
     int nNonTrackedClose = 0;
@@ -3184,7 +3189,7 @@ bool Tracking::NeedNewKeyFrame()
     // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
     const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
-    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames) && bLocalMappingIdle); //mpLocalMapper->KeyframesInQueue() < 2);
+    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames) && mbLocalMappingIdle); //mpLocalMapper->KeyframesInQueue() < 2);
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
@@ -3217,7 +3222,7 @@ bool Tracking::NeedNewKeyFrame()
     {
         // If the mapping accepts keyframes, insert keyframe.
         // Otherwise send a signal to interrupt BA
-        if(bLocalMappingIdle || mpLocalMapper->IsInitializing())
+        if(mbLocalMappingIdle || mpLocalMapper->IsInitializing())
         {
             return true;
         }

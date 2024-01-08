@@ -447,11 +447,13 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
                 usleep(1000);
             }
 
+            std::cout << "mbActivateLocalizationMode=true" << std::endl; 
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
         }
         if(mbDeactivateLocalizationMode)
         {
+            std::cout << "mbDeactivateLocalizationMode=true" << std::endl; 
             mpTracker->InformOnlyTracking(false);
             mpLocalMapper->Release();
             mbDeactivateLocalizationMode = false;

@@ -141,12 +141,14 @@ public:
     } 
 
     void notifyObserverLocalMapUpdated(Map* pM) {
+      unique_lock<std::mutex> lock(mMutexNewKFs);
       if (observer_) { 
         observer_->onLocalMapUpdated(pM);
       }
     }
 
     void notifyObserverLMActive(bool bActive) {
+      //unique_lock<std::mutex> lock(mMutexNewKFs);
       if (observer_) { 
         observer_->onChangeLMActive(bActive);
       }
@@ -204,7 +206,8 @@ protected:
 
     bool mbAcceptKeyFrames;
     std::mutex mMutexAccept;
-
+    
+    std::mutex mMutexProcessKFs;
     void InitializeIMU(float priorG = 1e2, float priorA = 1e6, bool bFirst = false);
     void ScaleRefinement();
 

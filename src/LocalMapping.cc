@@ -83,14 +83,14 @@ void LocalMapping::Run()
         //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
-        if(!mlNewKeyFrames.empty()) 
-          SetLocalMappingActive(true);
         bool mbLocalMappingDone=false;
 
+        //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames() && !mbBadImu && mbAllowLM)
         {
-            //std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
+            SetLocalMappingActive(true);
+            std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
 #ifdef REGISTER_TIMES
             double timeLBA_ms = 0;
             double timeKFCulling_ms = 0;
@@ -301,23 +301,24 @@ void LocalMapping::Run()
         auto dCount = duration.count();
         if (mbLocalMappingDone)
         {
+          std::cout << "Local mapping done, check if data needs to be sent, " << dCount << std::endl;
           if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) )
           {
-            unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
+            //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
+            std::cout << "this is before notify map" << std::endl;
             notifyObserverLocalMapUpdated(mpCurrentKeyFrame->GetMap());
             std::cout << "This is after notify map" << std::endl;
             mbLocalMappingDone=false;
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
           }
+          SetLocalMappingActive(false);
         }
         
         ResetIfRequested();
 
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(true);
-        if(!mlNewKeyFrames.empty()) 
-          SetLocalMappingActive(false);
 
         if(CheckFinish())
             break;
@@ -331,8 +332,14 @@ void LocalMapping::Run()
 
 void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
     //TODO: subscirber node will insert KF broadcasted by Tracking
-    Verbose::PrintMess("Thread1=LocalMapping::AddKeyframeFromRos **************************", Verbose::VERBOSITY_NORMAL);
+  std::cout << "Thread1=LocalMapping::AddKeyframeFromRos - Added KF with ID=" << pKF->mnId << std::endl;
+    Verbose::PrintMess("Thread1=LocalMapping::AddKeyframeFromRos **************************", Verbose::VERBOSITY_DEBUG);
     unique_lock<mutex> lock(mMutexNewKFs);
+    
+    // If Local Mapping is freezed by a Loop Closure do not insert keyframes
+    if(isStopped() || stopRequested())
+        return;
+
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
 }
@@ -782,8 +789,11 @@ void LocalMapping::CreateNewMapPoints()
 
 void LocalMapping::SearchInNeighbors()
 {
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
     // Retrieve neighbor keyframes
+      
+    unique_lock<mutex> lock(mMutexProcessKFs);
+
     int nn = 10;
     if(mbMonocular)
         nn=30;
@@ -798,7 +808,7 @@ void LocalMapping::SearchInNeighbors()
         pKFi->mnFuseTargetForKF = mpCurrentKeyFrame->mnId;
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before covisible" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before covisible" << std::endl; 
     // Add some covisible of covisible
     // Extend to some second neighbors if abort is not requested
     for(int i=0, imax=vpTargetKFs.size(); i<imax; i++)
@@ -816,7 +826,7 @@ void LocalMapping::SearchInNeighbors()
             break;
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before inertial" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before inertial" << std::endl; 
     // Extend to temporal neighbors
     if(mbInertial)
     {
@@ -834,7 +844,7 @@ void LocalMapping::SearchInNeighbors()
         }
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after inertial" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after inertial" << std::endl; 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
     vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
@@ -849,9 +859,11 @@ void LocalMapping::SearchInNeighbors()
         matcher.Fuse(pKFi,vpMapPointMatches);
         std::cout << "after fuse" << std::endl;
         if(pKFi->NLeft != -1) matcher.Fuse(pKFi,vpMapPointMatches,true);
+        std::cout << "end of the loop" << std::endl;
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after map point matches" << std::endl; 
+
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after map point matches" << std::endl; 
 
     if (mbAbortBA)
         return;
@@ -860,6 +872,7 @@ void LocalMapping::SearchInNeighbors()
     vector<MapPoint*> vpFuseCandidates;
     vpFuseCandidates.reserve(vpTargetKFs.size()*vpMapPointMatches.size());
 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : search matches by projection from target KFs to current KF" << std::endl; 
     for(vector<KeyFrame*>::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
     {
         KeyFrame* pKFi = *vitKF;
@@ -878,10 +891,13 @@ void LocalMapping::SearchInNeighbors()
         }
     }
 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : end of projection" << std::endl; 
+
     matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates);
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after fuse" << std::endl; 
     if(mpCurrentKeyFrame->NLeft != -1) matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates,true);
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after fusing" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after fusing" << std::endl; 
 
     // Update points
     vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
@@ -899,7 +915,7 @@ void LocalMapping::SearchInNeighbors()
     }
 
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : update points" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : update points" << std::endl; 
 
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections();
@@ -968,7 +984,7 @@ void LocalMapping::SetAcceptKeyFrames(bool flag)
 void LocalMapping::SetLocalMappingActive(bool flag)
 {
     unique_lock<mutex> lock(mMutexAccept);
-    //notifyObserverLMActive(flag);
+    notifyObserverLMActive(flag);
 }
 
 bool LocalMapping::SetNotStop(bool flag)

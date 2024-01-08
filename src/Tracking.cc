@@ -4024,6 +4024,7 @@ void Tracking::ChangeCalibration(const string &strSettingPath)
 
 void Tracking::InformOnlyTracking(const bool &flag)
 {
+    std::cout << "mbOnlyTracking=" << flag << std::endl;
     mbOnlyTracking = flag;
 }
 
@@ -4171,6 +4172,69 @@ void Tracking::Release()
     mbStopped = false;
     mbStopRequested = false;
 }
+
+
+
+//void Tracking::MUReset()
+//{
+//    // Edge-SLAM
+//    cout << "Starting map update reset..." << endl;
+//
+//    cout << "System Reseting" << endl;
+//    if(mpViewer)
+//    {
+//        mpViewer->RequestStop();
+//        while(!mpViewer->isStopped())
+//            usleep(3000);
+//    }
+//
+//    // Edge-SLAM: disabled
+//    /*
+//    // Reset Local Mapping
+//    cout << "Reseting Local Mapper...";
+//    mpLocalMapper->RequestReset();
+//    cout << " done" << endl;
+//
+//    // Reset Loop Closing
+//    cout << "Reseting Loop Closing...";
+//    mpLoopClosing->RequestReset();
+//    cout << " done" << endl;
+//    */
+//
+//    // Clear BoW Database
+//    cout << "Reseting Database...";
+//    mpKeyFrameDB->clear();
+//    cout << " done" << endl;
+//
+//    // Clear Map (this erase MapPoints and KeyFrames)
+//    mpMap->clear();
+//
+//    if(mpInitializer)
+//    {
+//        delete mpInitializer;
+//        mpInitializer = static_cast<Initializer*>(NULL);
+//    }
+//
+//    // Edge-SLAM
+//    cout << "Map update reset is complete" << endl;
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif
 
 } //namespace ORB_SLAM

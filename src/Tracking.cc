@@ -4174,50 +4174,348 @@ void Tracking::Release()
 }
 
 
+void Tracking::UpdateFromLocalMapping(Map* pM)
+{
+  // Keep current reference keyframe Id, and reset refKFSet
+  long unsigned int refId = mpReferenceKF->mnId; // mpReferenceKF is from tarcking
+  // refKFSet = false; Edge-slam variable
 
-//void Tracking::MUReset()
-//{
-//    // Edge-SLAM
-//    cout << "Starting map update reset..." << endl;
-//
-//    cout << "System Reseting" << endl;
-//    if(mpViewer)
-//    {
-//        mpViewer->RequestStop();
-//        while(!mpViewer->isStopped())
-//            usleep(3000);
-//    }
-//
-//    // Edge-SLAM: disabled
-//    /*
-//    // Reset Local Mapping
-//    cout << "Reseting Local Mapper...";
-//    mpLocalMapper->RequestReset();
-//    cout << " done" << endl;
-//
-//    // Reset Loop Closing
-//    cout << "Reseting Loop Closing...";
-//    mpLoopClosing->RequestReset();
-//    cout << " done" << endl;
-//    */
-//
-//    // Clear BoW Database
-//    cout << "Reseting Database...";
-//    mpKeyFrameDB->clear();
-//    cout << " done" << endl;
-//
-//    // Clear Map (this erase MapPoints and KeyFrames)
-//    mpMap->clear();
-//
-//    if(mpInitializer)
-//    {
-//        delete mpInitializer;
-//        mpInitializer = static_cast<Initializer*>(NULL);
-//    }
-//
-//    // Edge-SLAM
-//    cout << "Map update reset is complete" << endl;
-//}
+  // Before clearing the map, we should retrieve the ids of map points within last frame
+  vector<unsigned long int> lastFrame_points_ids;
+  vector<bool> lastFrame_points_availability;
+  vector<unsigned long int> mvpLocalMapPoints_ids;
+  for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
+  {
+      MapPoint* pMP = mLastFrame.mvpMapPoints[i];
+
+      if(pMP)
+      {
+          lastFrame_points_ids.push_back(pMP->mnId);
+          lastFrame_points_availability.push_back(true);
+      }
+      else
+      {
+          lastFrame_points_availability.push_back(false);
+      }
+  }
+  for (unsigned int i = 0 ; i < mvpLocalMapPoints.size(); i++)
+  {
+      mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mnId);
+  }
+
+  
+
+  // Reset tracking thread to update it using a new local-map
+  MUReset(); // From tracking
+
+  // Reconstruct keyframes loop
+  // For every keyframe, check its mappoints, then add them to tracking local-map
+  // Add keyframe to tracking local-map
+  //for(int i=0; i<(int)mapVec.size(); i++) // mapVec is the data, in this case ros2 msg
+  for(const auto& tKF : pM->GetAllKeyFrames())
+  {
+      //// Reconstruct keyframe
+      //KeyFrame *tKF = new KeyFrame();
+      ////{
+      ////    try
+      ////    {
+      ////        std::stringstream iis(mapVec[i]);
+      ////        boost::archive::text_iarchive iia(iis);
+      ////        iia >> tKF;
+      ////        iis.clear();
+      ////    }
+      ////    catch(boost::archive::archive_exception e)
+      ////    {
+      ////        cout << "log,Tracking::mapCallback,keyframe error: " << e.what() << endl;
+
+      ////        // Clear
+      ////        tKF = static_cast<KeyFrame*>(NULL);
+      ////        continue;
+      ////    }
+      ////}
+
+      //// Set keyframe fields
+      //tKF->setORBVocab(mpORBVocabulary);
+      //tKF->setMapPointer(mpMap);
+      //tKF->setKeyFrameDatabase(mpKeyFrameDB);
+      //tKF->ComputeBoW();
+
+      //// Get keyframe's mappoints
+      //vector<MapPoint*> vpMapPointMatches = tKF->GetMapPointMatches();
+
+      //// Iterate through current keyframe's mappoints and double check them
+      //for(size_t i=0; i<vpMapPointMatches.size(); i++)
+      //{
+      //    MapPoint* pMP = vpMapPointMatches[i];
+      //    if(pMP)
+      //    {
+      //        if(!pMP->isBad())
+      //        {
+      //            // If tracking id is set
+      //            if(pMP->trSet)
+      //            {
+      //                MapPoint* pMPMap = mpMap->RetrieveMapPoint(pMP->mnId, true);
+
+      //                if(pMPMap != NULL)
+      //                {
+      //                    // Replace keyframe's mappoint pointer to the existing one in tracking local-map
+      //                    tKF->AddMapPoint(pMPMap, i);
+
+      //                    // Add keyframe observation to the mappoint
+      //                    pMPMap->AddObservation(tKF, i);
+
+      //                    // Delete duplicate mappoint
+      //                    delete pMP;
+      //                }
+      //                else
+      //                {
+      //                    // Add keyframe's mappoint to tracking local-map
+      //                    mpMap->AddMapPoint(pMP); // mpMap needs to be selected from Atlas
+
+      //                    // Add keyframe observation to the mappoint
+      //                    pMP->AddObservation(tKF, i);
+      //                    pMP->setMapPointer(mpMap); // We are not sending the map pointer in marshalling
+      //                    pMP->SetReferenceKeyFrame(tKF);
+      //                }
+      //            }
+      //            else if(pMP->lmSet)     // If tracking id is not set, but local-mapping id is set
+      //            {
+      //                MapPoint* pMPMap = mpMap->RetrieveMapPoint(pMP->lmMnId, false);
+
+      //                if(pMPMap != NULL)
+      //                {
+      //                    // Replace keyframe's mappoint pointer to the existing one in tracking local-map
+      //                    tKF->AddMapPoint(pMPMap, i);
+
+      //                    // Add keyframe observation to the mappoint
+      //                    pMPMap->AddObservation(tKF, i);
+
+      //                    // Delete duplicate mappoint
+      //                    delete pMP;
+      //                }
+      //                else
+      //                {
+      //                    // Assign tracking id
+      //                    pMP->AssignId(true);
+
+      //                    // Add keyframe's mappoint to tracking local-map
+      //                    mpMap->AddMapPoint(pMP);
+
+      //                    // Add keyframe observation to the mappoint
+      //                    pMP->AddObservation(tKF, i);
+      //                    pMP->setMapPointer(mpMap); // We are not sending the map pointer in marshalling
+      //                    pMP->SetReferenceKeyFrame(tKF);
+      //                }
+      //            }
+      //        }
+      //    }
+      //}
+
+      //// Add keyframe to tracking local-map
+      //mpMap->AddKeyFrame(tKF);
+
+      //// Add Keyframe to database
+      mpKeyFrameDB->add(tKF);
+
+      /* ================= Everything up to here is done when new map is initialized =======================*/
+      
+
+
+      /* ================= Reference KF ptr can be retreieved from the mpOrbKeyFrames[refId] =======================*/
+      //// Set RefKF to previous RefKF if it is part of the map update
+      //if(tKF->mnId == refId)
+      //{
+      //    mpReferenceKF = tKF; //mpReferenceKF is from tracking
+      //    mLastFrame.mpReferenceKF = tKF; // mLastFrame is from tracking
+      //    refKFSet = true; // Edge-slam var in tracking
+      //}
+
+      //// Clear
+      //tKF = static_cast<KeyFrame*>(NULL);
+      //vpMapPointMatches.clear();
+  }
+
+  /* ================= =======================*/
+  if(mpOrbKeyFrames.find(refId) != mpOrbKeyFrames.end())
+  {
+    mpReferenceKF = mpOrbKeyFrames[refId];
+    mLastFrame.mpReferenceKF = mpOrbKeyFrames[refId]; // mLastFrame is from tracking
+    refKFSet = true;
+  }
+  
+  // Get all keyframes in tracking local-map
+  //vector<KeyFrame*> vpKeyFrames = mpMap->GetAllKeyFrames();
+
+  /* ================= =======================*/
+  vector<KeyFrame*> vpKeyFrames = pM->GetAllKeyFrames();
+  
+  /* ================= All of this can be retrieved from mpOrbKeyFrames (get the biggest idx? or first?) =======================*/
+  // Initialize Reference KeyFrame and other KF variables
+  if(vpKeyFrames.size() > 0)
+  {
+      if(!refKFSet)
+          mpReferenceKF = vpKeyFrames[0]; // from tracking
+      else
+      {
+          if(mpReferenceKF->mnId < vpKeyFrames[0]->mnId) // from tracking
+          {
+              mpReferenceKF = vpKeyFrames[0]; // from tracking
+              refKFSet = false; // edge-slam tracking
+          }
+      }
+
+      mnLastKeyFrameId = vpKeyFrames[0]->mnFrameId; // from tracking
+      mpLastKeyFrame = vpKeyFrames[0]; // from tracking 
+      mnMapUpdateLastKFId = vpKeyFrames[0]->mnId; // edge-slam tracking
+  }
+
+  // Edge-SLAM: debug
+  cout << "log,Tracking::mapCallback,keyframes in update: ";
+
+  // Iterate through keyframes and reconstruct connections
+  for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
+  {
+      KeyFrame* pKFCon = *it;
+
+      /* ================= This is done in PostLoad =======================*/
+      //pKFCon->ReconstructConnections();
+
+      // Edge-SLAM: debug
+      cout << pKFCon->mnId << " ";
+
+      // If RefKF has lower id than current KF, then set it to that KF
+      if(mpReferenceKF->mnId < pKFCon->mnId)
+      {
+          mpReferenceKF = pKFCon;
+          refKFSet = false;
+      }
+
+      // Update other KF variables
+      if(mnMapUpdateLastKFId < pKFCon->mnId)
+      {
+          mnLastKeyFrameId = pKFCon->mnFrameId;
+          mpLastKeyFrame = pKFCon;
+          mnMapUpdateLastKFId = pKFCon->mnId;
+      }
+  }
+
+  // Edge-SLAM: debug
+  cout << endl;
+
+  // Set current-frame RefKF
+  mCurrentFrame.mpReferenceKF = mpReferenceKF;
+
+  // Get all map points in tracking local-map
+  vector<MapPoint*> vpMapPoints = mpMap->GetAllMapPoints();
+
+  /* ================= This is done already in PostLoad? =======================*/
+  //// Iterate through all mappoints and SetReferenceKeyFrame
+  //for (std::vector<MapPoint*>::iterator it=vpMapPoints.begin(); it!=vpMapPoints.end(); ++it)
+  //{
+  //    MapPoint* rMP = *it;
+
+  //    if((unsigned)rMP->mnFirstKFid == rMP->GetReferenceKeyFrame()->mnId)
+  //        continue;
+
+  //    KeyFrame* rKF = mpMap->RetrieveKeyFrame(rMP->mnFirstKFid);
+
+  //    if(rKF)
+  //        rMP->SetReferenceKeyFrame(rKF);
+  //}
+
+  // Updating mLastFrame
+  for(int i =0; i<mLastFrame.N; i++)
+  {
+      if(lastFrame_points_availability[i])
+      {
+          //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
+          MapPoint* newpMP = pM->RetrieveMapPoint(lastFrame_points_ids[i], true);
+
+          if (newpMP)
+          {
+              mLastFrame.mvpMapPoints[i] = newpMP;
+          }
+          else
+          {
+              mLastFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
+          }
+      }
+  }
+
+  // We should update mvpLocalMapPoints for viewer
+  mvpLocalMapPoints.clear(); // from tracking = mpAtlas->GetAllMapPoints()
+  for (unsigned int i = 0 ; i < mvpLocalMapPoints_ids.size(); i++)// from tracking = mpAtlas->GetAllMapPoints()
+  {
+      //MapPoint* pMP = mpMap->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
+      MapPoint* pMP = pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
+      if (pMP)
+      {
+          mvpLocalMapPoints.push_back(pMP);// from tracking = mpAtlas->GetAllMapPoints()
+      }
+  }
+
+  if(mpViewer)
+      mpViewer->Release();
+
+  // Edge-SLAM: measure
+  //msRelocLastMapUpdateStart = std::chrono::high_resolution_clock::now();
+
+  mapUpToDate = true;
+  //msRelocStatus = false;
+
+  // Edge-SLAM: debug
+  cout << "log,Tracking::mapCallback,local map update is done" << endl;
+
+
+
+
+}
+
+void Tracking::MUReset()
+{
+    // Edge-SLAM
+    cout << "Starting map update reset..." << endl;
+
+    cout << "System Reseting" << endl;
+    if(mpViewer)
+    {
+        mpViewer->RequestStop();
+        while(!mpViewer->isStopped())
+            usleep(3000);
+    }
+
+    // Edge-SLAM: disabled
+    /*
+    // Reset Local Mapping
+    cout << "Reseting Local Mapper...";
+    mpLocalMapper->RequestReset();
+    cout << " done" << endl;
+
+    // Reset Loop Closing
+    cout << "Reseting Loop Closing...";
+    mpLoopClosing->RequestReset();
+    cout << " done" << endl;
+    */
+
+    // Clear BoW Database
+    cout << "Reseting Database...";
+    mpKeyFrameDB->clear();
+    cout << " done" << endl;
+
+    // Clear Map (this erase MapPoints and KeyFrames)
+    //Map* pMap = mpAtlas->GetCurrentMap();
+    
+    //mpMap->clear();
+
+    //if(mpInitializer)
+    //{
+    //    delete mpInitializer;
+    //    mpInitializer = static_cast<Initializer*>(NULL);
+    //}
+
+    // Edge-SLAM
+    cout << "Map update reset is complete" << endl;
+}
 
 
 

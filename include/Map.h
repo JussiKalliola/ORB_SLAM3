@@ -73,6 +73,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Map();
     Map(int initKFid);
+    Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs, long unsigned int mnId, std::vector<unsigned long int> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId, unsigned long int mnBackupKFinitialID, unsigned long int mnBackupKFlowerID, std::vector<unsigned long int> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange, int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail, bool mbBad, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2);
     ~Map();
 
     void AddKeyFrame(KeyFrame* pKF);
@@ -89,6 +90,8 @@ public:
 
     long unsigned int MapPointsInMap();
     long unsigned  KeyFramesInMap();
+
+    bool CheckIfMapPointInMap(unsigned long int mnTargetId);
 
     long unsigned int GetId();
 
@@ -136,7 +139,7 @@ public:
     unsigned int GetLowerKFID();
 
     void PreSave(std::set<GeometricCamera*> &spCams);
-    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc/*, map<long unsigned int, KeyFrame*>& mpKeyFrameId*/, map<unsigned int, GeometricCamera*> &mpCams);
+    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams);
 
     void printReprojectionError(list<KeyFrame*> &lpLocalWindowKFs, KeyFrame* mpCurrentKF, string &name, string &name_folder);
 
@@ -281,6 +284,10 @@ protected:
     std::vector<MapPoint*> mvpBackupMapPoints;
     std::vector<KeyFrame*> mvpBackupKeyFrames;
 
+
+    std::vector<unsigned long int> mvpBackupMapPointsId;
+    std::vector<unsigned long int> mvpBackupKeyFramesId;
+
     KeyFrame* mpKFinitial;
     KeyFrame* mpKFlowerID;
 
@@ -288,6 +295,7 @@ protected:
     unsigned long int mnBackupKFlowerID;
 
     std::vector<MapPoint*> mvpReferenceMapPoints;
+    std::vector<unsigned long int> mvpBackupReferenceMapPointsId;
 
     bool mbImuInitialized;
 

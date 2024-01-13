@@ -100,6 +100,46 @@ void Atlas::ChangeMap(Map* pMap, bool fromRos)
     }
 }
 
+void Atlas::ReplaceMap(Map* pMap)
+{
+    unique_lock<mutex> lock(mMutexAtlas);
+    cout << "Replace map with id: " << pMap->GetId() << endl;
+    if(mpCurrentMap->GetId() == pMap->GetId()){
+      mpCurrentMap = pMap;
+      mpCurrentMap->SetCurrentMap();
+    
+    }
+    
+
+    for (auto it = mspMaps.begin(); it != mspMaps.end(); /* Increment in the loop */) {
+        if ((*it)->GetId() == pMap->GetId()) {
+            delete *it;  // Delete the object pointed to by the pointer
+            it = mspMaps.erase(it);  // Remove the pointer from the set and get the next iterator
+        } else {
+            ++it;  // Move to the next element
+        }
+    }
+    
+    for (auto it = mspBadMaps.begin(); it != mspBadMaps.end(); /* Increment in the loop */) {
+        if ((*it)->GetId() == pMap->GetId()) {
+            delete *it;  // Delete the object pointed to by the pointer
+            it = mspBadMaps.erase(it);  // Remove the pointer from the set and get the next iterator
+        } else {
+            ++it;  // Move to the next element
+        }
+    }
+    
+    for (auto it = mvpBackupMaps.begin(); it != mvpBackupMaps.end(); /* Increment in the loop */) {
+        if ((*it)->GetId() == pMap->GetId()) {
+            delete *it;  // Delete the object pointed to by the pointer
+            it = mvpBackupMaps.erase(it);  // Remove the pointer from the set and get the next iterator
+        } else {
+            ++it;  // Move to the next element
+        }
+    }
+
+}
+
 unsigned long int Atlas::GetLastInitKFid()
 {
     unique_lock<mutex> lock(mMutexAtlas);
@@ -117,10 +157,10 @@ void Atlas::AddKeyFrame(KeyFrame* pKF, bool fromRos)
     Map* pMapKF = pKF->GetMap();
 
     //cout << "Add Keyframe in Atlas::AddKeyFrame. Notify observer..." << endl;
-    if (!fromRos) {
+    //if (!fromRos) {
       //notifyObserverKeyframeAdded(pKF);
-      notifyObserverAtlasAction(2, pKF->mnId);
-    }
+    //  notifyObserverAtlasAction(2, pKF->mnId);
+    //}
     
     pMapKF->AddKeyFrame(pKF);
 }
@@ -132,6 +172,12 @@ void Atlas::AddMapPoint(MapPoint* pMP, bool fromRos)
     if(!fromRos) {
       notifyObserverAtlasAction(0, pMP->mnId);
     }
+}
+
+bool Atlas::CheckIfMapPointInMap(MapPoint* pMP)
+{
+  Map* pMapMP = pMP->GetMap();
+  return pMapMP->CheckIfMapPointInMap(pMP->mnId);
 }
 
 GeometricCamera* Atlas::AddCamera(GeometricCamera* pCam)
@@ -183,6 +229,7 @@ std::vector<GeometricCamera*> Atlas::GetAllCameras()
 void Atlas::SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs)
 {
     unique_lock<mutex> lock(mMutexAtlas);
+    //std::cout << "&&&&&&&&&&&&&&& SETTING REFERENCE MAP POINTS " << std::endl;
     mpCurrentMap->SetReferenceMapPoints(vpMPs);
 }
 
@@ -384,10 +431,12 @@ void Atlas::PostLoad()
 
     mspMaps.clear();
     unsigned long int numKF = 0, numMP = 0;
+    map<long unsigned int, MapPoint*> mpMapPoints = map<long unsigned int, MapPoint*>();
+    map<long unsigned int, KeyFrame*> mpKeyFrames = map<long unsigned int, KeyFrame*>();
     for(Map* pMi : mvpBackupMaps)
     {
         mspMaps.insert(pMi);
-        pMi->PostLoad(mpKeyFrameDB, mpORBVocabulary, mpCams);
+        pMi->PostLoad(mpKeyFrameDB, mpORBVocabulary, mpKeyFrames, mpMapPoints, mpCams);
         numKF += pMi->GetAllKeyFrames().size();
         numMP += pMi->GetAllMapPoints().size();
     }

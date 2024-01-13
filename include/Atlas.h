@@ -107,12 +107,15 @@ public:
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
 
+    bool CheckIfMapPointInMap(MapPoint* pMP);
+    
     vector<Map*> GetAllMaps();
 
     int CountMaps();
 
     void clearMap(bool fromRos=false);
 
+    void ReplaceMap(Map* pMap);
     void clearAtlas(bool fromRos=false);
 
     Map* GetCurrentMap();

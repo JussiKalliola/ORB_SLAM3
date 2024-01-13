@@ -342,6 +342,7 @@ void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
 
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
+    std::cout << "End of AddKeyFrameFromRos" << std::endl;
 }
 
 

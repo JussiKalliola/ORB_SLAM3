@@ -36,6 +36,7 @@
 #include "System.h"
 #include "ImuTypes.h"
 #include "Settings.h"
+#include "Map.h"
 
 #include "GeometricCamera.h"
 
@@ -52,6 +53,7 @@ class LocalMapping;
 class LoopClosing;
 class System;
 class Settings;
+class Map;
 
 class Tracking
 {  
@@ -104,6 +106,9 @@ public:
 
     
     void SetLocalMappingIsInIdle(bool flag);
+    
+    void UpdateFromLocalMapping(Map* pM);
+    void MUReset();
 
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
@@ -372,6 +377,12 @@ protected:
     void newParameterLoader(Settings* settings);
     
     bool mbLocalMappingIdle;
+
+
+    static unsigned int mnMapUpdateLastKFId;    // Set to: last keyframe id in map update
+    static bool mapUpToDate;                    // Set to: true as long as map update is done and no new keyframes has been created in tracking
+    const static unsigned int LOCAL_MAP_SIZE;   // Set to: number of keyframes in map after which the TIME_KF should be decreased
+    static bool refKFSet;                       // ReferenceKF didn't change after map update
 
 #ifdef REGISTER_LOOP
     bool Stop();

@@ -33,7 +33,7 @@ MapPoint::MapPoint():
     mnCorrectedReference(0), mnBAGlobalForKF(0), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL))
 {
-    std::cout << "MP Constructor-1: nNextId=" << nNextId << "," << mnId << std::endl;
+    std::cout << "MP Constructor-1: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId) << std::endl;
     mpReplaced = static_cast<MapPoint*>(NULL);
 }
 
@@ -44,7 +44,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap, int 
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
-    std::cout << "MP Constructor0: nNextId=" << nNextId << "," << mnId << std::endl;
+    std::cout << "MP Constructor0: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId) << std::endl;
     SetWorldPos(Pos);
 
     mNormalVector.setZero();
@@ -80,7 +80,7 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
-    std::cout << "MP Constructor1: nNextId=" << nNextId << "," << mnId << std::endl;
+    std::cout << "MP Constructor1: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
     mInvDepth=invDepth;
     mInitU=(double)uv_init.x;
     mInitV=(double)uv_init.y;
@@ -117,7 +117,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     mnFound(1), mbBad(false), mpReplaced(NULL), mpMap(pMap), mnOriginMapId(pMap->GetId())
 {
     SetWorldPos(Pos);
-    std::cout << "MP Constructor2: nNextId=" << nNextId << "," << mnId << std::endl;
+    std::cout << "MP Constructor2: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
 
     Eigen::Vector3f Ow;
     if(pFrame -> Nleft == -1 || idxF < pFrame -> Nleft){
@@ -226,7 +226,7 @@ MapPoint::MapPoint(
 {
     //SetWorldPos(Pos);
     
-    std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << std::endl;
+    std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
     mpReplaced = static_cast<MapPoint*>(NULL);
     mpHostKF = static_cast<KeyFrame*>(NULL);
     mpRefKF= static_cast<KeyFrame*>(NULL);
@@ -710,6 +710,23 @@ void MapPoint::UpdateMap(Map* pMap, bool fromRos)
     if (!fromRos) notifyObserverMapPointAction(mnId, 10, pMap->GetId());
     mpMap = pMap;
 }
+
+std::string MapPoint::createHashId(const std::string& strSystemId, unsigned long int mnMPId)
+{
+  // Combine string and number
+  std::string combinedInput = strSystemId + std::to_string(mnMPId);
+
+  // Basic hash function using std::hash
+  size_t hashValue = std::hash<std::string>{}(combinedInput);
+
+  // Convert hash value to a 6-character hexadecimal string
+  std::stringstream hexStream;
+  hexStream << std::hex << std::setw(6) << std::setfill('0') << (hashValue % 0xFFFFFF);
+  std::string hexHash = hexStream.str();
+
+  return hexHash;
+}
+
 
 void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 {

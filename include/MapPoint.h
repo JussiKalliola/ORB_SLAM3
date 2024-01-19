@@ -170,7 +170,7 @@ public:
     void UpdateMap(Map* pMap, bool fromRos=false);
 
     void PrintObservations();
-
+    std::string createHashId(const std::string& strSystemId, unsigned long int mnMPId);
     void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
     void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid, bool* bUnprocessed );
     
@@ -180,6 +180,7 @@ public:
 
 public:
     long unsigned int mnId;
+    std::string mstrHexId;
     
     long int trMnId;
     long int lmMnId;

@@ -554,6 +554,7 @@ namespace ORB_SLAM3
         {
             MapPoint* pMP = vpPoints[iMP];
             KeyFrame* pKFi = vpPointsKFs[iMP];
+            
 
             // Discard Bad MapPoints and already found
             if(pMP->isBad() || spAlreadyFound.count(pMP))
@@ -1147,6 +1148,7 @@ namespace ORB_SLAM3
 
     int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const float th, const bool bRight)
     {
+        //std::cout << "start of fuse" << std::endl;
         GeometricCamera* pCamera;
         Sophus::SE3f Tcw;
         Eigen::Vector3f Ow;
@@ -1172,6 +1174,7 @@ namespace ORB_SLAM3
 
         const int nMPs = vpMapPoints.size();
 
+        //std::cout << "before mappoint loop" << std::endl;
         // For debbuging
         int count_notMP = 0, count_bad=0, count_isinKF = 0, count_negdepth = 0, count_notinim = 0, count_dist = 0, count_normal=0, count_notidx = 0, count_thcheck = 0;
         for(int i=0; i<nMPs; i++)
@@ -1195,6 +1198,7 @@ namespace ORB_SLAM3
                 continue;
             }
 
+            //std::cout << "before world pose" << std::endl;
             Eigen::Vector3f p3Dw = pMP->GetWorldPos();
             Eigen::Vector3f p3Dc = Tcw * p3Dw;
 
@@ -1209,6 +1213,7 @@ namespace ORB_SLAM3
 
             const Eigen::Vector2f uv = pCamera->project(p3Dc);
 
+            //std::cout << "is in image" << std::endl;
             // Point must be inside the image
             if(!pKF->IsInImage(uv(0),uv(1)))
             {
@@ -1223,6 +1228,7 @@ namespace ORB_SLAM3
             Eigen::Vector3f PO = p3Dw-Ow;
             const float dist3D = PO.norm();
 
+            //std::cout << "after distances" << std::endl;
             // Depth must be inside the scale pyramid of the image
             if(dist3D<minDistance || dist3D>maxDistance) {
                 count_dist++;
@@ -1232,19 +1238,23 @@ namespace ORB_SLAM3
             // Viewing angle must be less than 60 deg
             Eigen::Vector3f Pn = pMP->GetNormal();
 
+            //std::cout << "after getting normal" << std::endl;
             if(PO.dot(Pn)<0.5*dist3D)
             {
                 count_normal++;
                 continue;
             }
 
+            //std::cout << "before predict scale" << std::endl;
             int nPredictedLevel = pMP->PredictScale(dist3D,pKF);
 
             // Search in a radius
             const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
 
+            //std::cout << "before get features" << std::endl;
             const vector<size_t> vIndices = pKF->GetFeaturesInArea(uv(0),uv(1),radius,bRight);
 
+            //std::cout << "after get features in area" << std::endl;
             if(vIndices.empty())
             {
                 count_notidx++;
@@ -1253,6 +1263,7 @@ namespace ORB_SLAM3
 
             // Match to the most similar keypoint in the radius
 
+            //std::cout << "before getting descriptor" << std::endl;
             const cv::Mat dMP = pMP->GetDescriptor();
 
             int bestDist = 256;
@@ -1308,6 +1319,7 @@ namespace ORB_SLAM3
                 }
             }
 
+            //std::cout << "before checking best dist against th" << std::endl;
             // If there is already a MapPoint replace otherwise add new measurement
             if(bestDist<=TH_LOW)
             {
@@ -1334,18 +1346,19 @@ namespace ORB_SLAM3
 
         }
 
+        //std::cout << "end of the fuse" << std::endl;
         return nFused;
     }
 
     int ORBmatcher::Fuse(KeyFrame *pKF, Sophus::Sim3f &Scw, const vector<MapPoint *> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint)
     {
-        std::cout << "start of fuse" << std::endl;
+        //std::cout << "start of fuse" << std::endl;
         // Get Calibration Parameters for later projection
         const float &fx = pKF->fx;
         const float &fy = pKF->fy;
         const float &cx = pKF->cx;
         const float &cy = pKF->cy;
-        std::cout << "decompose scw" << std::endl;
+        //std::cout << "decompose scw" << std::endl;
         // Decompose Scw
         Sophus::SE3f Tcw = Sophus::SE3f(Scw.rotationMatrix(),Scw.translation()/Scw.scale());
         Eigen::Vector3f Ow = Tcw.inverse().translation();
@@ -1357,7 +1370,7 @@ namespace ORB_SLAM3
 
         const int nPoints = vpPoints.size();
 
-        std::cout << "project matches" << std::endl;
+        //std::cout << "project matches" << std::endl;
         // For each candidate MapPoint project and match
         for(int iMP=0; iMP<nPoints; iMP++)
         {
@@ -1410,7 +1423,7 @@ namespace ORB_SLAM3
             if(vIndices.empty())
                 continue;
 
-            std::cout << "match to most similar kp" << std::endl;
+            //std::cout << "match to most similar kp" << std::endl;
             // Match to the most similar keypoint in the radius
 
             const cv::Mat dMP = pMP->GetDescriptor();
@@ -1436,7 +1449,7 @@ namespace ORB_SLAM3
                 }
             }
 
-            std::cout << "replace mp" << std::endl;
+            //std::cout << "replace mp" << std::endl;
             // If there is already a MapPoint replace otherwise add new measurement
             if(bestDist<=TH_LOW)
             {
@@ -1455,7 +1468,7 @@ namespace ORB_SLAM3
             }
         }
 
-        std::cout << "end of fuse" << std::endl;
+        //std::cout << "end of fuse" << std::endl;
         return nFused;
     }
 
@@ -1696,14 +1709,18 @@ namespace ORB_SLAM3
 
         const bool bForward = tlc(2)>CurrentFrame.mb && !bMono;
         const bool bBackward = -tlc(2)>CurrentFrame.mb && !bMono;
-
+        
+        //std::cout << "before loop" << std::endl;
         for(int i=0; i<LastFrame.N; i++)
         {
+            //std::cout << i << ". "; 
             MapPoint* pMP = LastFrame.mvpMapPoints[i];
-            if(pMP)
+            if(pMP || pMP != nullptr)
             {
+                //std::cout << "SearchByProjection, MP=" << pMP->mnId;
                 if(!LastFrame.mvbOutlier[i])
                 {
+                    //std::cout << " !mboutlier, ";
                     // Project
                     Eigen::Vector3f x3Dw = pMP->GetWorldPos();
                     Eigen::Vector3f x3Dc = Tcw * x3Dw;
@@ -1717,6 +1734,7 @@ namespace ORB_SLAM3
 
                     Eigen::Vector2f uv = CurrentFrame.mpCamera->project(x3Dc);
 
+                    //std::cout << "after camera, ";
                     if(uv(0)<CurrentFrame.mnMinX || uv(0)>CurrentFrame.mnMaxX)
                         continue;
                     if(uv(1)<CurrentFrame.mnMinY || uv(1)>CurrentFrame.mnMaxY)
@@ -1737,6 +1755,7 @@ namespace ORB_SLAM3
                     else
                         vIndices2 = CurrentFrame.GetFeaturesInArea(uv(0),uv(1), radius, nLastOctave-1, nLastOctave+1);
 
+                    //std::cout << "after features in  area, ";
                     if(vIndices2.empty())
                         continue;
 
@@ -1772,6 +1791,7 @@ namespace ORB_SLAM3
                         }
                     }
 
+                    //std::cout << "after checking current obs, ";
                     if(bestDist<=TH_HIGH)
                     {
                         CurrentFrame.mvpMapPoints[bestIdx2]=pMP;
@@ -1796,6 +1816,7 @@ namespace ORB_SLAM3
                             rotHist[bin].push_back(bestIdx2);
                         }
                     }
+                    //std::cout << "before nleft, ";
                     if(CurrentFrame.Nleft != -1){
                         Eigen::Vector3f x3Dr = CurrentFrame.GetRelativePoseTrl() * x3Dc;
                         Eigen::Vector2f uv = CurrentFrame.mpCamera->project(x3Dr);
@@ -1862,6 +1883,7 @@ namespace ORB_SLAM3
                         }
 
                     }
+                    //std::cout << " end." << std::endl;
                 }
             }
         }

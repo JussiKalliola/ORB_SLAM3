@@ -2,16 +2,17 @@ cmake_minimum_required(VERSION 2.8)
 project(ORB_SLAM3)
 
 IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release)
+  SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
+SET(GCC_COVERAGE_COMPILE_FLAGS "-g")
+
 #set(CMAKE_C_COMPILER "/usr/bin/ccache /usr/bin/gcc")
 #set(CMAKE_CXX_COMPILER "/usr/bin/ccache /usr/bin/g++")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3 -w")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -w")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3 -w ${GCC_COVERAGE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -w ${GCC_COVERAGE_COMPILE_FLAGS}")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -w")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -w")
 
@@ -131,6 +132,7 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 -lcrypto
 )
 
+#target_compile_options(${PROJECT_NAME} PRIVATE -g)
 # If RealSense SDK is found the library is added and its examples compiled
 if(realsense2_FOUND)
     include_directories(${PROJECT_NAME}

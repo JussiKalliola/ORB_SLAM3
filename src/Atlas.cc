@@ -436,7 +436,8 @@ void Atlas::PostLoad()
     for(Map* pMi : mvpBackupMaps)
     {
         mspMaps.insert(pMi);
-        pMi->PostLoad(mpKeyFrameDB, mpORBVocabulary, mpKeyFrames, mpMapPoints, mpCams);
+        bool bUnprocessed = false;
+        pMi->PostLoad(mpKeyFrameDB, mpORBVocabulary, mpKeyFrames, mpMapPoints, mpCams, &bUnprocessed);
         numKF += pMi->GetAllKeyFrames().size();
         numMP += pMi->GetAllMapPoints().size();
     }

@@ -135,6 +135,7 @@ public:
 
 
     void InsertKeyframeFromRos(KeyFrame* pKF);
+    bool NeedNewKeyFrame(KeyFrame* pKF);
 
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
@@ -226,6 +227,8 @@ protected:
 
     std::chrono::high_resolution_clock::time_point msLastMUStart;
     std::chrono::high_resolution_clock::time_point msLastMUStop;
+    
+    unsigned long int mnLastKeyFrameId;
 
     int MAP_FREQ;  // Set to: after how many ms from last map update, a new map update should be sent
     int KF_NUM;    // Set to: how many keyframes should a map update consist of

@@ -98,6 +98,7 @@ void Map::AddKeyFrame(KeyFrame *pKF)
         mpKFinitial = pKF;
         mpKFlowerID = pKF;
     }
+
     mspKeyFrames.insert(pKF);
     if(pKF->mnId>mnMaxKFid)
     {
@@ -222,6 +223,7 @@ vector<MapPoint*> Map::GetReferenceMapPoints()
 
 long unsigned int Map::GetId()
 {
+    unique_lock<mutex> lock(mMutexMap);
     return mnId;
 }
 long unsigned int Map::GetInitKFid()
@@ -470,7 +472,7 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
 
 }
 
-void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams)
+void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed)
 {
     if(mpKeyFrameId.empty() && mpMapPointId.empty())
     {
@@ -505,6 +507,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
       mspKeyFrames.insert(mpKeyFrameId[id]);
     }
 
+    // TODO: Here we need to check the local mapping id and tracking id
     for(const auto& id : mvpBackupMapPointsId)
     {
       mspMapPoints.insert(mpMapPointId[id]);
@@ -515,8 +518,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     {
         if(!pMPi || pMPi->isBad())
             continue;
-        bool bUnprocessed=false;
-        pMPi->PostLoad(mpKeyFrameId, mpMapPointId, &bUnprocessed);
+        pMPi->PostLoad(mpKeyFrameId, mpMapPointId, bUnprocessed);
     }
 
     for(KeyFrame* pKFi : mspKeyFrames)
@@ -524,8 +526,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         if(!pKFi || pKFi->isBad())
             continue;
         
-        bool bUnprocessed=false;
-        pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, &bUnprocessed);
+        pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, bUnprocessed);
         pKFDB->add(pKFi);
     }
 
@@ -579,6 +580,18 @@ std::vector<long unsigned int> Map::GetBackupReferenceMapPointsId() {
     ids.push_back(mp->mnId);
   } 
   return ids;
+}
+
+MapPoint* Map::RetrieveMapPoint(unsigned long int id, bool isTracking)
+{
+    for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
+    {
+        unsigned long int current_id = (*sit)->mnId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
+        if (current_id == id)
+            return *sit;
+    }
+
+    return NULL;
 }
 
 } //namespace ORB_SLAM3

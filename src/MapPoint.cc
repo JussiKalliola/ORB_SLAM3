@@ -33,16 +33,18 @@ MapPoint::MapPoint():
     mnCorrectedReference(0), mnBAGlobalForKF(0), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL))
 {
+    std::cout << "MP Constructor-1: nNextId=" << nNextId << "," << mnId << std::endl;
     mpReplaced = static_cast<MapPoint*>(NULL);
 }
 
-MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
+MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap, int srcModule):
     mnFirstKFid(pRefKF->mnId), mpHostKF(static_cast<KeyFrame*>(NULL)), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
+    std::cout << "MP Constructor0: nNextId=" << nNextId << "," << mnId << std::endl;
     SetWorldPos(Pos);
 
     mNormalVector.setZero();
@@ -59,16 +61,26 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
     
+    if(srcModule==0) 
+    {
+      trMnId=mnId;
+      lmMnId=-1;
+    } else if(srcModule==1)
+    {
+      lmMnId=mnId;
+      trMnId=-1;
+    }
     //notifyObserverMapPointAdded(this);
 }
 
-MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap):
+MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap, int srcModule):
     mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
+    std::cout << "MP Constructor1: nNextId=" << nNextId << "," << mnId << std::endl;
     mInvDepth=invDepth;
     mInitU=(double)uv_init.x;
     mInitV=(double)uv_init.y;
@@ -86,16 +98,26 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
 
+    if(srcModule==0) 
+    {
+      trMnId=mnId;
+      lmMnId=-1;
+    } else if(srcModule==1)
+    {
+      lmMnId=mnId;
+      trMnId=-1;
+    }
     //notifyObserverMapPointAdded(this);
 }
 
-MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF):
+MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF, int srcModule):
     mnFirstKFid(-1), mnFirstFrame(pFrame->mnId), nObs(0), mnTrackReferenceForFrame(0), mnLastFrameSeen(0),
     mnBALocalForKF(0), mnFuseCandidateForKF(0),mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(static_cast<KeyFrame*>(NULL)), mnVisible(1),
     mnFound(1), mbBad(false), mpReplaced(NULL), mpMap(pMap), mnOriginMapId(pMap->GetId())
 {
     SetWorldPos(Pos);
+    std::cout << "MP Constructor2: nNextId=" << nNextId << "," << mnId << std::endl;
 
     Eigen::Vector3f Ow;
     if(pFrame -> Nleft == -1 || idxF < pFrame -> Nleft){
@@ -133,11 +155,23 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     mnId=nNextId++;
     
+    if(srcModule==0) 
+    {
+      trMnId=mnId;
+      lmMnId=-1;
+    } else if(srcModule==1)
+    {
+      lmMnId=mnId;
+      trMnId=-1;
+    }
     //notifyObserverMapPointAdded(this);
 }
 
+// TODO: id should be nNextId++ and local mapping and tracking ids should be separate.
 MapPoint::MapPoint(
-    long unsigned int mnId = 0,
+    long unsigned int mnId_ = 0,
+    long int trMnId = -1,
+    long int lmMnId = -1,
     long int mnFirstKFid = 0,
     long int mnFirstFrame = 0,
     int nObs = 0,
@@ -169,7 +203,7 @@ MapPoint::MapPoint(
     double mInitU = 0.0,
     double mInitV = 0.0,
     //KeyFrame* mpHostKF = nullptr,
-    long int mBackupHostKFId = 0,
+    long long int mBackupHostKFId = -1,
     unsigned int mnOriginMapId = 0,
     Eigen::Vector3f mWorldPos = Eigen::Vector3f(),
     //std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),
@@ -178,29 +212,36 @@ MapPoint::MapPoint(
     Eigen::Vector3f mNormalVector = Eigen::Vector3f(),
     cv::Mat mDescriptor = cv::Mat(),
     //KeyFrame* mpRefKF = nullptr,
-    long unsigned int mBackupRefKFId = 0,
+    long long int mBackupRefKFId = -1,
     int mnVisible = 0,
     int mnFound = 0,
     bool mbBad = false,
     //MapPoint* mpReplaced = nullptr,
-    long long int mBackupReplacedId = 0,
+    long long int mBackupReplacedId = -1,
     float mfMinDistance = 0.0,
     float mfMaxDistance = 0.0
     //Map* mpMap = nullptr
     ):
-    mnId(mnId), mnFirstKFid(mnFirstKFid), mnFirstFrame(mnFirstFrame), nObs(nObs), mTrackProjX(mTrackProjX), mTrackProjY(mTrackProjY), mTrackDepth(mTrackDepth), mTrackDepthR(mTrackDepthR), mTrackProjXR(mTrackProjXR), mTrackProjYR(mTrackProjYR), mbTrackInView(mbTrackInView), mbTrackInViewR(mbTrackInViewR), mnTrackScaleLevel(mnTrackScaleLevel), mnTrackScaleLevelR(mnTrackScaleLevelR), mTrackViewCos(mTrackViewCos), mTrackViewCosR(mTrackViewCosR), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnLastFrameSeen(mnLastFrameSeen), mnBALocalForKF(mnBALocalForKF), mnFuseCandidateForKF(mnFuseCandidateForKF), mnLoopPointForKF(mnLoopPointForKF), mnCorrectedByKF(mnCorrectedByKF), mnCorrectedReference(mnCorrectedReference), mPosGBA(mPosGBA), mnBAGlobalForKF(mnBAGlobalForKF), mnBALocalForMerge(mnBALocalForMerge), mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), /*mpHostKF(mpHostKF),*/ mBackupHostKFId(mBackupHostKFId), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), /*mObservations(mObservations),*/ mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), mDescriptor(mDescriptor), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), /*mpReplaced(mpReplaced),*/ mBackupReplacedId(mBackupReplacedId), mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance) /*mpMap(mpMap)*/
+    trMnId(trMnId), lmMnId(lmMnId), mnFirstKFid(mnFirstKFid), mnFirstFrame(mnFirstFrame), nObs(nObs), mTrackProjX(mTrackProjX), mTrackProjY(mTrackProjY), mTrackDepth(mTrackDepth), mTrackDepthR(mTrackDepthR), mTrackProjXR(mTrackProjXR), mTrackProjYR(mTrackProjYR), mbTrackInView(mbTrackInView), mbTrackInViewR(mbTrackInViewR), mnTrackScaleLevel(mnTrackScaleLevel), mnTrackScaleLevelR(mnTrackScaleLevelR), mTrackViewCos(mTrackViewCos), mTrackViewCosR(mTrackViewCosR), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnLastFrameSeen(mnLastFrameSeen), mnBALocalForKF(mnBALocalForKF), mnFuseCandidateForKF(mnFuseCandidateForKF), mnLoopPointForKF(mnLoopPointForKF), mnCorrectedByKF(mnCorrectedByKF), mnCorrectedReference(mnCorrectedReference), mPosGBA(mPosGBA), mnBAGlobalForKF(mnBAGlobalForKF), mnBALocalForMerge(mnBALocalForMerge), mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), /*mpHostKF(mpHostKF),*/ mBackupHostKFId(mBackupHostKFId), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), /*mObservations(mObservations),*/ mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), mDescriptor(mDescriptor), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), /*mpReplaced(mpReplaced),*/ mBackupReplacedId(mBackupReplacedId), mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance) /*mpMap(mpMap)*/
 {
     //SetWorldPos(Pos);
-
+    
+    std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << std::endl;
+    mpReplaced = static_cast<MapPoint*>(NULL);
+    mpHostKF = static_cast<KeyFrame*>(NULL);
+    mpRefKF= static_cast<KeyFrame*>(NULL);
+    mpMap = static_cast<Map*>(NULL);
     //mNormalVector.setZero();
 
     //mbTrackInViewR = false;
     //mbTrackInView = false;
 
-    //// MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
-    //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    //mnId=nNextId++;
+    // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
+    unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    mnId=nNextId++;
+    
 }
+
 void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
@@ -538,7 +579,6 @@ void MapPoint::UpdateNormalAndDepth(bool fromRos)
     if(observations.empty())
         return;
 
-    if(!fromRos) notifyObserverMapPointAction(mnId, 8, true);
     
     Eigen::Vector3f normal;
     normal.setZero();
@@ -552,6 +592,7 @@ void MapPoint::UpdateNormalAndDepth(bool fromRos)
 
         if(leftIndex != -1){
             Eigen::Vector3f Owi = pKF->GetCameraCenter();
+            //std::cout << "after getting the translation" << std::endl;
             Eigen::Vector3f normali = Pos - Owi;
             normal = normal + normali / normali.norm();
             n++;
@@ -673,8 +714,10 @@ void MapPoint::UpdateMap(Map* pMap, bool fromRos)
 void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 {
     mBackupReplacedId = -1;
-    if(mpReplaced && spMP.find(mpReplaced) != spMP.end())
+    if(spMP.find(mpReplaced) != spMP.end())
         mBackupReplacedId = mpReplaced->mnId;
+    else  
+      mpReplaced = static_cast<MapPoint*>(NULL);
 
     mBackupObservationsId1.clear();
     mBackupObservationsId2.clear();
@@ -694,18 +737,22 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     }
 
     // Save the id of the reference KF
+    mBackupRefKFId = -1;
     if(spKF.find(mpRefKF) != spKF.end())
     {
         mBackupRefKFId = mpRefKF->mnId;
+    } else {
+      mpHostKF = static_cast<KeyFrame*>(NULL);
     }
 
 
     // Save the id of the reference KF
+    mBackupHostKFId = -1;
     if(spKF.find(mpHostKF) != spKF.end())
     {
         mBackupHostKFId = mpHostKF->mnId;
     } else {
-      mBackupHostKFId = -1;
+      mpHostKF = static_cast<KeyFrame*>(NULL);
     }
 
 }
@@ -713,7 +760,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid, bool* bUnprocessed)
 {
     // Check if map point ptr can be found, if not, return
-    if(mpKFid.find(mBackupRefKFId) == mpKFid.end()) {
+    if(mBackupRefKFId != -1 && mpKFid.find(mBackupRefKFId) == mpKFid.end()) {
       *bUnprocessed = true; 
       std::cout << "ref kf id " << mBackupRefKFId << std::endl;
       return;
@@ -722,7 +769,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsi
     mpRefKF = mpKFid[mBackupRefKFId];
     if(!mpRefKF)
     {
-        cout << "ERROR: MP without KF reference " << mBackupRefKFId << "; Num obs: " << nObs << endl;
+        //cout << "ERROR: MP without KF reference " << mBackupRefKFId << "; Num obs: " << nObs << endl;
     }
     
 
@@ -736,9 +783,10 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsi
     mpHostKF = mpKFid[mBackupHostKFId];
     if(!mpHostKF)
     {
-        cout << "ERROR: MP without KF HOST " << mBackupHostKFId << "; Num obs: " << nObs << endl;
+        //cout << "ERROR: MP without KF HOST " << mBackupHostKFId << "; Num obs: " << nObs << endl;
     }
     
+    // TODO: Here we need to check the local mapping id and tracking id
     mpReplaced = static_cast<MapPoint*>(NULL);
     if(mBackupReplacedId>=0)
     {

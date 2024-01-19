@@ -37,7 +37,7 @@ namespace ORB_SLAM3
 {
 
 
-Verbose::eLevel Verbose::th = Verbose::VERBOSITY_VERY_VERBOSE;
+Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
                const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const bool mbOnlyTrack, const int initFr, const string &strSequence):
@@ -253,7 +253,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
 
     // Fix verbosity
-    Verbose::SetTh(Verbose::VERBOSITY_QUIET);
+    Verbose::SetTh(Verbose::VERBOSITY_NORMAL);
 
 }
 
@@ -540,6 +540,7 @@ void System::Shutdown()
     cout << "Shutdown" << endl;
 
     mpLocalMapper->RequestFinish();
+    std::cout << "after mplocalmapper finish()" << std::endl;
     //mpLoopCloser->RequestFinish();
     /*if(mpViewer)
     {
@@ -562,7 +563,7 @@ void System::Shutdown()
         }*/
         /*usleep(5000);
     }*/
-
+    std::cout << "before saving atlas to file" << std::endl;
     if(!mStrSaveAtlasToFile.empty())
     {
         Verbose::PrintMess("Atlas saving to file " + mStrSaveAtlasToFile, Verbose::VERBOSITY_NORMAL);
@@ -572,10 +573,12 @@ void System::Shutdown()
     /*if(mpViewer)
         pangolin::BindToContext("ORB-SLAM2: Map Viewer");*/
 
+    std::cout << "before printing time stats" << std::endl;
 #ifdef REGISTER_TIMES
     mpTracker->PrintTimeStats();
 #endif
 
+    std::cout << "end of shutdown" << std::endl;
 
 }
 

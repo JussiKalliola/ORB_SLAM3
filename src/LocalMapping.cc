@@ -44,6 +44,8 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
     mNumLM = 0;
     mNumKFCulling=0;
 
+    mnLastKeyFrameId = 0;
+
 #ifdef REGISTER_TIMES
     nLBA_exec = 0;
     nLBA_abort = 0;
@@ -196,6 +198,8 @@ void LocalMapping::Run()
                     vnLBA_KFopt.push_back(num_OptKF_BA);
                     vnLBA_KFfixed.push_back(num_FixedKF_BA);
                     vnLBA_MPs.push_back(num_MPs_BA);
+
+                    mbLocalMappingDone=true;
                 }
 
 #endif
@@ -272,7 +276,6 @@ void LocalMapping::Run()
 
             //std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
 
-            mbLocalMappingDone=true;
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
             //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
@@ -330,6 +333,68 @@ void LocalMapping::Run()
     SetFinish();
 }
 
+bool LocalMapping::NeedNewKeyFrame(KeyFrame* pKF)
+{
+    std::cout << "isStopped=" << isStopped() << " stopRequested=" << stopRequested() << std::endl;
+    // If Local Mapping is freezed by a Loop Closure do not insert keyframes
+    if(isStopped() || stopRequested())
+        return false;
+
+    // Edge-SLAM: part one of this condition was checked in CreateNewKeyFrame() in tracking on client
+    // Edge-SLAM: now checking part two
+    unsigned long int nKFs = pKF->GetMap()->KeyFramesInMap();
+    std::cout << "nKFs=" << nKFs << std::endl;
+    // Do not insert keyframes if not enough frames have passed from last relocalisation
+    if(nKFs>30)//(!(pKF->GetPassedF()) && nKFs>mMaxFrames)
+        return false;
+
+    // Local Mapping accept keyframes?
+    bool bLocalMappingIdle = AcceptKeyFrames();
+
+    // Edge-SLAM: checked in NeedNewKeyFrame() function in tracking thread on client
+    // Condition 1c: tracking is weak
+    //const bool c1c =  mSensor!=System::MONOCULAR && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
+    // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
+    //const bool c2 = ((mnMatchesInliers<nRefMatches*thRefRatio|| bNeedToInsertClose) && mnMatchesInliers>15);
+
+    // Edge-SLAM: customized for server side
+    bool c1a = false;
+    bool c1b = false;
+    //if(pKF->GetNeedNKF() == 1)
+    //{
+    // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
+    std::cout << "mnFrameId=" << pKF->mnFrameId << ">=" << mnLastKeyFrameId+30 << std::endl;
+    c1a = pKF->mnFrameId >= mnLastKeyFrameId+30;//mMaxFrames;
+    // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
+    c1b = (pKF->mnFrameId >= mnLastKeyFrameId+0 && bLocalMappingIdle); //mMinFrames && bLocalMappingIdle);
+    //}
+
+    if(c1a || c1b) //|| (pKF->GetNeedNKF() == 2))
+    {
+        // If the mapping accepts keyframes, insert keyframe.
+        // Otherwise send a signal to interrupt BA
+        if(bLocalMappingIdle)
+        {
+            return true;
+        }
+        else
+        {
+            InterruptBA();
+            if(!mbMonocular)
+            {
+                if(KeyframesInQueue()<3)
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+    }
+    else
+        return false;
+}
+
 void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
     //TODO: subscirber node will insert KF broadcasted by Tracking
   std::cout << "Thread1=LocalMapping::AddKeyframeFromRos - Added KF with ID=" << pKF->mnId << std::endl;
@@ -342,8 +407,10 @@ void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
 
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
+    mnLastKeyFrameId = pKF->mnId;
     std::cout << "End of AddKeyFrameFromRos" << std::endl;
 }
+
 
 
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
@@ -359,22 +426,25 @@ void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 bool LocalMapping::CheckNewKeyFrames()
 {
     unique_lock<mutex> lock(mMutexNewKFs);
+    
+    //std::cout << "Thread1=LocalMapping::CheckNewKeyFrames - Number of keyframes=" << mlNewKeyFrames.size() << std::endl;
     return(!mlNewKeyFrames.empty());
 }
 
 void LocalMapping::ProcessNewKeyFrame()
 {
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
     {
         unique_lock<mutex> lock(mMutexNewKFs);
         mpCurrentKeyFrame = mlNewKeyFrames.front();
         mlNewKeyFrames.pop_front();
+        std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : after pop, size of new kfs=" << mlNewKeyFrames.size() << std::endl; 
     }
 
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW " << mpCurrentKeyFrame->GetMapPointMatches().size() << std::endl; 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW " << mpCurrentKeyFrame->GetMapPointMatches().size() << std::endl; 
     // Associate MapPoints to the new keyframe and update normal and descriptor
     const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     
@@ -399,11 +469,11 @@ void LocalMapping::ProcessNewKeyFrame()
         }
     }
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Observations added to map points." << std::endl; 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Observations added to map points." << std::endl; 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections();
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
@@ -460,7 +530,7 @@ void LocalMapping::MapPointCulling()
 
 void LocalMapping::CreateNewMapPoints()
 {
-    //std::cout << "  Thread2=LocalMapping::CreateNewMapPoints : Triangulate new map points;" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::CreateNewMapPoints : Triangulate new map points;" << std::endl; 
     // Retrieve neighbor keyframes in covisibility graph
     int nn = 10;
     // For stereo inertial case
@@ -768,7 +838,7 @@ void LocalMapping::CreateNewMapPoints()
                 continue;
 
             // Triangulation is succesfull
-            MapPoint* pMP = new MapPoint(x3D, mpCurrentKeyFrame, mpAtlas->GetCurrentMap());
+            MapPoint* pMP = new MapPoint(x3D, mpCurrentKeyFrame, mpAtlas->GetCurrentMap(),1);
             if (bPointStereo)
                 countStereo++;
             
@@ -851,16 +921,17 @@ void LocalMapping::SearchInNeighbors()
     vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     for(vector<KeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
-        std::cout << "start of the for loop" << std::endl;
-        std::cout << "*vit" << std::endl;
+        //std::cout << "start of the for loop" << std::endl;
+        //std::cout << "*vit" << std::endl;
         KeyFrame* pKFi = *vit;
 
-        std::cout << "pKFi " << vpMapPointMatches.size() << std::endl;
-        
+        //std::cout << "pKFi " << vpMapPointMatches.size() << std::endl;
+        //if(pKFi != nullptr) std::cout << "pkfi is not nullptr" << std::endl;  
+        std::cout << matcher.TH_LOW << std::endl; 
         matcher.Fuse(pKFi,vpMapPointMatches);
-        std::cout << "after fuse" << std::endl;
+        //std::cout << "after fuse" << std::endl;
         if(pKFi->NLeft != -1) matcher.Fuse(pKFi,vpMapPointMatches,true);
-        std::cout << "end of the loop" << std::endl;
+        //std::cout << "end of the loop" << std::endl;
     }
 
 
@@ -985,7 +1056,7 @@ void LocalMapping::SetAcceptKeyFrames(bool flag)
 void LocalMapping::SetLocalMappingActive(bool flag)
 {
     unique_lock<mutex> lock(mMutexAccept);
-    notifyObserverLMActive(flag);
+    //notifyObserverLMActive(flag);
 }
 
 bool LocalMapping::SetNotStop(bool flag)
@@ -1219,6 +1290,7 @@ void LocalMapping::ResetIfRequested()
             mbResetRequested = false;
             mbResetRequestedActiveMap = false;
 
+            mnLastKeyFrameId = 0;
             // Inertial parameters
             mTinit = 0.f;
             mbNotBA2 = true;

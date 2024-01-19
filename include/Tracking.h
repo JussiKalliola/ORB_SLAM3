@@ -107,7 +107,8 @@ public:
     
     void SetLocalMappingIsInIdle(bool flag);
     
-    void UpdateFromLocalMapping(Map* pM);
+    void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames);
+    bool IsMapUpToDate();
     void MUReset();
 
     void attachObserver(std::shared_ptr<Observer> observer) {
@@ -182,6 +183,7 @@ public:
 
     void Reset(bool bLocMap = false);
     void ResetActiveMap(bool bLocMap = false);
+    void LocalMapIsUpdating(bool mbLocalMapStatus);
 
     float mMeanTrack;
     bool mbInitWith3KFs;
@@ -377,12 +379,13 @@ protected:
     void newParameterLoader(Settings* settings);
     
     bool mbLocalMappingIdle;
-
-
-    static unsigned int mnMapUpdateLastKFId;    // Set to: last keyframe id in map update
-    static bool mapUpToDate;                    // Set to: true as long as map update is done and no new keyframes has been created in tracking
-    const static unsigned int LOCAL_MAP_SIZE;   // Set to: number of keyframes in map after which the TIME_KF should be decreased
-    static bool refKFSet;                       // ReferenceKF didn't change after map update
+    
+    std::mutex mMutexLocalMapUpdate;
+    bool mbLocalMapIsUpdating;
+    unsigned long int mnMapUpdateLastKFId;    // Set to: last keyframe id in map update
+    bool mapUpToDate;                    // Set to: true as long as map update is done and no new keyframes has been created in tracking
+    unsigned int LOCAL_MAP_SIZE;   // Set to: number of keyframes in map after which the TIME_KF should be decreased
+    bool refKFSet;                       // ReferenceKF didn't change after map update
 
 #ifdef REGISTER_LOOP
     bool Stop();

@@ -139,7 +139,7 @@ public:
     unsigned int GetLowerKFID();
 
     void PreSave(std::set<GeometricCamera*> &spCams);
-    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams);
+    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed);
 
     void printReprojectionError(list<KeyFrame*> &lpLocalWindowKFs, KeyFrame* mpCurrentKF, string &name, string &name_folder);
 
@@ -214,6 +214,7 @@ public:
       // UPDATE BACKUP IDS
     }
 
+    MapPoint* RetrieveMapPoint(unsigned long int id, bool isTracking);
 
     void UpdateKeyFrames(std::set<KeyFrame*> mspKFs)
     {

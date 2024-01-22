@@ -2413,7 +2413,7 @@ void Tracking::StereoInitialization()
                 {
                     Eigen::Vector3f x3D;
                     mCurrentFrame.UnprojectStereo(i, x3D);
-                    MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap(),0);
+                    MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
                     pNewMP->AddObservation(pKFini,i);
                     pKFini->AddMapPoint(pNewMP,i);
                     pNewMP->ComputeDistinctiveDescriptors();
@@ -2429,7 +2429,7 @@ void Tracking::StereoInitialization()
                 if(rightIndex != -1){
                     Eigen::Vector3f x3D = mCurrentFrame.mvStereo3Dpoints[i];
 
-                    MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap(),0);
+                    MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
 
                     pNewMP->AddObservation(pKFini,i);
                     pNewMP->AddObservation(pKFini,rightIndex + mCurrentFrame.Nleft);
@@ -2578,7 +2578,7 @@ void Tracking::CreateInitialMapMonocular()
         Eigen::Vector3f worldPos;
         worldPos << mvIniP3D[i].x, mvIniP3D[i].y, mvIniP3D[i].z;
         
-        MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap(),0);
+        MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
 
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -2874,7 +2874,7 @@ void Tracking::UpdateLastFrame()
                 x3D = mLastFrame.UnprojectStereoFishEye(i);
             }
 
-            MapPoint* pNewMP = new MapPoint(x3D,mpAtlas->GetCurrentMap(),&mLastFrame,i,0);
+            MapPoint* pNewMP = new MapPoint(x3D,mpAtlas->GetCurrentMap(),&mLastFrame,i);
             mLastFrame.mvpMapPoints[i]=pNewMP;
 
             mlpTemporalPoints.push_back(pNewMP);
@@ -3367,7 +3367,7 @@ void Tracking::CreateNewKeyFrame()
                         x3D = mCurrentFrame.UnprojectStereoFishEye(i);
                     }
 
-                    MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap(),0);
+                    MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap());
                     pNewMP->AddObservation(pKF,i);
 
                     //Check if it is a stereo observation in order to not
@@ -3460,7 +3460,7 @@ void Tracking::SearchLocalPoints()
         }
         if(pMP->mbTrackInView)
         {
-            mCurrentFrame.mmProjectPoints[pMP->mnId] = cv::Point2f(pMP->mTrackProjX, pMP->mTrackProjY);
+            mCurrentFrame.mmProjectPoints[pMP->mstrHexId] = cv::Point2f(pMP->mTrackProjX, pMP->mTrackProjY);
         }
     }
 
@@ -3508,9 +3508,9 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   // refKFSet = false; Edge-slam variable
 
   // Before clearing the map, we should retrieve the ids of map points within last frame
-  vector<unsigned long int> lastFrame_points_ids;
+  vector<std::string> lastFrame_points_ids;
   vector<bool> lastFrame_points_availability;
-  vector<unsigned long int> mvpLocalMapPoints_ids;
+  vector<std::string> mvpLocalMapPoints_ids;
   std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
   for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
   {
@@ -3518,8 +3518,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
 
       if(pMP)
       {
-        std::cout << pMP->mnId << ",";
-          lastFrame_points_ids.push_back(pMP->mnId);
+        std::cout << pMP->mstrHexId << ",";
+          lastFrame_points_ids.push_back(pMP->mstrHexId);
           lastFrame_points_availability.push_back(true);
       }
       else
@@ -3530,7 +3530,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   std::cout << std::endl;
   for (unsigned int i = 0 ; i < mvpLocalMapPoints.size(); i++)
   {
-      mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mnId);
+      mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mstrHexId);
   }
 
   
@@ -3760,7 +3760,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       if(lastFrame_points_availability[i])
       {
           //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
-          MapPoint* newpMP = pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter], true);
+          MapPoint* newpMP = pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
 
           std::cout << lastFrame_points_ids[lastFrameMPCounter] << "-" << lastFrameMPCounter << ",";
           if (newpMP)
@@ -3782,7 +3782,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   for (unsigned int i = 0 ; i < mvpLocalMapPoints_ids.size(); i++)// from tracking = mpAtlas->GetAllMapPoints()
   {
       //MapPoint* pMP = mpMap->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
-      MapPoint* pMP = pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
+      MapPoint* pMP = pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i]);// from tracking = mpAtlas->GetAllMapPoints()
       if (pMP)
       {
           mvpLocalMapPoints.push_back(pMP);// from tracking = mpAtlas->GetAllMapPoints()

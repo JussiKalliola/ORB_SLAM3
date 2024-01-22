@@ -52,8 +52,8 @@ cv::Mat FrameDrawer::DrawFrame(float imageScale)
     vector<MapPoint*> vpMatchedMPs;
     vector<cv::KeyPoint> vOutlierKeys;
     vector<MapPoint*> vpOutlierMPs;
-    map<long unsigned int, cv::Point2f> mProjectPoints;
-    map<long unsigned int, cv::Point2f> mMatchedInImage;
+    map<std::string, cv::Point2f> mProjectPoints;
+    map<std::string, cv::Point2f> mMatchedInImage;
 
     cv::Scalar standardColor(0,255,0);
     cv::Scalar odometryColor(255,0,0);
@@ -422,7 +422,7 @@ void FrameDrawer::Update(Tracking *pTracker)
                     else
                         mvbVO[i]=true;
 
-                    mmMatchedInImage[pMP->mnId] = mvCurrentKeys[i].pt;
+                    mmMatchedInImage[pMP->mstrHexId] = mvCurrentKeys[i].pt;
                 }
                 else
                 {

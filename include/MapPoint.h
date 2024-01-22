@@ -48,7 +48,8 @@ class MapPoint
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & mnId;
+        //ar & mnId;
+        ar & mstrHexId;
         ar & mnFirstKFid;
         ar & mnFirstFrame;
         ar & nObs;
@@ -95,7 +96,7 @@ class MapPoint
         //ar & mnFound;
 
         ar & mbBad;
-        ar & mBackupReplacedId;
+        ar & mBackupReplacedStrId;
 
         ar & mfMinDistance;
         ar & mfMaxDistance;
@@ -107,10 +108,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     MapPoint();
 
-    MapPoint(const Eigen::Vector3f &Pos, KeyFrame* pRefKF, Map* pMap, int srcModule);
-    MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap, int srcModule);
-    MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF, int srcModule);
-    MapPoint(long unsigned int mnId_, long int trMnId, long int lmMnId, long int mnFirstKFid, long int mnFirstFrame, int nObs, float mTrackProjX, float mTrackProjY, float mTrackDepth, float mTrackDepthR, float mTrackProjXR, float mTrackProjYR, bool mbTrackInView, bool mbTrackInViewR, int mnTrackScaleLevel, int mnTrackScaleLevelR,float mTrackViewCos, float mTrackViewCosR,long unsigned int mnTrackReferenceForFrame, long unsigned int mnLastFrameSeen,long unsigned int mnBALocalForKF,long unsigned int mnFuseCandidateForKF,long unsigned int mnLoopPointForKF, long unsigned int mnCorrectedByKF, long unsigned int mnCorrectedReference, Eigen::Vector3f mPosGBA, long unsigned int mnBAGlobalForKF, long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth,double mInitU, double mInitV, /*KeyFrame* mpHostKF,*/ long long int mBackupHostKFId, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations,*/ std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector, cv::Mat mDescriptor, /*KeyFrame* mpRefKF,*/ long long int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad, /*MapPoint* mpReplaced,*/ long long int mBackupReplacedId, float mfMinDistance, float mfMaxDistance /*Map* mpMap*/);
+    MapPoint(const Eigen::Vector3f &Pos, KeyFrame* pRefKF, Map* pMap);
+    MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap);
+    MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
+    MapPoint(/*long unsigned int mnId,*/ std::string mstrHexId, long int mnFirstKFid, long int mnFirstFrame, int nObs, float mTrackProjX, float mTrackProjY, float mTrackDepth, float mTrackDepthR, float mTrackProjXR, float mTrackProjYR, bool mbTrackInView, bool mbTrackInViewR, int mnTrackScaleLevel, int mnTrackScaleLevelR,float mTrackViewCos, float mTrackViewCosR,long unsigned int mnTrackReferenceForFrame, long unsigned int mnLastFrameSeen,long unsigned int mnBALocalForKF,long unsigned int mnFuseCandidateForKF,long unsigned int mnLoopPointForKF, long unsigned int mnCorrectedByKF, long unsigned int mnCorrectedReference, Eigen::Vector3f mPosGBA, long unsigned int mnBAGlobalForKF, long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth,double mInitU, double mInitV, /*KeyFrame* mpHostKF,*/ long long int mBackupHostKFId, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations,*/ std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector, cv::Mat mDescriptor, /*KeyFrame* mpRefKF,*/ long long int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad, /*MapPoint* mpReplaced,*/ /*long long int mBackupReplacedId,*/std::string mBackupReplacedStrId, float mfMinDistance, float mfMaxDistance /*Map* mpMap*/);
 
     void SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos=false);
     Eigen::Vector3f GetWorldPos();
@@ -146,9 +147,10 @@ public:
     inline int GetFound(){
         return mnFound;
     }
-    inline long int GetReplacedBackup()
+    //inline long int GetReplacedBackup()
+    inline std::string GetReplacedBackup()
     {
-      return mBackupReplacedId;
+      return mBackupReplacedStrId;
     }
 
     inline long int GetRefBackup()
@@ -172,19 +174,16 @@ public:
     void PrintObservations();
     std::string createHashId(const std::string& strSystemId, unsigned long int mnMPId);
     void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
-    void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid, bool* bUnprocessed );
+    void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed );
     
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
     }
 
 public:
-    long unsigned int mnId;
+    //long unsigned int mnId;
     std::string mstrHexId;
     
-    long int trMnId;
-    long int lmMnId;
-
     static long unsigned int nNextId;
     long int mnFirstKFid;
     long int mnFirstFrame;
@@ -264,7 +263,8 @@ protected:
      bool mbBad;
      MapPoint* mpReplaced;
      // For save relation without pointer, this is necessary for save/load function
-     long long int mBackupReplacedId;
+     //long long int mBackupReplacedId;
+     std::string mBackupReplacedStrId;
 
      // Scale invariance distances
      float mfMinDistance;

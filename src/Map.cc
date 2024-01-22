@@ -49,11 +49,11 @@ Map::Map(
     std::set<long unsigned int> msOptKFs,
     std::set<long unsigned int> msFixedKFs,
     long unsigned int mnId,
-    std::vector<unsigned long int> mvpBackupMapPointsId,
+    std::vector<std::string> mvpBackupMapPointsId,
     std::vector<unsigned long int> mvpBackupKeyFramesId,
     unsigned long int mnBackupKFinitialID,
     unsigned long int mnBackupKFlowerID,
-    std::vector<unsigned long int> mvpBackupReferenceMapPointsId,
+    std::vector<std::string> mvpBackupReferenceMapPointsId,
     bool mbImuInitialized,
     int mnMapChange,
     int mnMapChangeNotified,
@@ -116,11 +116,11 @@ void Map::AddMapPoint(MapPoint *pMP)
     mspMapPoints.insert(pMP);
 }
 
-bool Map::CheckIfMapPointInMap(unsigned long int mnTargetId)
+bool Map::CheckIfMapPointInMap(std::string mnTargetId)
 {
     unique_lock<mutex> lock(mMutexMap);
     auto it = std::find_if(mspMapPoints.begin(), mspMapPoints.end(), [mnTargetId](const MapPoint* point) {
-        return point->mnId == mnTargetId;
+        return point->mstrHexId == mnTargetId;
     });
 
     if(it != mspMapPoints.end()) {
@@ -472,7 +472,7 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
 
 }
 
-void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<long unsigned int, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed)
+void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<std::string, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed)
 {
     if(mpKeyFrameId.empty() && mpMapPointId.empty())
     {
@@ -486,7 +486,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
               continue;
 
           pMPi->UpdateMap(this);
-          mpMapPointId[pMPi->mnId] = pMPi;
+          mpMapPointId[pMPi->mstrHexId] = pMPi;
       }
 
       //map<long unsigned int, KeyFrame*> mpKeyFrameId;
@@ -551,10 +551,10 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     mvpBackupMapPoints.clear();
 }
 
-std::vector<long unsigned int> Map::GetBackupMapPointsId() {
-  std::vector<long unsigned int> ids;
+std::vector<std::string> Map::GetBackupMapPointsId() {
+  std::vector<std::string> ids;
   for(MapPoint* mp : mspMapPoints) {
-    ids.push_back(mp->mnId);
+    ids.push_back(mp->mstrHexId);
   }
   return ids;
 }
@@ -574,19 +574,19 @@ long int Map::GetBackupKFLowerID() {
  return (mpKFlowerID) ? mpKFlowerID->mnId : -1;
 }
 
-std::vector<long unsigned int> Map::GetBackupReferenceMapPointsId() {
-  std::vector<long unsigned int> ids;
+std::vector<std::string> Map::GetBackupReferenceMapPointsId() {
+  std::vector<std::string> ids;
   for(MapPoint* mp : mvpReferenceMapPoints) {
-    ids.push_back(mp->mnId);
+    ids.push_back(mp->mstrHexId);
   } 
   return ids;
 }
 
-MapPoint* Map::RetrieveMapPoint(unsigned long int id, bool isTracking)
+MapPoint* Map::RetrieveMapPoint(std::string id)
 {
     for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
     {
-        unsigned long int current_id = (*sit)->mnId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
+      std::string current_id = (*sit)->mstrHexId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
         if (current_id == id)
             return *sit;
     }

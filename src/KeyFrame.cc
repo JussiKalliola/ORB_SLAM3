@@ -193,7 +193,7 @@ KeyFrame::KeyFrame(bool bImu = false,
     Sophus::SE3<float> mTrl = Sophus::SE3<float>(), 
     IMU::Bias mImuBias = IMU::Bias(), 
     //std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(), 
-    std::vector<long long int> mvBackupMapPointsId = std::vector<long long int>(), 
+    std::vector<std::string> mvBackupMapPointsId = std::vector<std::string>(), 
     //KeyFrameDatabase* mpKeyFrameDB = nullptr, 
     //ORBVocabulary* mpORBvocabulary = nullptr, 
     std::vector< std::vector <std::vector<size_t> > > mGrid = std::vector< std::vector <std::vector<size_t> > >(), 
@@ -488,9 +488,9 @@ void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx, bool fromRos)
     unique_lock<mutex> lock(mMutexFeatures);
     //mvpMapPoints.push_back(pMP);
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
-    }
+    //if(!fromRos) {
+    //  notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
+    //}
 
     mvpMapPoints[idx]=pMP;
 }
@@ -509,9 +509,9 @@ void KeyFrame::EraseMapPointMatch(const int &idx, bool fromRos)
 void KeyFrame::EraseMapPointMatch(MapPoint* pMP, bool fromRos)
 {
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 5, pMP->mnId);
-    }
+    //if(!fromRos) {
+    //  notifyObserverKFAction(mnId, 5, pMP->mnId);
+    //}
 
     tuple<size_t,size_t> indexes = pMP->GetIndexInKeyFrame(this);
     size_t leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
@@ -525,9 +525,9 @@ void KeyFrame::EraseMapPointMatch(MapPoint* pMP, bool fromRos)
 void KeyFrame::ReplaceMapPointMatch(const int &idx, MapPoint* pMP, bool fromRos)
 {
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 6, pMP->mnId, idx);
-    }
+    //if(!fromRos) {
+    //  notifyObserverKFAction(mnId, 6, pMP->mnId, idx);
+    //}
 
     mvpMapPoints[idx]=pMP;
 }
@@ -1124,9 +1124,9 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     {
 
         if(mvpMapPoints[i] && spMP.find(mvpMapPoints[i]) != spMP.end()) // Checks if the element is not null
-            mvBackupMapPointsId.push_back(mvpMapPoints[i]->mnId);
+            mvBackupMapPointsId.push_back(mvpMapPoints[i]->mstrHexId);
         else // If the element is null his value is -1 because all the id are positives
-            mvBackupMapPointsId.push_back(-1);
+            mvBackupMapPointsId.push_back("");
     }
     // Save the id of each connected KF with it weight
     mBackupConnectedKeyFrameIdWeights.clear();
@@ -1190,7 +1190,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
         mBackupImuPreintegrated.CopyFrom(mpImuPreintegrated);
 }
 
-void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid, map<unsigned int, GeometricCamera*>& mpCamId, bool* bUnprocessed){
+void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, map<unsigned int, GeometricCamera*>& mpCamId, bool* bUnprocessed){
     // Rebuild the empty variables
 
     // Pose
@@ -1206,7 +1206,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsi
     // TODO: Here we need to check the local mapping id and tracking id
     for(int i=0; i<N; ++i)  
     {
-        if(mvBackupMapPointsId[i] != -1)
+        if(mvBackupMapPointsId[i]!="" && mvBackupMapPointsId[i].length() == 6)
         {
           // Check if map point ptr can be found, if not, return
           if(mpMPid.find(mvBackupMapPointsId[i]) == mpMPid.end()) {

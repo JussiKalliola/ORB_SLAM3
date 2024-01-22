@@ -169,15 +169,15 @@ void Atlas::AddMapPoint(MapPoint* pMP, bool fromRos)
 {
     Map* pMapMP = pMP->GetMap();
     pMapMP->AddMapPoint(pMP);
-    if(!fromRos) {
-      notifyObserverAtlasAction(0, pMP->mnId);
-    }
+    //if(!fromRos) {
+    //  notifyObserverAtlasAction(0, pMP->mnId);
+    //}
 }
 
 bool Atlas::CheckIfMapPointInMap(MapPoint* pMP)
 {
   Map* pMapMP = pMP->GetMap();
-  return pMapMP->CheckIfMapPointInMap(pMP->mnId);
+  return pMapMP->CheckIfMapPointInMap(pMP->mstrHexId);
 }
 
 GeometricCamera* Atlas::AddCamera(GeometricCamera* pCam)
@@ -431,7 +431,7 @@ void Atlas::PostLoad()
 
     mspMaps.clear();
     unsigned long int numKF = 0, numMP = 0;
-    map<long unsigned int, MapPoint*> mpMapPoints = map<long unsigned int, MapPoint*>();
+    map<std::string, MapPoint*> mpMapPoints = map<std::string, MapPoint*>();
     map<long unsigned int, KeyFrame*> mpKeyFrames = map<long unsigned int, KeyFrame*>();
     for(Map* pMi : mvpBackupMaps)
     {

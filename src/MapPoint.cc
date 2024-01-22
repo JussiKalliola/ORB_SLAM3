@@ -20,6 +20,8 @@
 #include "ORBmatcher.h"
 
 #include<mutex>
+#include <chrono>
+#include <ctime>
 
 namespace ORB_SLAM3
 {
@@ -33,18 +35,16 @@ MapPoint::MapPoint():
     mnCorrectedReference(0), mnBAGlobalForKF(0), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL))
 {
-    std::cout << "MP Constructor-1: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId) << std::endl;
     mpReplaced = static_cast<MapPoint*>(NULL);
 }
 
-MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap, int srcModule):
+MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     mnFirstKFid(pRefKF->mnId), mpHostKF(static_cast<KeyFrame*>(NULL)), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
-    std::cout << "MP Constructor0: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId) << std::endl;
     SetWorldPos(Pos);
 
     mNormalVector.setZero();
@@ -59,28 +59,29 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap, int 
     
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
+    //mnId=nNextId++;
     
-    if(srcModule==0) 
-    {
-      trMnId=mnId;
-      lmMnId=-1;
-    } else if(srcModule==1)
-    {
-      lmMnId=mnId;
-      trMnId=-1;
-    }
+    // Get the current time point
+    auto currentTimePoint = std::chrono::system_clock::now();
+    // Convert the time point to a time_t (seconds since epoch)
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);
+    // Convert time_t to an integer
+    int currentTimestamp = static_cast<int>(currentTime);   
+
+    const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
+    std::string strSystemId(cSystemId);
+    mstrHexId=createHashId(strSystemId, currentTimestamp);
+    std::cout << "MP Constructor0: Hash=" << mstrHexId << std::endl;
     //notifyObserverMapPointAdded(this);
 }
 
-MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap, int srcModule):
+MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap):
     mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap),
     mnOriginMapId(pMap->GetId())
 {
-    std::cout << "MP Constructor1: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
     mInvDepth=invDepth;
     mInitU=(double)uv_init.x;
     mInitV=(double)uv_init.y;
@@ -96,28 +97,29 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     // Worldpos is not set
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
+    //mnId=nNextId++;
+    // Get the current time point
+    auto currentTimePoint = std::chrono::system_clock::now();
+    // Convert the time point to a time_t (seconds since epoch)
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);
+    // Convert time_t to an integer
+    int currentTimestamp = static_cast<int>(currentTime);   
+    
+    const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
+    std::string strSystemId(cSystemId);
+    mstrHexId=createHashId(strSystemId, currentTimestamp);
+    std::cout << "MP Constructor1: Hash=" << mstrHexId << std::endl;
 
-    if(srcModule==0) 
-    {
-      trMnId=mnId;
-      lmMnId=-1;
-    } else if(srcModule==1)
-    {
-      lmMnId=mnId;
-      trMnId=-1;
-    }
     //notifyObserverMapPointAdded(this);
 }
 
-MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF, int srcModule):
+MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const int &idxF):
     mnFirstKFid(-1), mnFirstFrame(pFrame->mnId), nObs(0), mnTrackReferenceForFrame(0), mnLastFrameSeen(0),
     mnBALocalForKF(0), mnFuseCandidateForKF(0),mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(static_cast<KeyFrame*>(NULL)), mnVisible(1),
     mnFound(1), mbBad(false), mpReplaced(NULL), mpMap(pMap), mnOriginMapId(pMap->GetId())
 {
     SetWorldPos(Pos);
-    std::cout << "MP Constructor2: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
 
     Eigen::Vector3f Ow;
     if(pFrame -> Nleft == -1 || idxF < pFrame -> Nleft){
@@ -153,25 +155,26 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
+    //mnId=nNextId++; 
+    // Get the current time point
+    auto currentTimePoint = std::chrono::system_clock::now();
+    // Convert the time point to a time_t (seconds since epoch)
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);
+    // Convert time_t to an integer
+    int currentTimestamp = static_cast<int>(currentTime);   
     
-    if(srcModule==0) 
-    {
-      trMnId=mnId;
-      lmMnId=-1;
-    } else if(srcModule==1)
-    {
-      lmMnId=mnId;
-      trMnId=-1;
-    }
+    const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
+    std::string strSystemId(cSystemId);
+    mstrHexId=createHashId(strSystemId, currentTimestamp);
+    std::cout << "MP Constructor2: Hash=" << mstrHexId << std::endl;
+    
     //notifyObserverMapPointAdded(this);
 }
 
 // TODO: id should be nNextId++ and local mapping and tracking ids should be separate.
 MapPoint::MapPoint(
-    long unsigned int mnId_ = 0,
-    long int trMnId = -1,
-    long int lmMnId = -1,
+    //long unsigned int mnId = 0,
+    std::string mstrHexId = "",
     long int mnFirstKFid = 0,
     long int mnFirstFrame = 0,
     int nObs = 0,
@@ -217,16 +220,16 @@ MapPoint::MapPoint(
     int mnFound = 0,
     bool mbBad = false,
     //MapPoint* mpReplaced = nullptr,
-    long long int mBackupReplacedId = -1,
+    //long long int mBackupReplacedId = -1,
+    std::string mBackupReplacedStrId = "",
     float mfMinDistance = 0.0,
     float mfMaxDistance = 0.0
     //Map* mpMap = nullptr
     ):
-    trMnId(trMnId), lmMnId(lmMnId), mnFirstKFid(mnFirstKFid), mnFirstFrame(mnFirstFrame), nObs(nObs), mTrackProjX(mTrackProjX), mTrackProjY(mTrackProjY), mTrackDepth(mTrackDepth), mTrackDepthR(mTrackDepthR), mTrackProjXR(mTrackProjXR), mTrackProjYR(mTrackProjYR), mbTrackInView(mbTrackInView), mbTrackInViewR(mbTrackInViewR), mnTrackScaleLevel(mnTrackScaleLevel), mnTrackScaleLevelR(mnTrackScaleLevelR), mTrackViewCos(mTrackViewCos), mTrackViewCosR(mTrackViewCosR), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnLastFrameSeen(mnLastFrameSeen), mnBALocalForKF(mnBALocalForKF), mnFuseCandidateForKF(mnFuseCandidateForKF), mnLoopPointForKF(mnLoopPointForKF), mnCorrectedByKF(mnCorrectedByKF), mnCorrectedReference(mnCorrectedReference), mPosGBA(mPosGBA), mnBAGlobalForKF(mnBAGlobalForKF), mnBALocalForMerge(mnBALocalForMerge), mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), /*mpHostKF(mpHostKF),*/ mBackupHostKFId(mBackupHostKFId), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), /*mObservations(mObservations),*/ mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), mDescriptor(mDescriptor), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), /*mpReplaced(mpReplaced),*/ mBackupReplacedId(mBackupReplacedId), mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance) /*mpMap(mpMap)*/
+    /*mnId(mnId),*/ mstrHexId(mstrHexId), mnFirstKFid(mnFirstKFid), mnFirstFrame(mnFirstFrame), nObs(nObs), mTrackProjX(mTrackProjX), mTrackProjY(mTrackProjY), mTrackDepth(mTrackDepth), mTrackDepthR(mTrackDepthR), mTrackProjXR(mTrackProjXR), mTrackProjYR(mTrackProjYR), mbTrackInView(mbTrackInView), mbTrackInViewR(mbTrackInViewR), mnTrackScaleLevel(mnTrackScaleLevel), mnTrackScaleLevelR(mnTrackScaleLevelR), mTrackViewCos(mTrackViewCos), mTrackViewCosR(mTrackViewCosR), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnLastFrameSeen(mnLastFrameSeen), mnBALocalForKF(mnBALocalForKF), mnFuseCandidateForKF(mnFuseCandidateForKF), mnLoopPointForKF(mnLoopPointForKF), mnCorrectedByKF(mnCorrectedByKF), mnCorrectedReference(mnCorrectedReference), mPosGBA(mPosGBA), mnBAGlobalForKF(mnBAGlobalForKF), mnBALocalForMerge(mnBALocalForMerge), mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), /*mpHostKF(mpHostKF),*/ mBackupHostKFId(mBackupHostKFId), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), /*mObservations(mObservations),*/ mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), mDescriptor(mDescriptor), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), /*mpReplaced(mpReplaced),*/ /*mBackupReplacedId(mBackupReplacedId),*/ mBackupReplacedStrId(mBackupReplacedStrId), mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance) /*mpMap(mpMap)*/
 {
     //SetWorldPos(Pos);
     
-    std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << createHashId("sub", nNextId)<< std::endl;
     mpReplaced = static_cast<MapPoint*>(NULL);
     mpHostKF = static_cast<KeyFrame*>(NULL);
     mpRefKF= static_cast<KeyFrame*>(NULL);
@@ -237,16 +240,17 @@ MapPoint::MapPoint(
     //mbTrackInView = false;
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
-    unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
-    
+    //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    //mnId=nNextId++;
+    //mstrHexId=createHashId("sub", nNextId)
+    //std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << mstrHexId << std::endl;
 }
 
 void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
     mWorldPos = Pos;
-    if(!fromRos) notifyObserverMapPointAction(mnId, 0, Pos);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 0, Pos);
 }
 
 Eigen::Vector3f MapPoint::GetWorldPos() {
@@ -271,7 +275,7 @@ void MapPoint::AddObservation(KeyFrame* pKF, int idx, bool fromRos)
     unique_lock<mutex> lock(mMutexFeatures);
     tuple<int,int> indexes;
 
-    if(!fromRos) notifyObserverMapPointAction(mnId, 1, pKF->mnId, idx);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 1, pKF->mnId, idx);
     if(mObservations.count(pKF)){
         indexes = mObservations[pKF];
     }
@@ -296,7 +300,7 @@ void MapPoint::AddObservation(KeyFrame* pKF, int idx, bool fromRos)
 
 void MapPoint::EraseObservation(KeyFrame* pKF, bool fromRos)
 {
-    if(!fromRos) notifyObserverMapPointAction(mnId, 2, pKF->mnId);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 2, pKF->mnId);
     bool bBad=false;
     {
         unique_lock<mutex> lock(mMutexFeatures);
@@ -345,7 +349,7 @@ int MapPoint::Observations()
 
 void MapPoint::SetBadFlag(bool fromRos)
 {
-    if(!fromRos) notifyObserverMapPointAction(mnId, 3, true);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 3, true);
     
     map<KeyFrame*, tuple<int,int>> obs;
     {
@@ -379,10 +383,10 @@ MapPoint* MapPoint::GetReplaced()
 
 void MapPoint::Replace(MapPoint* pMP, bool fromRos)
 {
-    if(pMP->mnId==this->mnId)
+    if(pMP->mstrHexId==this->mstrHexId)
         return;
 
-    if(!fromRos) notifyObserverMapPointAction(mnId, 4, pMP->mnId);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 4, pMP->mnId);
     
     int nvisible, nfound;
     map<KeyFrame*,tuple<int,int>> obs;
@@ -445,14 +449,14 @@ bool MapPoint::isBad()
 void MapPoint::IncreaseVisible(int n, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    if(!fromRos) notifyObserverMapPointAction(mnId, 5, n);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 5, n);
     mnVisible+=n;
 }
 
 void MapPoint::IncreaseFound(int n, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    if(!fromRos) notifyObserverMapPointAction(mnId, 6, n);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 6, n);
     mnFound+=n;
 }
 
@@ -502,7 +506,7 @@ void MapPoint::ComputeDistinctiveDescriptors(bool fromRos)
     if(vDescriptors.empty())
         return;
 
-    if(!fromRos) notifyObserverMapPointAction(mnId, 7, true);
+    //if(!fromRos) notifyObserverMapPointAction(mnId, 7, true);
     // Compute distances between them
     const size_t N = vDescriptors.size();
 
@@ -636,7 +640,7 @@ void MapPoint::UpdateNormalAndDepth(bool fromRos)
 void MapPoint::SetNormalVector(const Eigen::Vector3f& normal, bool fromRos)
 {
     unique_lock<mutex> lock3(mMutexPos);
-    if (!fromRos) notifyObserverMapPointAction(mnId, 9, normal);
+    //if (!fromRos) notifyObserverMapPointAction(mnId, 9, normal);
     mNormalVector = normal;
 }
 
@@ -688,7 +692,7 @@ int MapPoint::PredictScale(const float &currentDist, Frame* pF)
 
 void MapPoint::PrintObservations()
 {
-    cout << "MP_OBS: MP " << mnId << endl;
+    cout << "MP_OBS: MP " << mstrHexId << endl;
     for(map<KeyFrame*,tuple<int,int>>::iterator mit=mObservations.begin(), mend=mObservations.end(); mit!=mend; mit++)
     {
         KeyFrame* pKFi = mit->first;
@@ -707,7 +711,7 @@ Map* MapPoint::GetMap()
 void MapPoint::UpdateMap(Map* pMap, bool fromRos)
 {
     unique_lock<mutex> lock(mMutexMap);
-    if (!fromRos) notifyObserverMapPointAction(mnId, 10, pMap->GetId());
+    //if (!fromRos) notifyObserverMapPointAction(mnId, 10, pMap->GetId());
     mpMap = pMap;
 }
 
@@ -730,9 +734,9 @@ std::string MapPoint::createHashId(const std::string& strSystemId, unsigned long
 
 void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 {
-    mBackupReplacedId = -1;
+    mBackupReplacedStrId = "";
     if(spMP.find(mpReplaced) != spMP.end())
-        mBackupReplacedId = mpReplaced->mnId;
+        mBackupReplacedStrId = mpReplaced->mstrHexId;
     else  
       mpReplaced = static_cast<MapPoint*>(NULL);
 
@@ -774,7 +778,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 
 }
 
-void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsigned int, MapPoint*>& mpMPid, bool* bUnprocessed)
+void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed)
 {
     // Check if map point ptr can be found, if not, return
     if(mBackupRefKFId != -1 && mpKFid.find(mBackupRefKFId) == mpKFid.end()) {
@@ -805,15 +809,15 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<long unsi
     
     // TODO: Here we need to check the local mapping id and tracking id
     mpReplaced = static_cast<MapPoint*>(NULL);
-    if(mBackupReplacedId>=0)
+    if(mBackupReplacedStrId!="" && mBackupReplacedStrId.length() == 6)
     {
-        map<long unsigned int, MapPoint*>::iterator it = mpMPid.find(mBackupReplacedId);
+        map<std::string, MapPoint*>::iterator it = mpMPid.find(mBackupReplacedStrId);
         if (it != mpMPid.end())
         {
           mpReplaced = it->second;
         } else {
           *bUnprocessed = true; 
-          std::cout << "replace mp id " << mBackupReplacedId << std::endl;
+          std::cout << "replace mp id " << mBackupReplacedStrId << std::endl;
           return;
         }
     }

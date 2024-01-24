@@ -111,13 +111,13 @@ public:
     MapPoint(const Eigen::Vector3f &Pos, KeyFrame* pRefKF, Map* pMap);
     MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap);
     MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
-    MapPoint(/*long unsigned int mnId,*/ std::string mstrHexId, long int mnFirstKFid, long int mnFirstFrame, int nObs, float mTrackProjX, float mTrackProjY, float mTrackDepth, float mTrackDepthR, float mTrackProjXR, float mTrackProjYR, bool mbTrackInView, bool mbTrackInViewR, int mnTrackScaleLevel, int mnTrackScaleLevelR,float mTrackViewCos, float mTrackViewCosR,long unsigned int mnTrackReferenceForFrame, long unsigned int mnLastFrameSeen,long unsigned int mnBALocalForKF,long unsigned int mnFuseCandidateForKF,long unsigned int mnLoopPointForKF, long unsigned int mnCorrectedByKF, long unsigned int mnCorrectedReference, Eigen::Vector3f mPosGBA, long unsigned int mnBAGlobalForKF, long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth,double mInitU, double mInitV, /*KeyFrame* mpHostKF,*/ long long int mBackupHostKFId, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations,*/ std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector, cv::Mat mDescriptor, /*KeyFrame* mpRefKF,*/ long long int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad, /*MapPoint* mpReplaced,*/ /*long long int mBackupReplacedId,*/std::string mBackupReplacedStrId, float mfMinDistance, float mfMaxDistance /*Map* mpMap*/);
+    MapPoint(long long int mnId_, std::string mstrHexId, long int mnFirstKFid, long int mnFirstFrame, int nObs, float mTrackProjX, float mTrackProjY, float mTrackDepth, float mTrackDepthR, float mTrackProjXR, float mTrackProjYR, bool mbTrackInView, bool mbTrackInViewR, int mnTrackScaleLevel, int mnTrackScaleLevelR,float mTrackViewCos, float mTrackViewCosR,long unsigned int mnTrackReferenceForFrame, long unsigned int mnLastFrameSeen,long unsigned int mnBALocalForKF,long unsigned int mnFuseCandidateForKF,long unsigned int mnLoopPointForKF, long unsigned int mnCorrectedByKF, long unsigned int mnCorrectedReference, Eigen::Vector3f mPosGBA, long unsigned int mnBAGlobalForKF, long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth,double mInitU, double mInitV, /*KeyFrame* mpHostKF,*/ long long int mBackupHostKFId, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations,*/ std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector, cv::Mat mDescriptor, /*KeyFrame* mpRefKF,*/ long long int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad, /*MapPoint* mpReplaced,*/ /*long long int mBackupReplacedId,*/std::string mBackupReplacedStrId, float mfMinDistance, float mfMaxDistance /*Map* mpMap*/);
 
-    void SetWorldPos(const Eigen::Vector3f &Pos, bool fromRos=false);
+    void SetWorldPos(const Eigen::Vector3f &Pos);
     Eigen::Vector3f GetWorldPos();
 
     Eigen::Vector3f GetNormal();
-    void SetNormalVector(const Eigen::Vector3f& normal, bool fromRos=false);
+    void SetNormalVector(const Eigen::Vector3f& normal);
 
     KeyFrame* GetReferenceKeyFrame();
 
@@ -126,20 +126,20 @@ public:
     std::map<long unsigned int, int> GetObservationsBackup2();
     int Observations();
 
-    void AddObservation(KeyFrame* pKF,int idx, bool fromRos=false);
-    void EraseObservation(KeyFrame* pKF, bool fromRos=false);
+    void AddObservation(KeyFrame* pKF,int idx);
+    void EraseObservation(KeyFrame* pKF);
 
     std::tuple<int,int> GetIndexInKeyFrame(KeyFrame* pKF);
     bool IsInKeyFrame(KeyFrame* pKF);
 
-    void SetBadFlag(bool fromRos=false);
+    void SetBadFlag();
     bool isBad();
 
-    void Replace(MapPoint* pMP, bool fromRos=false);    
+    void Replace(MapPoint* pMP);    
     MapPoint* GetReplaced();
 
-    void IncreaseVisible(int n=1, bool fromRos=false);
-    void IncreaseFound(int n=1, bool fromRos=false);
+    void IncreaseVisible(int n=1);
+    void IncreaseFound(int n=1);
     float GetFoundRatio();
     inline int GetVisible(){
         return mnVisible;
@@ -157,11 +157,11 @@ public:
     {
       return static_cast<long int>(mBackupRefKFId);
     }
-    void ComputeDistinctiveDescriptors(bool fromRos=false);
+    void ComputeDistinctiveDescriptors();
 
     cv::Mat GetDescriptor();
 
-    void UpdateNormalAndDepth(bool fromRos=false);
+    void UpdateNormalAndDepth();
 
     float GetMinDistanceInvariance();
     float GetMaxDistanceInvariance();
@@ -169,7 +169,7 @@ public:
     int PredictScale(const float &currentDist, Frame* pF);
 
     Map* GetMap();
-    void UpdateMap(Map* pMap, bool fromRos=false);
+    void UpdateMap(Map* pMap);
 
     void PrintObservations();
     std::string createHashId(const std::string& strSystemId, unsigned long int mnMPId);
@@ -181,7 +181,7 @@ public:
     }
 
 public:
-    //long unsigned int mnId;
+    long unsigned int mnId;
     std::string mstrHexId;
     
     static long unsigned int nNextId;
@@ -282,33 +282,6 @@ protected:
     void notifyObserverMapPointAdded(MapPoint* pMp) {
       if (observer_) {
         observer_->onMapPointAdded(pMp);
-      }
-    }
-    
-
-    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, bool boolAction) {
-      if (observer_) {
-        observer_->onMapPointAction(hostMpId, actionId, boolAction);
-      }
-    }
-    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, unsigned long int id) {
-      if (observer_) {
-        observer_->onMapPointAction(hostMpId, actionId, id);
-      }
-    }
-    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, unsigned long int id, int idx) {
-      if (observer_) {
-        observer_->onMapPointAction(hostMpId, actionId, id, idx);
-      }
-    }
-    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, int n) {
-      if (observer_) {
-        observer_->onMapPointAction(hostMpId, actionId, n);
-      }
-    }
-    void notifyObserverMapPointAction(unsigned long int hostMpId, int actionId, Eigen::Vector3f vec) {
-      if (observer_) {
-        observer_->onMapPointAction(hostMpId, actionId, vec);
       }
     }
 };

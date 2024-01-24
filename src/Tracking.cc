@@ -119,6 +119,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
             std::cout << " is unknown" << std::endl;
         }
     }
+    
 
 #ifdef REGISTER_TIMES
     vdRectStereo_ms.clear();
@@ -1801,11 +1802,15 @@ void Tracking::Track()
     
     if(mbLocalMapIsUpdating)
     {
-      while(mbLocalMapIsUpdating)
-        usleep(1000);
+      return;
+      //while(mbLocalMapIsUpdating)
+        //usleep(1000);
     } else {
       std::cout << "Local map is updated, move on in the function." << std::endl;
     }
+    
+    // TODO:Temporarily disable BA in local mapping
+    mpLocalMapper->InterruptBA();
     
     Verbose::PrintMess("\nThread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
     std::cout << "mState=" << mState << std::endl;
@@ -2297,6 +2302,7 @@ void Tracking::Track()
             if(pCurrentMap->KeyFramesInMap()<=5 && mnMapUpdateLastKFId<=10)
             {
                 Verbose::PrintMess("Thread1=Tracking::Track : less than 10 KFs in map -> reset active map.", Verbose::VERBOSITY_NORMAL);
+                std::cout << "mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", pCurrentMap->KeyFramesInMap()=" << pCurrentMap->KeyFramesInMap() << std::endl;
                 mpSystem->ResetActiveMap();
                 return;
             }
@@ -2317,7 +2323,20 @@ void Tracking::Track()
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
         Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
+        std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
         mLastFrame = Frame(mCurrentFrame);
+        
+        std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
+        for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
+        {
+            MapPoint* pMP = mLastFrame.mvpMapPoints[i];
+
+            if(pMP)
+            {
+                std::cout << pMP->mstrHexId << ",";
+            }
+        }
+        std::cout << std::endl;
     }
 
 
@@ -2926,6 +2945,18 @@ bool Tracking::TrackWithMotionModel()
         th=7;
     else
         th=15;
+    
+    std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
+    for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
+    {
+        MapPoint* pMP = mLastFrame.mvpMapPoints[i];
+
+        if(pMP)
+        {
+            std::cout << pMP->mstrHexId << ",";
+        }
+    }
+    std::cout << std::endl;
 
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
     
@@ -3076,6 +3107,7 @@ bool Tracking::TrackLocalMap()
     }
 
     Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : Decide if tracking was succesful based on inliers and relocalization frequency.", Verbose::VERBOSITY_NORMAL);
+    std::cout << mnMatchesInliers << ", " << mnLastRelocFrameId << ", " <<  mnLastRelocFrameId+mMaxFrames << ", " << mCurrentFrame.mnId << std::endl; 
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
     mpLocalMapper->mnMatchesInliers=mnMatchesInliers;
@@ -3501,7 +3533,7 @@ bool Tracking::IsMapUpToDate()
 
 
 
-void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames)
+void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string, MapPoint*>mpOrbMapPoints)
 {
   // Keep current reference keyframe Id, and reset refKFSet
   long unsigned int refId = mpReferenceKF->mnId; // mpReferenceKF is from tarcking
@@ -3518,7 +3550,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
 
       if(pMP)
       {
-        std::cout << pMP->mstrHexId << ",";
+          std::cout << pMP->mstrHexId << ",";
           lastFrame_points_ids.push_back(pMP->mstrHexId);
           lastFrame_points_availability.push_back(true);
       }
@@ -3533,6 +3565,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mstrHexId);
   }
 
+  int numOfLocalMPs = mvpLocalMapPoints.size();
+
   
 
   // Reset tracking thread to update it using a new local-map
@@ -3542,8 +3576,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   // For every keyframe, check its mappoints, then add them to tracking local-map
   // Add keyframe to tracking local-map
   //for(int i=0; i<(int)mapVec.size(); i++) // mapVec is the data, in this case ros2 msg
-  for(const auto& tKF : pM->GetAllKeyFrames())
-  {
+  //for(const auto& tKF : pM->GetAllKeyFrames())
+  //{
       //// Reconstruct keyframe
       //KeyFrame *tKF = new KeyFrame();
       ////{
@@ -3645,7 +3679,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       //mpMap->AddKeyFrame(tKF);
 
       //// Add Keyframe to database
-      mpKeyFrameDB->add(tKF);
+      //mpKeyFrameDB->add(tKF);
 
       /* ================= Everything up to here is done when new map is initialized =======================*/
       
@@ -3663,7 +3697,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       //// Clear
       //tKF = static_cast<KeyFrame*>(NULL);
       //vpMapPointMatches.clear();
-  }
+  //}
 
   /* ================= =======================*/
   if(mpOrbKeyFrames.find(refId) != mpOrbKeyFrames.end())
@@ -3754,15 +3788,16 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //}
 
   // Updating mLastFrame
+  std::cout << "Availability vector=" << lastFrame_points_availability.size() << ", points=" << lastFrame_points_ids.size() << std::endl;
   int lastFrameMPCounter = 0;
   for(int i =0; i<mLastFrame.N; i++)
   {
       if(lastFrame_points_availability[i])
       {
           //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
-          MapPoint* newpMP = pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
-
-          std::cout << lastFrame_points_ids[lastFrameMPCounter] << "-" << lastFrameMPCounter << ",";
+          
+          MapPoint* newpMP = mpOrbMapPoints[lastFrame_points_ids[lastFrameMPCounter]]; //pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
+          std::cout << lastFrame_points_ids[lastFrameMPCounter] << ",";
           if (newpMP)
           {
               mLastFrame.mvpMapPoints[i] = newpMP;
@@ -3775,20 +3810,26 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
           ++lastFrameMPCounter;
       }
   }
-  std::cout << "Lastframe.N=" << mLastFrame.N << ", and added pointers=" << lastFrameMPCounter << std::endl;
+  std::cout << std::endl;
 
   // We should update mvpLocalMapPoints for viewer
+  std::cout << "#MPs in Map=" << pM->GetAllMapPoints().size() << std::endl;
   mvpLocalMapPoints.clear(); // from tracking = mpAtlas->GetAllMapPoints()
+  std::cout << "#MPs in Map after clearing=" << pM->GetAllMapPoints().size() << std::endl;
+  
   for (unsigned int i = 0 ; i < mvpLocalMapPoints_ids.size(); i++)// from tracking = mpAtlas->GetAllMapPoints()
   {
       //MapPoint* pMP = mpMap->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
-      MapPoint* pMP = pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i]);// from tracking = mpAtlas->GetAllMapPoints()
+      std::cout << mvpLocalMapPoints_ids[i] << " ";
+      MapPoint* pMP = mpOrbMapPoints[mvpLocalMapPoints_ids[i]]; //pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i]);// from tracking = mpAtlas->GetAllMapPoints()
       if (pMP)
       {
           mvpLocalMapPoints.push_back(pMP);// from tracking = mpAtlas->GetAllMapPoints()
       }
   }
+  std::cout << std::endl;
 
+  std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << lastFrameMPCounter << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
   if(mpViewer)
       mpViewer->Release();
 

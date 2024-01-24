@@ -513,21 +513,32 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
       mspMapPoints.insert(mpMapPointId[id]);
     }
 
+    std::cout << "Map::PostLoad() == #MPs=" << mspMapPoints.size() << ", #KFs=" << mspKeyFrames.size() << std::endl;
     // References reconstruction between different instances
     for(MapPoint* pMPi : mspMapPoints)
     {
         if(!pMPi || pMPi->isBad())
-            continue;
-        pMPi->PostLoad(mpKeyFrameId, mpMapPointId, bUnprocessed);
+        {
+          continue;
+        }
+        bool mbTempUnprocessed = false;
+        pMPi->PostLoad(mpKeyFrameId, mpMapPointId, &mbTempUnprocessed);
+        if(mbTempUnprocessed)
+          std::cout << "pMPi " << pMPi->mstrHexId << " is unprocessed" << std::endl;
     }
 
     for(KeyFrame* pKFi : mspKeyFrames)
     {
         if(!pKFi || pKFi->isBad())
-            continue;
+        {
+          continue;
+        }  
         
-        pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, bUnprocessed);
+        bool mbTempUnprocessed = false;
+        pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, &mbTempUnprocessed);
         pKFDB->add(pKFi);
+        if(mbTempUnprocessed)
+          std::cout << "pKFi " << pKFi->mnId << " is unprocessed" << std::endl;
     }
 
 
@@ -584,13 +595,18 @@ std::vector<std::string> Map::GetBackupReferenceMapPointsId() {
 
 MapPoint* Map::RetrieveMapPoint(std::string id)
 {
-    for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
+    //for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
+    for(MapPoint* pMP : mspMapPoints)
     {
-      std::string current_id = (*sit)->mstrHexId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
-        if (current_id == id)
-            return *sit;
+      std::string current_id = pMP->mstrHexId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
+      if (current_id == id)
+      {
+          std::cout << " returning mp, ";
+          return pMP;
+      }
     }
 
+    std::cout << " returning null, ";
     return NULL;
 }
 

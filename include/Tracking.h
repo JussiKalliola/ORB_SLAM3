@@ -107,7 +107,7 @@ public:
     
     void SetLocalMappingIsInIdle(bool flag);
     
-    void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames);
+    void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string,MapPoint*> mpOrbMapPoints);
     bool IsMapUpToDate();
     void MUReset();
 

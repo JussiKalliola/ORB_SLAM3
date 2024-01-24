@@ -61,20 +61,20 @@ public:
     KeyFrameDatabase(){}
     KeyFrameDatabase(const ORBVocabulary &voc);
 
-    void add(KeyFrame* pKF, bool fromRos=false);
+    void add(KeyFrame* pKF);
 
-    void erase(KeyFrame* pKF, bool fromRos=false);
+    void erase(KeyFrame* pKF);
 
-    void clear(bool fromRos=false);
-    void clearMap(Map* pMap, bool fromRos=false);
+    void clear();
+    void clearMap(Map* pMap);
 
     // Loop Detection(DEPRECATED)
     std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 
     // Loop and Merge Detection
-    void DetectCandidates(KeyFrame* pKF, float minScore,vector<KeyFrame*>& vpLoopCand, vector<KeyFrame*>& vpMergeCand, bool fromRos=false);
-    void DetectBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nMinWords, bool fromRos=false);
-    void DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nNumCandidates, bool fromRos=false);
+    void DetectCandidates(KeyFrame* pKF, float minScore,vector<KeyFrame*>& vpLoopCand, vector<KeyFrame*>& vpMergeCand);
+    void DetectBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nMinWords);
+    void DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nNumCandidates);
 
     // Relocalization
     std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F, Map* pMap);
@@ -105,30 +105,6 @@ protected:
 private:
 
     std::shared_ptr<Observer> observer_;
-    
-    void notifyObserverKFDBAction(int actionId, bool boolAction) {
-      if (observer_) {
-        observer_->onKFDBAction(actionId, boolAction);
-      }
-    }
-
-    void notifyObserverKFDBAction(int actionId, unsigned long int id) {
-      if (observer_) {
-        observer_->onKFDBAction(actionId, id);
-      }
-    }
-    
-    void notifyObserverKFDBAction(int actionId, unsigned long int id, float minScore, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId) {
-      if (observer_) {
-        observer_->onKFDBAction(actionId, id, minScore, vpLoopCandId, vpMergeCandId);
-      }
-    }
-    
-    void notifyObserverKFDBAction(int actionId, unsigned long int id, std::vector<unsigned long int> vpLoopCandId, std::vector<unsigned long int> vpMergeCandId, int n) {
-      if (observer_) {
-        observer_->onKFDBAction(actionId, id, vpLoopCandId, vpMergeCandId, n);
-      }
-    }
     
 };
 

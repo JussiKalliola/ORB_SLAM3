@@ -277,7 +277,7 @@ void LocalMapping::Run()
             //std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
-            //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndLocalMap = std::chrono::steady_clock::now();
@@ -444,10 +444,12 @@ void LocalMapping::ProcessNewKeyFrame()
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
 
-    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW " << mpCurrentKeyFrame->GetMapPointMatches().size() << std::endl; 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW " << mpCurrentKeyFrame->GetMapPointMatches().size() << std::endl;
+
     // Associate MapPoints to the new keyframe and update normal and descriptor
     const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : # of match points " << vpMapPointMatches.size() << std::endl;
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
         MapPoint* pMP = vpMapPointMatches[i];

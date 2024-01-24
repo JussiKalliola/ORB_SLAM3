@@ -36,25 +36,17 @@ KeyFrameDatabase::KeyFrameDatabase (const ORBVocabulary &voc):
 }
 
 
-void KeyFrameDatabase::add(KeyFrame *pKF, bool fromRos)
+void KeyFrameDatabase::add(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutex);
-
-    if(!fromRos) {
-      notifyObserverKFDBAction(0, pKF->mnId);
-    }
 
     for(DBoW2::BowVector::const_iterator vit= pKF->mBowVec.begin(), vend=pKF->mBowVec.end(); vit!=vend; vit++)
         mvInvertedFile[vit->first].push_back(pKF);
 }
 
-void KeyFrameDatabase::erase(KeyFrame* pKF, bool fromRos)
+void KeyFrameDatabase::erase(KeyFrame* pKF)
 {
     unique_lock<mutex> lock(mMutex);
-
-    if(!fromRos) {
-      notifyObserverKFDBAction(1, pKF->mnId);
-    }
 
     // Erase elements in the Inverse File for the entry
     for(DBoW2::BowVector::const_iterator vit=pKF->mBowVec.begin(), vend=pKF->mBowVec.end(); vit!=vend; vit++)
@@ -73,24 +65,16 @@ void KeyFrameDatabase::erase(KeyFrame* pKF, bool fromRos)
     }
 }
 
-void KeyFrameDatabase::clear(bool fromRos)
+void KeyFrameDatabase::clear()
 {
-    if(!fromRos) {
-      notifyObserverKFDBAction(2, true);
-    }
-   
     mvInvertedFile.clear();
     mvInvertedFile.resize(mpVoc->size());
 }
 
-void KeyFrameDatabase::clearMap(Map* pMap, bool fromRos)
+void KeyFrameDatabase::clearMap(Map* pMap)
 {
     unique_lock<mutex> lock(mMutex);
 
-    if(!fromRos) {
-      notifyObserverKFDBAction(3, pMap->GetId());
-    }
-    
     // Erase elements in the Inverse File for the entry
     for(std::vector<list<KeyFrame*> >::iterator vit=mvInvertedFile.begin(), vend=mvInvertedFile.end(); vit!=vend; vit++)
     {
@@ -241,23 +225,8 @@ vector<KeyFrame*> KeyFrameDatabase::DetectLoopCandidates(KeyFrame* pKF, float mi
     return vpLoopCandidates;
 }
 
-void KeyFrameDatabase::DetectCandidates(KeyFrame* pKF, float minScore,vector<KeyFrame*>& vpLoopCand, vector<KeyFrame*>& vpMergeCand, bool fromRos)
+void KeyFrameDatabase::DetectCandidates(KeyFrame* pKF, float minScore,vector<KeyFrame*>& vpLoopCand, vector<KeyFrame*>& vpMergeCand)
 {
-    if(!fromRos) {
-      std::vector<unsigned long int> vKFLoopCandIds;
-      for(KeyFrame* pfKf : vpLoopCand)
-      {
-        vKFLoopCandIds.push_back(pfKf->mnId);
-      }
-      
-      std::vector<unsigned long int> vKFMergeCandIds;
-      for(KeyFrame* pfKf : vpMergeCand)
-      {
-        vKFMergeCandIds.push_back(pfKf->mnId);
-      }
-      
-      notifyObserverKFDBAction(4, pKF->mnId, minScore, vKFLoopCandIds, vKFMergeCandIds);
-    }
     
     set<KeyFrame*> spConnectedKeyFrames = pKF->GetConnectedKeyFrames();
     list<KeyFrame*> lKFsSharingWordsLoop,lKFsSharingWordsMerge;
@@ -497,23 +466,8 @@ void KeyFrameDatabase::DetectCandidates(KeyFrame* pKF, float minScore,vector<Key
 
 }
 
-void KeyFrameDatabase::DetectBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nMinWords, bool fromRos)
+void KeyFrameDatabase::DetectBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nMinWords)
 {
-    if(!fromRos) {
-      std::vector<unsigned long int> vKFLoopCandIds;
-      for(KeyFrame* pfKf : vpLoopCand)
-      {
-        vKFLoopCandIds.push_back(pfKf->mnId);
-      }
-      
-      std::vector<unsigned long int> vKFMergeCandIds;
-      for(KeyFrame* pfKf : vpMergeCand)
-      {
-        vKFMergeCandIds.push_back(pfKf->mnId);
-      }
-      
-      notifyObserverKFDBAction(5, pKF->mnId, vKFLoopCandIds, vKFMergeCandIds, nMinWords);
-    }
     
     list<KeyFrame*> lKFsSharingWords;
     set<KeyFrame*> spConnectedKF;
@@ -649,24 +603,8 @@ bool compFirst(const pair<float, KeyFrame*> & a, const pair<float, KeyFrame*> & 
 }
 
 
-void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nNumCandidates, bool fromRos)
+void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &vpLoopCand, vector<KeyFrame*> &vpMergeCand, int nNumCandidates)
 {
-    if(!fromRos) {
-      std::vector<unsigned long int> vKFLoopCandIds;
-      for(KeyFrame* pfKf : vpLoopCand)
-      {
-        vKFLoopCandIds.push_back(pfKf->mnId);
-      }
-      
-      std::vector<unsigned long int> vKFMergeCandIds;
-      for(KeyFrame* pfKf : vpMergeCand)
-      {
-        vKFMergeCandIds.push_back(pfKf->mnId);
-      }
-      
-      notifyObserverKFDBAction(6, pKF->mnId, vKFLoopCandIds, vKFMergeCandIds, nNumCandidates);
-    }
-
 
     list<KeyFrame*> lKFsSharingWords;
     set<KeyFrame*> spConnectedKF;

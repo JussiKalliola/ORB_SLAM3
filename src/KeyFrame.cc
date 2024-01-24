@@ -183,11 +183,11 @@ KeyFrame::KeyFrame(bool bImu = false,
     //std::vector <KeyFrame*> mvpLoopCandKFs = std::vector <KeyFrame*>(), 
     //std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), 
     Sophus::SE3<float> mTcw = Sophus::SE3<float>(), 
-    Eigen::Matrix3f mRcw = Eigen::Matrix3f(), 
-    Sophus::SE3<float> mTwc = Sophus::SE3<float>(), 
-    Eigen::Matrix3f mRwc = Eigen::Matrix3f(), 
-    Eigen::Vector3f mOwb = Eigen::Vector3f(), 
-    Eigen::Vector3f mVw = Eigen::Vector3f(), 
+    //Eigen::Matrix3f mRcw = Eigen::Matrix3f(), 
+    //Sophus::SE3<float> mTwc = Sophus::SE3<float>(), 
+    //Eigen::Matrix3f mRwc = Eigen::Matrix3f(), 
+    //Eigen::Vector3f mOwb = Eigen::Vector3f(), 
+    //Eigen::Vector3f mVw = Eigen::Vector3f(), 
     bool mbHasVelocity = false, 
     Sophus::SE3<float> mTlr = Sophus::SE3<float>(), 
     Sophus::SE3<float> mTrl = Sophus::SE3<float>(), 
@@ -231,7 +231,7 @@ KeyFrame::KeyFrame(bool bImu = false,
     std::vector< std::vector <std::vector<size_t> > > mGridRight = std::vector< std::vector <std::vector<size_t> > >()):
 bImu(bImu), mnId(mnId), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols(mnGridCols), mnGridRows(mnGridRows), mfGridElementWidthInv(mfGridElementWidthInv), mfGridElementHeightInv(mfGridElementHeightInv), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnFuseTargetForKF(mnFuseTargetForKF), mnBALocalForKF(mnBALocalForKF), mnBAFixedForKF(mnBAFixedForKF), mnNumberOfOpt(mnNumberOfOpt), mnLoopQuery(mnLoopQuery), mnLoopWords(mnLoopWords), mLoopScore(mLoopScore), mnRelocQuery(mnRelocQuery), mnRelocWords(mnRelocWords), mRelocScore(mRelocScore), mnMergeQuery(mnMergeQuery), mnMergeWords(mnMergeWords), mMergeScore(mMergeScore), mnPlaceRecognitionQuery(mnPlaceRecognitionQuery), mnPlaceRecognitionWords(mnPlaceRecognitionWords), mPlaceRecognitionScore(mPlaceRecognitionScore), mbCurrentPlaceRecognition(mbCurrentPlaceRecognition), mTcwGBA(mTcwGBA), mTcwBefGBA(mTcwBefGBA), mVwbGBA(mVwbGBA), mVwbBefGBA(mVwbBefGBA), mBiasGBA(mBiasGBA), mnBAGlobalForKF(mnBAGlobalForKF), mTcwMerge(mTcwMerge), mTcwBefMerge(mTcwBefMerge), mTwcBefMerge(mTwcBefMerge), mVwbMerge(mVwbMerge), mVwbBefMerge(mVwbBefMerge), mBiasMerge(mBiasMerge), mnMergeCorrectedForKF(mnMergeCorrectedForKF), mnMergeForKF(mnMergeForKF), mfScaleMerge(mfScaleMerge), mnBALocalForMerge(mnBALocalForMerge), mfScale(mfScale), fx(fx), fy(fy), cx(cx), cy(cy), invfx(invfx), invfy(invfy), mbf(mbf), mb(mb), mThDepth(mThDepth), mDistCoef(mDistCoef), N(N), mvKeys(mvKeys), mvKeysUn(mvKeysUn), mvuRight(mvuRight), mvDepth(mvDepth), mDescriptors(mDescriptors), mBowVec(mBowVec), mFeatVec(mFeatVec), mTcp(mTcp), mnScaleLevels(mnScaleLevels), mfScaleFactor(mfScaleFactor), mfLogScaleFactor(mfLogScaleFactor), mvScaleFactors(mvScaleFactors), mvLevelSigma2(mvLevelSigma2), mvInvLevelSigma2(mvInvLevelSigma2), mnMinX(mnMinX), mnMinY(mnMinY), mnMaxX(mnMaxX), mnMaxY(mnMaxY), mPrevKF(static_cast<KeyFrame*>(NULL)), mNextKF(static_cast<KeyFrame*>(NULL)), 
   //mpImuPreintegrated(mpImuPreintegrated), 
-  mImuCalib(mImuCalib), mnOriginMapId(mnOriginMapId), mNameFile(mNameFile), mnDataset(mnDataset), /*mvpLoopCandKFs(mvpLoopCandKFs), mvpMergeCandKFs(mvpMergeCandKFs),*/ mTcw(mTcw), mRcw(mRcw), mTwc(mTwc), mRwc(mRwc), mOwb(mOwb), mVw(mVw), mbHasVelocity(mbHasVelocity), mTlr(mTlr), mTrl(mTrl), mImuBias(mImuBias), /*mvpMapPoints(mvpMapPoints),*/ 
+  mImuCalib(mImuCalib), mnOriginMapId(mnOriginMapId), mNameFile(mNameFile), mnDataset(mnDataset), /*mvpLoopCandKFs(mvpLoopCandKFs), mvpMergeCandKFs(mvpMergeCandKFs),*/ /*mTcw(mTcw),*/ /*mRcw(mRcw), mTwc(mTwc), mRwc(mRwc), mOwb(mOwb), mVw(mVw),*/ mbHasVelocity(mbHasVelocity), mTlr(mTlr), mTrl(mTrl), mImuBias(mImuBias), /*mvpMapPoints(mvpMapPoints),*/ 
   mvBackupMapPointsId(mvBackupMapPointsId), /*mpKeyFrameDB(mpKeyFrameDB), mpORBvocabulary(mpORBvocabulary),*/ mGrid(mGrid), /*mConnectedKeyFrameWeights(mConnectedKeyFrameWeights), mvpOrderedConnectedKeyFrames(mvpOrderedConnectedKeyFrames),*/ mvOrderedWeights(mvOrderedWeights), mBackupConnectedKeyFrameIdWeights(mBackupConnectedKeyFrameIdWeights), mbFirstConnection(mbFirstConnection), mpParent(static_cast<KeyFrame*>(NULL)), /*mspChildrens(mspChildrens), mspLoopEdges(mspLoopEdges), mspMergeEdges(mspMergeEdges),*/ mBackupParentId(mBackupParentId), mvBackupChildrensId(mvBackupChildrensId), mvBackupLoopEdgesId(mvBackupLoopEdgesId), mvBackupMergeEdgesId(mvBackupMergeEdgesId), mbNotErase(mbNotErase), mbToBeErased(mbToBeErased), mbBad(mbBad), mHalfBaseline(mHalfBaseline), /*mpMap(mpMap),*/ mBackupPrevKFId(mBackupPrevKFId), mBackupNextKFId(mBackupNextKFId),
   //mBackupImuPreintegrated(mBackupImuPreintegrated), 
   mnBackupIdCamera(mnBackupIdCamera), mnBackupIdCamera2(mnBackupIdCamera2), mK_(mK_), /*mpCamera(mpCamera),*/ /*mpCamera2(mpCamera2),*/ mvLeftToRightMatch(mvLeftToRightMatch), mvRightToLeftMatch(mvRightToLeftMatch), mvKeysRight(mvKeysRight), NLeft(NLeft), NRight(NRight), mGridRight(mGridRight)
@@ -253,20 +253,13 @@ bImu(bImu), mnId(mnId), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols
     //SetPose(F.GetPose());
 
     //mnOriginMapId = pMap->GetId();
-    //std::mutex mMutexPose; // for pose, velocity and biases
-    //std::mutex mMutexConnections;
-    //std::mutex mMutexFeatures;
-    //std::mutex mMutexMap;
+    SetPose(mTcw);
 }
 
 
 
-void KeyFrame::ComputeBoW(bool fromRos)
+void KeyFrame::ComputeBoW()
 {
-
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 15, true);
-    }
 
     if(mBowVec.empty() || mFeatVec.empty())
     {
@@ -277,14 +270,10 @@ void KeyFrame::ComputeBoW(bool fromRos)
     }
 }
 
-void KeyFrame::SetPose(const Sophus::SE3f &Tcw, bool fromRos)
+void KeyFrame::SetPose(const Sophus::SE3f &Tcw)
 {
     unique_lock<mutex> lock(mMutexPose);
 
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 0, Tcw);
-    }
-    
     mTcw = Tcw;
     mRcw = mTcw.rotationMatrix();
     mTwc = mTcw.inverse();
@@ -296,12 +285,9 @@ void KeyFrame::SetPose(const Sophus::SE3f &Tcw, bool fromRos)
     }
 }
 
-void KeyFrame::SetVelocity(const Eigen::Vector3f &Vw, bool fromRos)
+void KeyFrame::SetVelocity(const Eigen::Vector3f &Vw)
 {
     unique_lock<mutex> lock(mMutexPose);
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 1, Vw);
-    }
     mVw = Vw;
     mbHasVelocity = true;
 }
@@ -365,15 +351,11 @@ bool KeyFrame::isVelocitySet()
     return mbHasVelocity;
 }
 
-void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight, bool fromRos)
+void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
 {
     {
         unique_lock<mutex> lock(mMutexConnections);
         
-        if(!fromRos) {
-          notifyObserverKFAction(mnId, 2, pKF->mnId, weight);
-        }
-
         if(!mConnectedKeyFrameWeights.count(pKF))
             mConnectedKeyFrameWeights[pKF]=weight;
         else if(mConnectedKeyFrameWeights[pKF]!=weight)
@@ -385,14 +367,10 @@ void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight, bool fromRos)
     UpdateBestCovisibles();
 }
 
-void KeyFrame::UpdateBestCovisibles(bool fromRos)
+void KeyFrame::UpdateBestCovisibles()
 {
     unique_lock<mutex> lock(mMutexConnections);
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 16, true);
-    }
-
     vector<pair<int,KeyFrame*> > vPairs;
     vPairs.reserve(mConnectedKeyFrameWeights.size());
     for(map<KeyFrame*,int>::iterator mit=mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
@@ -483,36 +461,24 @@ int KeyFrame::GetNumberMPs()
     return numberMPs;
 }
 
-void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx, bool fromRos)
+void KeyFrame::AddMapPoint(MapPoint *pMP, const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     //mvpMapPoints.push_back(pMP);
     
-    //if(!fromRos) {
-    //  notifyObserverKFAction(mnId, 3, pMP->mnId, idx);
-    //}
-
     mvpMapPoints[idx]=pMP;
 }
 
-void KeyFrame::EraseMapPointMatch(const int &idx, bool fromRos)
+void KeyFrame::EraseMapPointMatch(const int &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 4, static_cast<unsigned long int>(idx));
-    }
-
     mvpMapPoints[idx]=static_cast<MapPoint*>(NULL);
 }
 
-void KeyFrame::EraseMapPointMatch(MapPoint* pMP, bool fromRos)
+void KeyFrame::EraseMapPointMatch(MapPoint* pMP)
 {
     
-    //if(!fromRos) {
-    //  notifyObserverKFAction(mnId, 5, pMP->mnId);
-    //}
-
     tuple<size_t,size_t> indexes = pMP->GetIndexInKeyFrame(this);
     size_t leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
     if(leftIndex != -1)
@@ -522,13 +488,9 @@ void KeyFrame::EraseMapPointMatch(MapPoint* pMP, bool fromRos)
 }
 
 
-void KeyFrame::ReplaceMapPointMatch(const int &idx, MapPoint* pMP, bool fromRos)
+void KeyFrame::ReplaceMapPointMatch(const int &idx, MapPoint* pMP)
 {
     
-    //if(!fromRos) {
-    //  notifyObserverKFAction(mnId, 6, pMP->mnId, idx);
-    //}
-
     mvpMapPoints[idx]=pMP;
 }
 
@@ -586,13 +548,9 @@ MapPoint* KeyFrame::GetMapPoint(const size_t &idx)
     return mvpMapPoints[idx];
 }
 
-void KeyFrame::UpdateConnections(bool upParent, bool fromRos)
+void KeyFrame::UpdateConnections(bool upParent)
 {
     
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 17, true);
-    }
-
     map<KeyFrame*,int> KFcounter;
 
     vector<MapPoint*> vpMP;
@@ -690,40 +648,28 @@ void KeyFrame::UpdateConnections(bool upParent, bool fromRos)
     }
 }
 
-void KeyFrame::AddChild(KeyFrame *pKF, bool fromRos)
+void KeyFrame::AddChild(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 7, pKF->mnId);
-    }
     
     mspChildrens.insert(pKF);
     //notifyObserverAddChild(mnId, pKF->mnId);
 }
 
-void KeyFrame::EraseChild(KeyFrame *pKF, bool fromRos)
+void KeyFrame::EraseChild(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 8, pKF->mnId);
-    }
     
     mspChildrens.erase(pKF);
 }
 
-void KeyFrame::ChangeParent(KeyFrame *pKF, bool fromRos)
+void KeyFrame::ChangeParent(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
     if(pKF == this)
     {
         cout << "ERROR: Change parent KF, the parent and child are the same KF" << endl;
         throw std::invalid_argument("The parent and child can not be the same");
-    }
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 9, pKF->mnId);
     }
     
 
@@ -749,24 +695,16 @@ bool KeyFrame::hasChild(KeyFrame *pKF)
     return mspChildrens.count(pKF);
 }
 
-void KeyFrame::SetFirstConnection(bool bFirst, bool fromRos)
+void KeyFrame::SetFirstConnection(bool bFirst)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 18, true);
-    }
     
     mbFirstConnection=bFirst;
 }
 
-void KeyFrame::AddLoopEdge(KeyFrame *pKF, bool fromRos)
+void KeyFrame::AddLoopEdge(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 10, pKF->mnId);
-    }
     
     mbNotErase = true;
     mspLoopEdges.insert(pKF);
@@ -778,13 +716,9 @@ set<KeyFrame*> KeyFrame::GetLoopEdges()
     return mspLoopEdges;
 }
 
-void KeyFrame::AddMergeEdge(KeyFrame* pKF, bool fromRos)
+void KeyFrame::AddMergeEdge(KeyFrame* pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 11, pKF->mnId);
-    }
     
     mbNotErase = true;
     mspMergeEdges.insert(pKF);
@@ -796,23 +730,15 @@ set<KeyFrame*> KeyFrame::GetMergeEdges()
     return mspMergeEdges;
 }
 
-void KeyFrame::SetNotErase(bool fromRos)
+void KeyFrame::SetNotErase()
 {
     unique_lock<mutex> lock(mMutexConnections);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 19, true);
-    }
     
     mbNotErase = true;
 }
 
-void KeyFrame::SetErase(bool fromRos)
+void KeyFrame::SetErase()
 {
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 20, true);
-    }
     
     {
         unique_lock<mutex> lock(mMutexConnections);
@@ -828,14 +754,10 @@ void KeyFrame::SetErase(bool fromRos)
     }
 }
 
-void KeyFrame::SetBadFlag(bool fromRos)
+void KeyFrame::SetBadFlag()
 {
     {
         unique_lock<mutex> lock(mMutexConnections);
-    
-        if(!fromRos) {
-          notifyObserverKFAction(mnId, 21, true);
-        }
     
         if(mnId==mpMap->GetInitKFid())
         {
@@ -945,7 +867,7 @@ bool KeyFrame::isBad()
     return mbBad;
 }
 
-void KeyFrame::EraseConnection(KeyFrame* pKF, bool fromRos)
+void KeyFrame::EraseConnection(KeyFrame* pKF)
 {
     bool bUpdate = false;
     {
@@ -1067,13 +989,9 @@ float KeyFrame::ComputeSceneMedianDepth(const int q)
     return vDepths[(vDepths.size()-1)/q];
 }
 
-void KeyFrame::SetNewBias(const IMU::Bias &b, bool fromRos)
+void KeyFrame::SetNewBias(const IMU::Bias &b)
 {
     unique_lock<mutex> lock(mMutexPose);
-    
-    if(!fromRos) {
-      notifyObserverKFAction(mnId, 13, b);
-    }
     
     mImuBias = b;
     if(mpImuPreintegrated)
@@ -1104,13 +1022,9 @@ Map* KeyFrame::GetMap()
     return mpMap;
 }
 
-void KeyFrame::UpdateMap(Map* pMap, bool fromRos)
+void KeyFrame::UpdateMap(Map* pMap)
 {
     unique_lock<mutex> lock(mMutexMap);
-    
-    //if(!fromRos) {
-    //  notifyObserverKFAction(mnId, 14, pMap->GetId());
-    //}
     
     mpMap = pMap;
 }

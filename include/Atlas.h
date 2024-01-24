@@ -78,16 +78,16 @@ public:
     Atlas(int initKFid); // When its initialization the first map is created
     ~Atlas();
 
-    void CreateNewMap(bool fromRos=false);
-    void ChangeMap(Map* pMap, bool fromRos=false);
+    void CreateNewMap();
+    void ChangeMap(Map* pMap);
 
     unsigned long int GetLastInitKFid();
 
     void SetViewer(Viewer* pViewer);
 
     // Method for change components in the current map
-    void AddKeyFrame(KeyFrame* pKF, bool fromRos=false);
-    void AddMapPoint(MapPoint* pMP, bool fromRos=false);
+    void AddKeyFrame(KeyFrame* pKF);
+    void AddMapPoint(MapPoint* pMP);
     //void EraseMapPoint(MapPoint* pMP);
     //void EraseKeyFrame(KeyFrame* pKF);
 
@@ -96,7 +96,7 @@ public:
 
     /* All methods without Map pointer work on current map */
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
-    void InformNewBigChange(bool fromRos=false);
+    void InformNewBigChange();
     int GetLastBigChangeIdx();
 
     long unsigned int MapPointsInMap();
@@ -113,19 +113,20 @@ public:
 
     int CountMaps();
 
-    void clearMap(bool fromRos=false);
+    void clearMap();
 
+    void AddMap(Map* pMap);
     void ReplaceMap(Map* pMap);
-    void clearAtlas(bool fromRos=false);
+    void clearAtlas();
 
     Map* GetCurrentMap();
 
-    void SetMapBad(Map* pMap, bool fromRos=false);
-    void RemoveBadMaps(bool fromRos=false);
+    void SetMapBad(Map* pMap);
+    void RemoveBadMaps();
 
     bool isInertial();
-    void SetInertialSensor(bool fromRos=false);
-    void SetImuInitialized(bool fromRos=false);
+    void SetInertialSensor();
+    void SetImuInitialized();
     bool isImuInitialized();
 
     // Function for garantee the correction of serialization of this object
@@ -193,17 +194,6 @@ private:
       }
     }
     
-    void notifyObserverAtlasAction(int actionId, bool boolAction) {
-      if (observer_) {
-        observer_->onAtlasAction(actionId, boolAction);
-      }
-    }
-    
-    void notifyObserverAtlasAction(int actionId, unsigned long int kfId) {
-      if (observer_) {
-        observer_->onAtlasAction(actionId, kfId);
-      }
-    }
     
     void notifyObserverMapAddedById(unsigned long int id) {
       if (observer_) {

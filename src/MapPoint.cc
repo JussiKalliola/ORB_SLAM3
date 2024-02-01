@@ -260,6 +260,59 @@ MapPoint::MapPoint(
     //std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << mstrHexId << std::endl;
 }
 
+void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, float mTrackProjX_, float mTrackProjY_, float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_, long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int> mBackupObservationsId1_, std::map<long unsigned int, int> mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, cv::Mat mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */) {
+    mnFirstKFid               = mnFirstKFid_;
+    mnFirstFrame              = mnFirstFrame_;
+    nObs                      = nObs_;
+    mTrackProjX               = mTrackProjX_;
+    mTrackProjY               = mTrackProjY_;
+    mTrackDepth               = mTrackDepth_;
+    mTrackDepthR              = mTrackDepthR_;
+    mTrackProjXR              = mTrackProjXR_;
+    mTrackProjYR              = mTrackProjYR_;
+    mbTrackInView             = mbTrackInView_;
+    mbTrackInViewR            = mbTrackInViewR_;
+    mnTrackScaleLevel         = mnTrackScaleLevel_;
+    mnTrackScaleLevelR        = mnTrackScaleLevelR_;
+    mTrackViewCos             = mTrackViewCos_;
+    mTrackViewCosR            = mTrackViewCosR_;
+    mnTrackReferenceForFrame  = mnTrackReferenceForFrame_;
+    mnLastFrameSeen           = mnLastFrameSeen_;
+    mnBALocalForKF            = mnBALocalForKF_;
+    mnFuseCandidateForKF      = mnFuseCandidateForKF_;
+    mnLoopPointForKF          = mnLoopPointForKF_;
+    mnCorrectedByKF           = mnCorrectedByKF_;
+    mnCorrectedReference      = mnCorrectedReference_;
+    mPosGBA                   = mPosGBA_;
+    mnBAGlobalForKF           = mnBAGlobalForKF_;
+    mnBALocalForMerge         = mnBALocalForMerge_;
+    mPosMerge                 = mPosMerge_;
+    mNormalVectorMerge        = mNormalVectorMerge_;
+    mInvDepth                 = mInvDepth_;
+    mInitU                    = mInitU_;
+    mInitV                    = mInitV_;
+    mpHostKF                  = static_cast<KeyFrame*>(NULL);
+    mBackupHostKFId           = mBackupHostKFId_;
+    mnOriginMapId             = mnOriginMapId_;
+    mWorldPos                 = mWorldPos_;
+    //std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),
+    mBackupObservationsId1    = mBackupObservationsId1_;
+    mBackupObservationsId2    = mBackupObservationsId2_;
+    mNormalVector             = mNormalVector_;
+    mDescriptor               = mDescriptor_;
+    mpRefKF                   = static_cast<KeyFrame*>(NULL);
+    mBackupRefKFId            = mBackupRefKFId_;
+    mnVisible                 = mnVisible_;
+    mnFound                   = mnFound_;
+    mbBad                     = mbBad_;
+    mpReplaced                = static_cast<MapPoint*>(NULL);
+    //long long int mBackupReplacedId = -1,
+    mBackupReplacedStrId      = mBackupReplacedStrId_;
+    mfMinDistance             = mfMinDistance_;
+    mfMaxDistance             = mfMaxDistance_;
+    mpMap                     = static_cast<Map*>(NULL);
+}
+
 void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
@@ -739,6 +792,8 @@ std::string MapPoint::createHashId(const std::string& strSystemId, unsigned long
 
 void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 {
+    unique_lock<mutex> lock(mMutexMap);
+    //std::cout << "start of a presave" << std::endl;
     mBackupReplacedStrId = "";
     if(spMP.find(mpReplaced) != spMP.end())
         mBackupReplacedStrId = mpReplaced->mstrHexId;
@@ -747,21 +802,34 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 
     mBackupObservationsId1.clear();
     mBackupObservationsId2.clear();
+    std::set<KeyFrame*> mvpEraseObservationsKF;
+    //std::cout << "before observations, nObs=" << nObs << std::endl;
     // Save the id and position in each KF who view it
     for(std::map<KeyFrame*,std::tuple<int,int> >::const_iterator it = mObservations.begin(), end = mObservations.end(); it != end; ++it)
     {
+        //std::cout << "iteration ";
         KeyFrame* pKFi = it->first;
         if(spKF.find(pKFi) != spKF.end())
         {
+            //std::cout << " found from set pKFi->mnId=" << pKFi->mnId << " .. " << get<0>(it->second) << ", " << get<1>(it->second); 
             mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
             mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
         }
         else
         {
+            //std::cout << " not found."; 
+            //mvpEraseObservationsKF.insert(pKFi);
             EraseObservation(pKFi);
         }
+
+        //std::cout << " end." << std::endl;
     }
 
+    //for(const auto& eraseKF : mvpEraseObservationsKF)
+    //{
+    //  EraseObservation(eraseKF);
+    //}
+    //std::cout << "after observations" << std::endl;
     // Save the id of the reference KF
     mBackupRefKFId = -1;
     if(spKF.find(mpRefKF) != spKF.end())

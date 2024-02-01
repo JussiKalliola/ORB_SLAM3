@@ -160,7 +160,7 @@ void Atlas::SetViewer(Viewer* pViewer)
 void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();
-    
+    std::cout << "Add KeyFrame in Atlas::AddKeyFrame" << std::endl; 
     pMapKF->AddKeyFrame(pKF);
 }
 

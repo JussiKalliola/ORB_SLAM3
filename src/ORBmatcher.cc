@@ -1732,6 +1732,7 @@ namespace ORB_SLAM3
                     if(invzc<0)
                         continue;
 
+                    //std::cout << " after invzc, ";
                     Eigen::Vector2f uv = CurrentFrame.mpCamera->project(x3Dc);
 
                     //std::cout << "after camera, ";
@@ -1740,6 +1741,7 @@ namespace ORB_SLAM3
                     if(uv(1)<CurrentFrame.mnMinY || uv(1)>CurrentFrame.mnMaxY)
                         continue;
 
+                    //std::cout << " after uv, ";
                     int nLastOctave = (LastFrame.Nleft == -1 || i < LastFrame.Nleft) ? LastFrame.mvKeys[i].octave
                                                                                      : LastFrame.mvKeysRight[i - LastFrame.Nleft].octave;
 
@@ -1759,6 +1761,7 @@ namespace ORB_SLAM3
                     if(vIndices2.empty())
                         continue;
 
+                    //std::cout << " after vindices2, ";
                     const cv::Mat dMP = pMP->GetDescriptor();
 
                     int bestDist = 256;
@@ -1772,6 +1775,7 @@ namespace ORB_SLAM3
                             if(CurrentFrame.mvpMapPoints[i2]->Observations()>0)
                                 continue;
 
+                        //std::cout << " mvpmappoints[i2]->observations()<0, ";
                         if(CurrentFrame.Nleft == -1 && CurrentFrame.mvuRight[i2]>0)
                         {
                             const float ur = uv(0) - CurrentFrame.mbf*invzc;
@@ -1780,6 +1784,8 @@ namespace ORB_SLAM3
                                 continue;
                         }
 
+                        
+                        //std::cout << " er>radius, ";
                         const cv::Mat &d = CurrentFrame.mDescriptors.row(i2);
 
                         const int dist = DescriptorDistance(dMP,d);
@@ -1794,6 +1800,7 @@ namespace ORB_SLAM3
                     //std::cout << "after checking current obs, ";
                     if(bestDist<=TH_HIGH)
                     {
+                        //std::cout << ", bestDist<=TH_HGH=nmatches++";
                         CurrentFrame.mvpMapPoints[bestIdx2]=pMP;
                         nmatches++;
 
@@ -1863,6 +1870,7 @@ namespace ORB_SLAM3
                         {
                             CurrentFrame.mvpMapPoints[bestIdx2 + CurrentFrame.Nleft]=pMP;
                             nmatches++;
+                            //std::cout << ", bestDist<=TH_HGH2=nmatches++";
                             if(mbCheckOrientation)
                             {
                                 cv::KeyPoint kpLF = (LastFrame.Nleft == -1) ? LastFrame.mvKeysUn[i]
@@ -1904,11 +1912,14 @@ namespace ORB_SLAM3
                     for(size_t j=0, jend=rotHist[i].size(); j<jend; j++)
                     {
                         CurrentFrame.mvpMapPoints[rotHist[i][j]]=static_cast<MapPoint*>(NULL);
+                        std::cout << ", nmatches--";
                         nmatches--;
                     }
                 }
             }
         }
+
+        std::cout << std::endl;
 
         return nmatches;
     }

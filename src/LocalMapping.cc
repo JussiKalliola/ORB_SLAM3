@@ -53,7 +53,7 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
 
     // map update variables
     MAP_FREQ=1000;
-    KF_NUM=6;
+    KF_NUM=2;
     CONN_KF=2;
     ////msNewKFFlag=false;
     msLastMUStart = std::chrono::high_resolution_clock::now();
@@ -199,7 +199,6 @@ void LocalMapping::Run()
                     vnLBA_KFfixed.push_back(num_FixedKF_BA);
                     vnLBA_MPs.push_back(num_MPs_BA);
 
-                    mbLocalMappingDone=true;
                 }
 
 #endif
@@ -279,6 +278,7 @@ void LocalMapping::Run()
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
+            mbLocalMappingDone=true;
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndLocalMap = std::chrono::steady_clock::now();
 

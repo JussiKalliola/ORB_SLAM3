@@ -69,6 +69,8 @@ Map::Map(
     ):mbFail(mbFail), msOptKFs(msOptKFs), msFixedKFs(msFixedKFs), mnId(mnId), mvpBackupMapPointsId(mvpBackupMapPointsId), mvpBackupKeyFramesId(mvpBackupKeyFramesId), mnBackupKFinitialID(mnBackupKFinitialID), mnBackupKFlowerID(mnBackupKFlowerID), mvpBackupReferenceMapPointsId(mvpBackupReferenceMapPointsId), mbImuInitialized(mbImuInitialized), mnMapChange(mnMapChange), mnMapChangeNotified(mnMapChangeNotified), mnInitKFid(mnInitKFid), mnMaxKFid(mnMaxKFid), mnBigChangeIdx(mnBigChangeIdx), mIsInUse(mIsInUse), mHasTumbnail(mHasTumbnail), mbBad(mbBad), mbIsInertial(mbIsInertial), mbIMU_BA1(mbIMU_BA1), mbIMU_BA2(mbIMU_BA2)
 {
     mThumbnail = static_cast<GLubyte*>(NULL);
+    std::cout << "mvpBackupMapPointsId.size()=" << mvpBackupMapPointsId.size() << ", mvpBackupKeyFramesId.size()=" << mvpBackupKeyFramesId.size() << std::endl;
+
     std::cout << "Thread1=Map::Map : Create a new map from ROS" << std::endl;
 }
 
@@ -86,6 +88,53 @@ Map::~Map()
 
     mvpReferenceMapPoints.clear();
     mvpKeyFrameOrigins.clear();
+}
+
+void Map::UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/)
+{
+    mbFail                        =  mbFail_;                        
+    //msOptKFs                      =  msOptKFs_;                      
+    //msFixedKFs                    =  msFixedKFs_;                    
+    //mnId                          =  mnId_;
+    
+    for(const auto& mpId : mvpBackupMapPointsId_)
+    {
+      auto it = std::find(mvpBackupMapPointsId.begin(), mvpBackupMapPointsId.end(), mpId);
+      if(it == mvpBackupMapPointsId.end())
+        mvpBackupMapPointsId.push_back(mpId);
+      
+    }
+    //mvpBackupMapPointsId          =  mvpBackupMapPointsId_;          
+    
+    for(const auto& kfId : mvpBackupKeyFramesId_)
+    {
+      auto it = std::find(mvpBackupKeyFramesId.begin(), mvpBackupKeyFramesId.end(), kfId);
+      if(it == mvpBackupKeyFramesId.end())
+        mvpBackupKeyFramesId.push_back(kfId); 
+    }
+
+    //mvpBackupKeyFramesId          =  mvpBackupKeyFramesId_;          
+    mnBackupKFinitialID           =  mnBackupKFinitialID_;           
+    mnBackupKFlowerID             =  mnBackupKFlowerID_;             
+    for(const auto& mpId : mvpBackupReferenceMapPointsId_)
+    {
+      auto it = std::find(mvpBackupReferenceMapPointsId.begin(), mvpBackupReferenceMapPointsId.end(), mpId);
+      if(it == mvpBackupReferenceMapPointsId.end())
+        mvpBackupReferenceMapPointsId.push_back(mpId); 
+    }
+    //mvpBackupReferenceMapPointsId =  mvpBackupReferenceMapPointsId_; 
+    mbImuInitialized              =  mbImuInitialized_;              
+    mnMapChange                   =  mnMapChange_;                   
+    mnMapChangeNotified           =  mnMapChangeNotified_;           
+    //mnInitKFid                    =  mnInitKFid_;                    
+    //mnMaxKFid                     =  mnMaxKFid_;                     
+    mnBigChangeIdx                =  mnBigChangeIdx_;                
+    mIsInUse                      =  mIsInUse_;                      
+    //mHasTumbnail                  =  mHasTumbnail_;                  
+    mbBad                         =  mbBad_;                         
+    //mbIsInertial                  =  mbIsInertial_;                  
+    //mbIMU_BA1                     =  mbIMU_BA1_;                     
+    //mbIMU_BA2                     =  mbIMU_BA2_;                     
 }
 
 void Map::AddKeyFrame(KeyFrame *pKF)
@@ -438,13 +487,25 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
 
     // Backup of MapPoints
     mvpBackupMapPoints.clear();
+    
+    //std::cout << "#MPs=" << mspMapPoints.size() << ", #KFs=" << mspKeyFrames.size() << std::endl;
     for(MapPoint* pMPi : mspMapPoints)
     {
-        if(!pMPi || pMPi->isBad())
+        //std::cout << "MP->presave()" << std::endl;
+        if(!pMPi) 
             continue;
-
+        //ustd::cout << "pMPi exists " << pMPi->mstrHexId << std::endl;
+        if(pMPi->isBad())
+            continue;
         mvpBackupMapPoints.push_back(pMPi);
+        mvpBackupMapPointsId.push_back(pMPi->mstrHexId);
         pMPi->PreSave(mspKeyFrames,mspMapPoints);
+    }
+
+    for(MapPoint* pMPi : mvpReferenceMapPoints)
+    {
+      if(pMPi)
+        mvpBackupReferenceMapPointsId.push_back(pMPi->mstrHexId);
     }
 
     // Backup of KeyFrames
@@ -455,6 +516,7 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
             continue;
 
         mvpBackupKeyFrames.push_back(pKFi);
+        mvpBackupKeyFramesId.push_back(pKFi->mnId);
         pKFi->PreSave(mspKeyFrames,mspMapPoints, spCams);
     }
 
@@ -523,6 +585,9 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         }
         bool mbTempUnprocessed = false;
         pMPi->PostLoad(mpKeyFrameId, mpMapPointId, &mbTempUnprocessed);
+        pMPi->UpdateMap(this);
+
+        *bUnprocessed = mbTempUnprocessed;
         if(mbTempUnprocessed)
           std::cout << "pMPi " << pMPi->mstrHexId << " is unprocessed" << std::endl;
     }
@@ -536,7 +601,9 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         
         bool mbTempUnprocessed = false;
         pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, &mbTempUnprocessed);
+        pKFi->UpdateMap(this);
         pKFDB->add(pKFi);
+        *bUnprocessed = mbTempUnprocessed;
         if(mbTempUnprocessed)
           std::cout << "pKFi " << pKFi->mnId << " is unprocessed" << std::endl;
     }

@@ -28,6 +28,8 @@ class Observer {
         virtual void onMapAddedById(unsigned long int id) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;
         virtual void onChangeLMActive(bool bActive) = 0;
+        virtual void onLMResetRequested() = 0;
+        virtual void onActiveMapReset(unsigned long int mnMapId) = 0;
 
         virtual ~Observer() {}
 };

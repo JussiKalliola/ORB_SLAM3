@@ -39,9 +39,13 @@ KeyFrameDatabase::KeyFrameDatabase (const ORBVocabulary &voc):
 void KeyFrameDatabase::add(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutex);
-
     for(DBoW2::BowVector::const_iterator vit= pKF->mBowVec.begin(), vend=pKF->mBowVec.end(); vit!=vend; vit++)
+    {  
+        //std::cout << "KeyFrameDatabase : mvInvertedFile[vit->first].size()=" << mvInvertedFile[vit->first].size() << std::endl;
         mvInvertedFile[vit->first].push_back(pKF);
+    }
+
+    std::cout << "KeyFrameDatabase : mvInvertedFile.size()=" << mvInvertedFile.size() << std::endl;
 }
 
 void KeyFrameDatabase::erase(KeyFrame* pKF)
@@ -609,7 +613,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
     list<KeyFrame*> lKFsSharingWords;
     set<KeyFrame*> spConnectedKF;
 
-    std::cout << "Before bow vector stuff" << std::endl;
+    //std::cout << "Before bow vector stuff" << std::endl;
     // Search all keyframes that share a word with current frame
     {
         unique_lock<mutex> lock(mMutex);
@@ -639,7 +643,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
         }
     }
 
-    std::cout << "After bow vector stuff" << std::endl;
+    //std::cout << "After bow vector stuff" << std::endl;
     if(lKFsSharingWords.empty())
         return;
 
@@ -657,7 +661,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
 
     int nscores=0;
 
-    std::cout << "After comparison stuff" << std::endl;
+    //std::cout << "After comparison stuff" << std::endl;
     // Compute similarity score.
     for(list<KeyFrame*>::iterator lit=lKFsSharingWords.begin(), lend= lKFsSharingWords.end(); lit!=lend; lit++)
     {
@@ -672,7 +676,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
         }
     }
 
-    std::cout << "After similarity stuff" << std::endl;
+    //std::cout << "After similarity stuff" << std::endl;
     if(lScoreAndMatch.empty())
         return;
 
@@ -707,7 +711,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
             bestAccScore=accScore;
     }
 
-    std::cout << "After covisibility stuff" << std::endl;
+    //std::cout << "After covisibility stuff" << std::endl;
     lAccScoreAndMatch.sort(compFirst);
 
     vpLoopCand.reserve(nNumCandidates);
@@ -715,7 +719,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
     set<KeyFrame*> spAlreadyAddedKF;
     int i = 0;
     list<pair<float,KeyFrame*> >::iterator it=lAccScoreAndMatch.begin();
-    std::cout << "before final while loop" << std::endl;
+    //std::cout << "before final while loop" << std::endl;
     while(i < lAccScoreAndMatch.size() && (vpLoopCand.size() < nNumCandidates || vpMergeCand.size() < nNumCandidates))
     {
         KeyFrame* pKFi = it->second;
@@ -765,6 +769,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
             }
         }
     }
+    std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
     if(lKFsSharingWords.empty())
         return vector<KeyFrame*>();
 
@@ -795,7 +800,8 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
             lScoreAndMatch.push_back(make_pair(si,pKFi));
         }
     }
-
+    
+    std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
     if(lScoreAndMatch.empty())
         return vector<KeyFrame*>();
 
@@ -830,6 +836,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
             bestAccScore=accScore;
     }
 
+    std::cout << "bestAccScore=" << bestAccScore << std::endl;
     // Return all those keyframes with a score higher than 0.75*bestScore
     float minScoreToRetain = 0.75f*bestAccScore;
     set<KeyFrame*> spAlreadyAddedKF;
@@ -851,6 +858,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
         }
     }
 
+    std::cout << "vpRelocCandidates.size()=" << vpRelocCandidates.size() << std::endl;
     return vpRelocCandidates;
 }
 

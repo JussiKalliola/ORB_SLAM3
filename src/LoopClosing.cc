@@ -370,6 +370,7 @@ bool LoopClosing::NewDetectCommonRegions()
     if(mpLastMap->GetAllKeyFrames().size() < 12)
     {
         // cout << "LoopClousure: Stereo KF inserted without check, map is small: " << mpCurrentKF->mnId << endl;
+        std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : map.KFs<12" << std::endl;
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
         return false;

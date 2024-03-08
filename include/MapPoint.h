@@ -54,35 +54,42 @@ class MapPoint
         ar & mnFirstFrame;
         ar & nObs;
         // Variables used by the tracking
-        //ar & mTrackProjX;
-        //ar & mTrackProjY;
-        //ar & mTrackDepth;
-        //ar & mTrackDepthR;
-        //ar & mTrackProjXR;
-        //ar & mTrackProjYR;
-        //ar & mbTrackInView;
-        //ar & mbTrackInViewR;
-        //ar & mnTrackScaleLevel;
-        //ar & mnTrackScaleLevelR;
-        //ar & mTrackViewCos;
-        //ar & mTrackViewCosR;
-        //ar & mnTrackReferenceForFrame;
-        //ar & mnLastFrameSeen;
+        ar & mTrackProjX;
+        ar & mTrackProjY;
+        ar & mTrackDepth;
+        ar & mTrackDepthR;
+        ar & mTrackProjXR;
+        ar & mTrackProjYR;
+        ar & mbTrackInView;
+        ar & mbTrackInViewR;
+        ar & mnTrackScaleLevel;
+        ar & mnTrackScaleLevelR;
+        ar & mTrackViewCos;
+        ar & mTrackViewCosR;
+        ar & mnTrackReferenceForFrame;
+        ar & mnLastFrameSeen;
 
         // Variables used by local mapping
-        //ar & mnBALocalForKF;
-        //ar & mnFuseCandidateForKF;
+        ar & mnBALocalForKF;
+        ar & mnFuseCandidateForKF;
 
         // Variables used by loop closing and merging
-        //ar & mnLoopPointForKF;
-        //ar & mnCorrectedByKF;
-        //ar & mnCorrectedReference;
-        //serializeMatrix(ar,mPosGBA,version);
-        //ar & mnBAGlobalForKF;
-        //ar & mnBALocalForMerge;
-        //serializeMatrix(ar,mPosMerge,version);
-        //serializeMatrix(ar,mNormalVectorMerge,version);
+        ar & mnLoopPointForKF;
+        ar & mnCorrectedByKF;
+        ar & mnCorrectedReference;
+        ar & boost::serialization::make_array(mPosGBA.data(), mPosGBA.size());
+        ar & mnBAGlobalForKF;
+        ar & mnBALocalForMerge;
+        ar & boost::serialization::make_array(mPosMerge.data(), mPosMerge.size());
+        ar & boost::serialization::make_array(mNormalVectorMerge.data(), mNormalVectorMerge.size());
 
+        // Fopr inverse depth optimization
+        ar & mInvDepth;
+        ar & mInitU;
+        ar & mInitV;
+        ar & mBackupHostKFId;
+        ar & mnOriginMapId;
+        
         // Protected variables
         ar & boost::serialization::make_array(mWorldPos.data(), mWorldPos.size());
         ar & boost::serialization::make_array(mNormalVector.data(), mNormalVector.size());
@@ -92,8 +99,8 @@ class MapPoint
         ar & mBackupObservationsId2;
         serializeMatrix(ar,mDescriptor,version);
         ar & mBackupRefKFId;
-        //ar & mnVisible;
-        //ar & mnFound;
+        ar & mnVisible;
+        ar & mnFound;
 
         ar & mbBad;
         ar & mBackupReplacedStrId;
@@ -121,6 +128,7 @@ public:
     void SetNormalVector(const Eigen::Vector3f& normal);
 
     KeyFrame* GetReferenceKeyFrame();
+    void SetReferenceKeyFrame(KeyFrame* mpRef);
 
     std::map<KeyFrame*,std::tuple<int,int>> GetObservations();
     std::map<long unsigned int, int> GetObservationsBackup1();
@@ -142,22 +150,16 @@ public:
     void IncreaseVisible(int n=1);
     void IncreaseFound(int n=1);
     float GetFoundRatio();
-    inline int GetVisible(){
-        return mnVisible;
-    }
-    inline int GetFound(){
-        return mnFound;
-    }
+    int GetVisible();
+    int GetFound();
+   
     //inline long int GetReplacedBackup()
     inline std::string GetReplacedBackup()
     {
       return mBackupReplacedStrId;
     }
 
-    inline long int GetRefBackup()
-    {
-      return static_cast<long int>(mBackupRefKFId);
-    }
+    long int GetRefBackup();
     void ComputeDistinctiveDescriptors();
 
     cv::Mat GetDescriptor();
@@ -166,6 +168,9 @@ public:
 
     float GetMinDistanceInvariance();
     float GetMaxDistanceInvariance();
+    float GetMinDistance();
+    float GetMaxDistance();
+
     int PredictScale(const float &currentDist, KeyFrame*pKF);
     int PredictScale(const float &currentDist, Frame* pF);
 
@@ -175,7 +180,7 @@ public:
     void PrintObservations();
     std::string createHashId(const std::string& strSystemId, unsigned long int mnMPId);
     void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
-    void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed );
+    void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
     
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;

@@ -196,6 +196,7 @@ namespace ORB_SLAM3 {
 	                        vbInliers[mvKeyPointIndices[i]] = true;
 	                }
 	                Tout = mRefinedTcw;
+      //            std::cout << "return true in refine()" << std::endl;
 	                return true;
 	            }
 

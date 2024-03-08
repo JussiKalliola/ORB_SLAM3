@@ -222,7 +222,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
-    //mpTracker->SetLoopClosing(mpLoopCloser);
+    mpTracker->SetLoopClosing(mpLoopCloser);
 
     mpLocalMapper->SetTracker(mpTracker);
     mpLocalMapper->SetLoopCloser(mpLoopCloser);
@@ -472,8 +472,9 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
         else if(mbResetActiveMap)
         {
             cout << "SYSTEM-> Reseting active map in monocular case" << endl;
-            mpTracker->ResetActiveMap();
+            mpTracker->ResetActiveMap(false, mnResetActiveMapId);
             mbResetActiveMap = false;
+            mnResetActiveMapId = -1;
         }
     }
 
@@ -524,10 +525,11 @@ void System::Reset()
     mbReset = true;
 }
 
-void System::ResetActiveMap()
+void System::ResetActiveMap(long int mapId)
 {
     unique_lock<mutex> lock(mMutexReset);
     mbResetActiveMap = true;
+    mnResetActiveMapId=mapId;
 }
 
 void System::Shutdown()

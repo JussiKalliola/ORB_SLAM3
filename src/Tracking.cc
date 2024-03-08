@@ -431,96 +431,96 @@ void Tracking::PrintTimeStats()
     f << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
     std::cout << "---------------------------" << std::endl;
     std::cout << std::endl << "Place Recognition (mean$\\pm$std)" << std::endl;
-    //average = calcAverage(mpLoopClosing->vdDataQuery_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdDataQuery_ms, average);
+    average = calcAverage(mpLoopClosing->vdDataQuery_ms);
+    deviation = calcDeviation(mpLoopClosing->vdDataQuery_ms, average);
     f << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Database Query: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdEstSim3_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdEstSim3_ms, average);
+    average = calcAverage(mpLoopClosing->vdEstSim3_ms);
+    deviation = calcDeviation(mpLoopClosing->vdEstSim3_ms, average);
     f << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "SE3 estimation: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdPRTotal_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdPRTotal_ms, average);
+    average = calcAverage(mpLoopClosing->vdPRTotal_ms);
+    deviation = calcDeviation(mpLoopClosing->vdPRTotal_ms, average);
     f << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
     std::cout << "Total Place Recognition: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
     f << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
     std::cout << std::endl << "Loop Closing (mean$\\pm$std)" << std::endl;
-    //average = calcAverage(mpLoopClosing->vdLoopFusion_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdLoopFusion_ms, average);
+    average = calcAverage(mpLoopClosing->vdLoopFusion_ms);
+    deviation = calcDeviation(mpLoopClosing->vdLoopFusion_ms, average);
     f << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Loop Fusion: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdLoopOptEss_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdLoopOptEss_ms, average);
+    average = calcAverage(mpLoopClosing->vdLoopOptEss_ms);
+    deviation = calcDeviation(mpLoopClosing->vdLoopOptEss_ms, average);
     f << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Essential Graph: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdLoopTotal_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdLoopTotal_ms, average);
+    average = calcAverage(mpLoopClosing->vdLoopTotal_ms);
+    deviation = calcDeviation(mpLoopClosing->vdLoopTotal_ms, average);
     f << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
     std::cout << "Total Loop Closing: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    //f << "Numb exec: " << mpLoopClosing->nLoop << std::endl;
-    //std::cout << "Num exec: " << mpLoopClosing->nLoop << std::endl;
-    //average = calcAverage(mpLoopClosing->vnLoopKFs);
-    //deviation = calcDeviation(mpLoopClosing->vnLoopKFs, average);
+    f << "Numb exec: " << mpLoopClosing->nLoop << std::endl;
+    std::cout << "Num exec: " << mpLoopClosing->nLoop << std::endl;
+    average = calcAverage(mpLoopClosing->vnLoopKFs);
+    deviation = calcDeviation(mpLoopClosing->vnLoopKFs, average);
     f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
 
     f << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
     std::cout << std::endl << "Map Merging (mean$\\pm$std)" << std::endl;
-    //average = calcAverage(mpLoopClosing->vdMergeMaps_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdMergeMaps_ms, average);
+    average = calcAverage(mpLoopClosing->vdMergeMaps_ms);
+    deviation = calcDeviation(mpLoopClosing->vdMergeMaps_ms, average);
     f << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Merge Maps: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdWeldingBA_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdWeldingBA_ms, average);
+    average = calcAverage(mpLoopClosing->vdWeldingBA_ms);
+    deviation = calcDeviation(mpLoopClosing->vdWeldingBA_ms, average);
     f << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Welding BA: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdMergeOptEss_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdMergeOptEss_ms, average);
+    average = calcAverage(mpLoopClosing->vdMergeOptEss_ms);
+    deviation = calcDeviation(mpLoopClosing->vdMergeOptEss_ms, average);
     f << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Optimization Ess.: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdMergeTotal_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdMergeTotal_ms, average);
+    average = calcAverage(mpLoopClosing->vdMergeTotal_ms);
+    deviation = calcDeviation(mpLoopClosing->vdMergeTotal_ms, average);
     f << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
     std::cout << "Total Map Merging: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
     f << "Numb exec: " << mpLoopClosing->nMerges << std::endl;
-    //std::cout << "Num exec: " << mpLoopClosing->nMerges << std::endl;
-    //average = calcAverage(mpLoopClosing->vnMergeKFs);
-    //deviation = calcDeviation(mpLoopClosing->vnMergeKFs, average);
+    std::cout << "Num exec: " << mpLoopClosing->nMerges << std::endl;
+    average = calcAverage(mpLoopClosing->vnMergeKFs);
+    deviation = calcDeviation(mpLoopClosing->vnMergeKFs, average);
     f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vnMergeMPs);
-    //deviation = calcDeviation(mpLoopClosing->vnMergeMPs, average);
+    average = calcAverage(mpLoopClosing->vnMergeMPs);
+    deviation = calcDeviation(mpLoopClosing->vnMergeMPs, average);
     f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
 
     f << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
     std::cout << std::endl << "Full GBA (mean$\\pm$std)" << std::endl;
-    //average = calcAverage(mpLoopClosing->vdGBA_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdGBA_ms, average);
+    average = calcAverage(mpLoopClosing->vdGBA_ms);
+    deviation = calcDeviation(mpLoopClosing->vdGBA_ms, average);
     f << "GBA: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "GBA: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdUpdateMap_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdUpdateMap_ms, average);
+    average = calcAverage(mpLoopClosing->vdUpdateMap_ms);
+    deviation = calcDeviation(mpLoopClosing->vdUpdateMap_ms, average);
     f << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Map Update: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vdFGBATotal_ms);
-    //deviation = calcDeviation(mpLoopClosing->vdFGBATotal_ms, average);
+    average = calcAverage(mpLoopClosing->vdFGBATotal_ms);
+    deviation = calcDeviation(mpLoopClosing->vdFGBATotal_ms, average);
     f << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
     std::cout << "Total Full GBA: " << average << "$\\pm$" << deviation << std::endl << std::endl;
 
-    //f << "Numb exec: " << mpLoopClosing->nFGBA_exec << std::endl;
-    //std::cout << "Num exec: " << mpLoopClosing->nFGBA_exec << std::endl;
-    //f << "Numb abort: " << mpLoopClosing->nFGBA_abort << std::endl;
-    //std::cout << "Num abort: " << mpLoopClosing->nFGBA_abort << std::endl;
-    //average = calcAverage(mpLoopClosing->vnGBAKFs);
-    //deviation = calcDeviation(mpLoopClosing->vnGBAKFs, average);
+    f << "Numb exec: " << mpLoopClosing->nFGBA_exec << std::endl;
+    std::cout << "Num exec: " << mpLoopClosing->nFGBA_exec << std::endl;
+    f << "Numb abort: " << mpLoopClosing->nFGBA_abort << std::endl;
+    std::cout << "Num abort: " << mpLoopClosing->nFGBA_abort << std::endl;
+    average = calcAverage(mpLoopClosing->vnGBAKFs);
+    deviation = calcDeviation(mpLoopClosing->vnGBAKFs, average);
     f << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Number of KFs: " << average << "$\\pm$" << deviation << std::endl;
-    //average = calcAverage(mpLoopClosing->vnGBAMPs);
-    //deviation = calcDeviation(mpLoopClosing->vnGBAMPs, average);
+    average = calcAverage(mpLoopClosing->vnGBAMPs);
+    deviation = calcDeviation(mpLoopClosing->vnGBAMPs, average);
     f << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
     std::cout << "Number of MPs: " << average << "$\\pm$" << deviation << std::endl;
 
@@ -1800,14 +1800,14 @@ void Tracking::Track()
     
     // TODO: Create bool var which is responsible if track() function is executed. IF map is completely done, run, if not, wait.
     
-    if(mbLocalMapIsUpdating)
-    {
-      //return;
-      while(mbLocalMapIsUpdating)
-        usleep(1000);
-    } else {
-      std::cout << "Local map is updated, move on in the function." << std::endl;
-    }
+    //if(mbLocalMapIsUpdating)
+    //{
+    //  return;
+      //while(mbLocalMapIsUpdating)
+      //  usleep(1000);
+    //} else {
+    //  std::cout << "Local map is updated, move on in the function." << std::endl;
+    //}
     
     // TODO:Temporarily disable BA in local mapping
     //mpLocalMapper->InterruptBA();
@@ -1819,6 +1819,7 @@ void Tracking::Track()
         std::cout << "Tracking: Waiting to the next step" << std::endl;
         while(!mbStep && bStepByStep)
             usleep(500);
+        std::cout << "Tracking: Received the next step." << std::endl;
         mbStep = false;
     }
 
@@ -2304,6 +2305,9 @@ void Tracking::Track()
                 Verbose::PrintMess("Thread1=Tracking::Track : less than 10 KFs in map -> reset active map.", Verbose::VERBOSITY_NORMAL);
                 std::cout << "mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", pCurrentMap->KeyFramesInMap()=" << pCurrentMap->KeyFramesInMap() << std::endl;
                 mpSystem->ResetActiveMap();
+                notifyObserverResetActiveMap(pCurrentMap->GetId());
+                
+                mcLastResetTimeStamp = std::chrono::system_clock::now();
                 return;
             }
             if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -2324,19 +2328,9 @@ void Tracking::Track()
 
         Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
         std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
+        std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
         mLastFrame = Frame(mCurrentFrame);
         
-        std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
-        for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
-        {
-            MapPoint* pMP = mLastFrame.mvpMapPoints[i];
-
-            if(pMP)
-            {
-                std::cout << pMP->mstrHexId << ",";
-            }
-        }
-        std::cout << std::endl;
         
         std::cout << "Current Map ID=" << mpAtlas->GetCurrentMap()->GetId() << ", number of maps=" << mpAtlas->GetAllMaps().size() << std::endl;
     }
@@ -2530,6 +2524,7 @@ void Tracking::MonocularInitialization()
     }
     else
     {
+        std::cout << "mCurrentFrame.mvKeys.size()="<<mCurrentFrame.mvKeys.size() << std::endl;
         if (((int)mCurrentFrame.mvKeys.size()<=100)||((mSensor == System::IMU_MONOCULAR)&&(mLastFrame.mTimeStamp-mInitialFrame.mTimeStamp>1.0)))
         {
             mbReadyToInitializate = false;
@@ -2541,6 +2536,7 @@ void Tracking::MonocularInitialization()
         ORBmatcher matcher(0.9,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,100);
 
+        std::cout << "nMatches="<<nmatches << std::endl;
         // Check if there are enough correspondences
         if(nmatches<100)
         {
@@ -2553,6 +2549,7 @@ void Tracking::MonocularInitialization()
 
         if(mpCamera->ReconstructWithTwoViews(mInitialFrame.mvKeysUn,mCurrentFrame.mvKeysUn,mvIniMatches,Tcw,mvIniP3D,vbTriangulated))
         {
+            std::cout << "mpCamera->ReconstructWithTwoViews()=True" << std::endl;
             for(size_t i=0, iend=mvIniMatches.size(); i<iend;i++)
             {
                 if(mvIniMatches[i]>=0 && !vbTriangulated[i])
@@ -2591,8 +2588,8 @@ void Tracking::CreateInitialMapMonocular()
     mpAtlas->AddKeyFrame(pKFcur);
 
     // Edge-SLAM: Add Keyframe to database
-    mpKeyFrameDB->add(pKFini);
-    mpKeyFrameDB->add(pKFcur);
+    //mpKeyFrameDB->add(pKFini);
+    //mpKeyFrameDB->add(pKFcur);
     
     for(size_t i=0; i<mvIniMatches.size();i++)
     {
@@ -2953,16 +2950,6 @@ bool Tracking::TrackWithMotionModel()
         th=15;
     
     std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
-    for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
-    {
-        MapPoint* pMP = mLastFrame.mvpMapPoints[i];
-
-        if(pMP)
-        {
-            std::cout << pMP->mstrHexId << ",";
-        }
-    }
-    std::cout << std::endl;
 
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
     
@@ -3174,6 +3161,10 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mbOnlyTracking)
         return false;
+    
+    // Don't send update if local map is still updating
+    if(mbLocalMapIsUpdating)
+        return false;
 
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     //if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested()) {
@@ -3199,6 +3190,7 @@ bool Tracking::NeedNewKeyFrame()
     if(nKFs<=2)
         nMinObs=2;
     int nRefMatches = mpReferenceKF->TrackedMapPoints(nMinObs);
+
 
     // Local Mapping accept keyframes?
     //bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
@@ -3231,6 +3223,7 @@ bool Tracking::NeedNewKeyFrame()
     float thRefRatio = 0.75f;
     if(nKFs<2)
         thRefRatio = 0.4f;
+    
 
     /*int nClosedPoints = nTrackedClose + nNonTrackedClose;
     const int thStereoClosedPoints = 15;
@@ -3253,8 +3246,9 @@ bool Tracking::NeedNewKeyFrame()
             thRefRatio = 0.90f;
     }
 
+    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << std::endl;
     // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
-    //const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
+    const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
     //const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames) && mbLocalMappingIdle); //mpLocalMapper->KeyframesInQueue() < 2);
     //Condition 1c: tracking is weak
@@ -3312,8 +3306,10 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
+   
+    std::cout << "c2=" << c2 << ", c1c=" << c1c << ", c4=" << c4 << ", c3=" << c3 << std::endl;
     if(c2)
-        if(c1c)
+        if(c1c || c1a)
             return true;
         else
             return true;
@@ -3443,9 +3439,9 @@ void Tracking::CreateNewKeyFrame()
     }
     //notifyObserverAddKeyframe(pKF);
     mpAtlas->AddKeyFrame(pKF); 
-    mpKeyFrameDB->add(pKF);
+    //mpKeyFrameDB->add(pKF);
     mapUpToDate = false;
-    pKF->UpdateConnections();
+    //pKF->UpdateConnections();
 
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     // TODO: Here the keyframe needs to be sent to ros network!!
@@ -3546,6 +3542,7 @@ bool Tracking::IsMapUpToDate()
 
 void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string, MapPoint*>mpOrbMapPoints)
 {
+  unique_lock<mutex> lock(mMutexLocalMapUpdate);
   // Keep current reference keyframe Id, and reset refKFSet
   long unsigned int refId = mpReferenceKF->mnId; // mpReferenceKF is from tarcking
   // refKFSet = false; Edge-slam variable
@@ -3554,6 +3551,10 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   vector<std::string> lastFrame_points_ids;
   vector<bool> lastFrame_points_availability;
   vector<std::string> mvpLocalMapPoints_ids;
+
+  std::cout << std::endl;
+  std::cout << "reference id in the beginning of the function: " << refId << std::endl;
+  std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
   std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
   for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
   {
@@ -3561,7 +3562,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
 
       if(pMP)
       {
-          std::cout << pMP->mstrHexId << ",";
+          //std::cout << pMP->mstrHexId << ",";
           lastFrame_points_ids.push_back(pMP->mstrHexId);
           lastFrame_points_availability.push_back(true);
       }
@@ -3570,7 +3571,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
           lastFrame_points_availability.push_back(false);
       }
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
   for (unsigned int i = 0 ; i < mvpLocalMapPoints.size(); i++)
   {
       mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mstrHexId);
@@ -3711,12 +3712,14 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //}
 
   /* ================= =======================*/
+  if(!mpReferenceKF)
+    std::cout << "NO REFERENCE KF" << std::endl;
   if(mpOrbKeyFrames.find(refId) != mpOrbKeyFrames.end())
   {
-    mpReferenceKF = mpOrbKeyFrames[refId];
-    mLastFrame.mpReferenceKF = mpOrbKeyFrames[refId]; // mLastFrame is from tracking
+    //mpReferenceKF = mpOrbKeyFrames[refId];
+    //mLastFrame.mpReferenceKF = mpOrbKeyFrames[refId]; // mLastFrame is from tracking
     refKFSet = true;
-  }
+  } 
   
   // Get all keyframes in tracking local-map
   //vector<KeyFrame*> vpKeyFrames = mpMap->GetAllKeyFrames();
@@ -3726,23 +3729,23 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   
   /* ================= All of this can be retrieved from mpOrbKeyFrames (get the biggest idx? or first?) =======================*/
   // Initialize Reference KeyFrame and other KF variables
-  if(vpKeyFrames.size() > 0)
-  {
-      if(!refKFSet)
-          mpReferenceKF = vpKeyFrames[0]; // from tracking
-      else
-      {
-          if(mpReferenceKF->mnId < vpKeyFrames[0]->mnId) // from tracking
-          {
-              mpReferenceKF = vpKeyFrames[0]; // from tracking
-              refKFSet = false; // edge-slam tracking
-          }
-      }
+  //if(vpKeyFrames.size() > 0)
+  //{
+  //    //if(!refKFSet)
+  //    //    mpReferenceKF = vpKeyFrames[0]; // from tracking
+  //    //else
+  //    //{
+  //    //    if(mpReferenceKF->mnId < vpKeyFrames[0]->mnId) // from tracking
+  //    //    {
+  //    //        mpReferenceKF = vpKeyFrames[0]; // from tracking
+  //    //        refKFSet = false; // edge-slam tracking
+  //    //    }
+  //    //}
 
-      mnLastKeyFrameId = vpKeyFrames[0]->mnFrameId; // from tracking
-      mpLastKeyFrame = vpKeyFrames[0]; // from tracking 
-      mnMapUpdateLastKFId = vpKeyFrames[0]->mnId; // edge-slam tracking
-  }
+  //    mnLastKeyFrameId = vpKeyFrames[0]->mnFrameId; // from tracking
+  //    mpLastKeyFrame = vpKeyFrames[0]; // from tracking 
+  //    mnMapUpdateLastKFId = vpKeyFrames[0]->mnId; // edge-slam tracking
+  //}
 
   std::cout << "vpKeyFrames[0]->mnFrameId=" << mnLastKeyFrameId << ", vpKeyFrames[0]->mnId=" << mnMapUpdateLastKFId << ", refSet=" << refKFSet << ", mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl;
 
@@ -3753,7 +3756,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
   {
       KeyFrame* pKFCon = *it;
-
+      if(pKFCon)
+        mpKeyFrameDB->add(pKFCon);
       /* ================= This is done in PostLoad =======================*/
       //pKFCon->ReconstructConnections();
 
@@ -3761,7 +3765,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       cout << pKFCon->mnId << " ";
 
       // If RefKF has lower id than current KF, then set it to that KF
-      if(mpReferenceKF->mnId < pKFCon->mnId)
+      if(!refKFSet && mpReferenceKF->mnId < pKFCon->mnId)
       {
           mpReferenceKF = pKFCon;
           refKFSet = false;
@@ -3770,8 +3774,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
       // Update other KF variables
       if(mnMapUpdateLastKFId < pKFCon->mnId)
       {
-          mnLastKeyFrameId = pKFCon->mnFrameId;
-          mpLastKeyFrame = pKFCon;
+          //mnLastKeyFrameId = pKFCon->mnFrameId;
+          //mpLastKeyFrame = pKFCon;
           mnMapUpdateLastKFId = pKFCon->mnId;
       }
   }
@@ -3783,7 +3787,6 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   
   // Set current-frame RefKF
   mCurrentFrame.mpReferenceKF = mpReferenceKF;
-
   // Get all map points in tracking local-map
   vector<MapPoint*> vpMapPoints = pM->GetAllMapPoints();
 
@@ -3796,7 +3799,9 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //    if((unsigned)rMP->mnFirstKFid == rMP->GetReferenceKeyFrame()->mnId)
   //        continue;
 
-  //    KeyFrame* rKF = mpMap->RetrieveKeyFrame(rMP->mnFirstKFid);
+  //    if(mpOrbKeyFrames.find(refId) == mpOrbKeyFrames.end())
+  //      continue;
+  //    KeyFrame* rKF = mpOrbKeyFrames[rMP->mnFirstKFid];
 
   //    if(rKF)
   //        rMP->SetReferenceKeyFrame(rKF);
@@ -3804,39 +3809,39 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
 
   // Updating mLastFrame
   std::cout << "Availability vector=" << lastFrame_points_availability.size() << ", points=" << lastFrame_points_ids.size() << std::endl;
-  int lastFrameMPCounter = 0;
-  for(int i =0; i<mLastFrame.N; i++)
-  {
-      if(lastFrame_points_availability[i])
-      {
-          //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
-          
-          MapPoint* newpMP = mpOrbMapPoints[lastFrame_points_ids[lastFrameMPCounter]]; //pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
-          std::cout << lastFrame_points_ids[lastFrameMPCounter] << ",";
-          if (newpMP)
-          {
-              mLastFrame.mvpMapPoints[i] = newpMP;
-          }
-          else
-          {
-              mLastFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
-          }
+  //int lastFrameMPCounter = 0;
+  //for(int i =0; i<mLastFrame.N; i++)
+  //{
+  //    if(lastFrame_points_availability[i])
+  //    {
+  //        //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
+  //        
+  //        MapPoint* newpMP = mpOrbMapPoints[lastFrame_points_ids[lastFrameMPCounter]]; //pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
+  //        std::cout << lastFrame_points_ids[lastFrameMPCounter] << ",";
+  //        if (newpMP)
+  //        {
+  //            mLastFrame.mvpMapPoints[i] = newpMP;
+  //        }
+  //        else
+  //        {
+  //            mLastFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
+  //        }
 
-          ++lastFrameMPCounter;
-      }
-  }
-  std::cout << std::endl;
+  //        ++lastFrameMPCounter;
+  //    }
+  //}
+  //std::cout << std::endl;
 
-  // We should update mvpLocalMapPoints for viewer
-  std::cout << "#MPs in Map=" << pM->GetAllMapPoints().size() << std::endl;
+  //// We should update mvpLocalMapPoints for viewer
+  //std::cout << "#MPs in Map=" << pM->GetAllMapPoints().size() << std::endl;
   mvpLocalMapPoints.clear(); // from tracking = mpAtlas->GetAllMapPoints()
-  std::cout << "#MPs in Map after clearing=" << pM->GetAllMapPoints().size() << std::endl;
+  //std::cout << "#MPs in Map after clearing=" << pM->GetAllMapPoints().size() << std::endl;
   
-  for (unsigned int i = 0 ; i < mvpLocalMapPoints_ids.size(); i++)// from tracking = mpAtlas->GetAllMapPoints()
+  //vector<MapPoint*> vpMapPoints = pM->GetAllMapPoints();
+  for (unsigned int i = 0 ; i < vpMapPoints.size(); i++)// from tracking = mpAtlas->GetAllMapPoints()
   {
       //MapPoint* pMP = mpMap->RetrieveMapPoint(mvpLocalMapPoints_ids[i], true);// from tracking = mpAtlas->GetAllMapPoints()
-      std::cout << mvpLocalMapPoints_ids[i] << " ";
-      MapPoint* pMP = mpOrbMapPoints[mvpLocalMapPoints_ids[i]]; //pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i]);// from tracking = mpAtlas->GetAllMapPoints()
+      MapPoint* pMP = vpMapPoints[i]; //pM->RetrieveMapPoint(mvpLocalMapPoints_ids[i]);// from tracking = mpAtlas->GetAllMapPoints()
       if (pMP)
       {
           mvpLocalMapPoints.push_back(pMP);// from tracking = mpAtlas->GetAllMapPoints()
@@ -3844,18 +3849,20 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   }
   std::cout << std::endl;
 
-  std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << lastFrameMPCounter << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
-  if(mpViewer)
-      mpViewer->Release();
+  std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << mLastFrame.mvpMapPoints.size() << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
+  //if(mpViewer)
+  //    mpViewer->Release();
 
   // Edge-SLAM: measure
   //msRelocLastMapUpdateStart = std::chrono::high_resolution_clock::now();
 
   mapUpToDate = true;
-  LocalMapIsUpdating(false); 
+  //LocalMapIsUpdating(false); 
 
   //msRelocStatus = false;
-
+  std::cout << "reference id in the end of the function: " << mpReferenceKF->mnId << std::endl;
+  std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
+  
   // Edge-SLAM: debug
   cout << "log,Tracking::mapCallback,local map update is done" << endl;
 
@@ -3939,7 +3946,7 @@ void Tracking::UpdateLocalPoints()
     {
         KeyFrame* pKF = *itKF;
         const vector<MapPoint*> vpMPs = pKF->GetMapPointMatches();
-        std::cout << "Thread1=Tracking::UpdateLocalKeyPoints : #MP matches=" << vpMPs.size() << std::endl;
+        //std::cout << "Thread1=Tracking::UpdateLocalKeyPoints : #MP matches=" << vpMPs.size() << std::endl;
         for(vector<MapPoint*>::const_iterator itMP=vpMPs.begin(), itEndMP=vpMPs.end(); itMP!=itEndMP; itMP++)
         {
 
@@ -4154,6 +4161,7 @@ bool Tracking::Relocalization()
         else
         {
             int nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            std::cout << "candidate id=" << pKF->mnId << ", #matches=" << nmatches << std::endl;
             if(nmatches<15)
             {
                 vbDiscarded[i] = true;
@@ -4173,9 +4181,12 @@ bool Tracking::Relocalization()
     // Until we found a camera pose supported by enough inliers
     bool bMatch = false;
     ORBmatcher matcher2(0.9,true);
+    int tries = 0; // fix
+    int maxTries=100;// fix
     std::cout << "#Candidates=" << nCandidates << "#KFs=" << nKFs << std::endl;
     while(nCandidates>0 && !bMatch)
     {
+        tries+=1;
         for(int i=0; i<nKFs; i++)
         {
             if(vbDiscarded[i])
@@ -4189,7 +4200,8 @@ bool Tracking::Relocalization()
             MLPnPsolver* pSolver = vpMLPnPsolvers[i];
             Eigen::Matrix4f eigTcw;
             bool bTcw = pSolver->iterate(5,bNoMore,vbInliers,nInliers, eigTcw);
-
+            
+            //std::cout << "after pSolver-iterate" << std::endl;
             // If Ransac reachs max. iterations discard keyframe
             if(bNoMore)
             {
@@ -4197,6 +4209,7 @@ bool Tracking::Relocalization()
                 nCandidates--;
             }
 
+            //std::cout << "before pose optimization bTcw=" << bTcw << std::endl;
             // If a Camera Pose is computed, optimize
             if(bTcw)
             {
@@ -4232,11 +4245,10 @@ bool Tracking::Relocalization()
                 if(nGood<50)
                 {
                     int nadditional =matcher2.SearchByProjection(mCurrentFrame,vpCandidateKFs[i],sFound,10,100);
-
+                    //std::cout << "nadditional+nGood=" << nadditional+nGood << std::endl;
                     if(nadditional+nGood>=50)
                     {
                         nGood = Optimizer::PoseOptimization(&mCurrentFrame);
-
                         // If many inliers but still not enough, search by projection again in a narrower window
                         // the camera has been already optimized with many points
                         if(nGood>30 && nGood<50)
@@ -4260,6 +4272,7 @@ bool Tracking::Relocalization()
                     }
                 }
 
+                //std::cout << "after pose optimization, nGood=" << nGood << std::endl;
 
                 // If the pose is supported by enough inliers stop ransacs and continue
                 if(nGood>=50)
@@ -4269,6 +4282,9 @@ bool Tracking::Relocalization()
                 }
             }
         }
+
+        //if(tries > maxTries) // Fix
+        //  break; // fix
     }
 
     if(!bMatch)
@@ -4300,13 +4316,14 @@ void Tracking::Reset(bool bLocMap)
     {
         Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_NORMAL);
         mpLocalMapper->RequestReset();
+        notifyObserverLMResetRequested();
         Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
     }
 
 
     // Reset Loop Closing
     Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
-    //mpLoopClosing->RequestReset();
+    mpLoopClosing->RequestReset();
     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
     // Clear BoW Database
@@ -4348,7 +4365,7 @@ void Tracking::Reset(bool bLocMap)
     Verbose::PrintMess("   End reseting! ", Verbose::VERBOSITY_NORMAL);
 }
 
-void Tracking::ResetActiveMap(bool bLocMap)
+void Tracking::ResetActiveMap(bool bLocMap, long int mapId)
 {
     Verbose::PrintMess("Active map Reseting", Verbose::VERBOSITY_NORMAL);
     if(mpViewer)
@@ -4357,8 +4374,21 @@ void Tracking::ResetActiveMap(bool bLocMap)
         while(!mpViewer->isStopped())
             usleep(3000);
     }
+    
 
-    Map* pMap = mpAtlas->GetCurrentMap();
+    Map* pMap = static_cast<Map*>(NULL);
+    if(mapId == -1)
+      pMap = mpAtlas->GetCurrentMap();
+    else if(mapId >= 0) {
+      std::vector<Map*> mvpAllMaps = mpAtlas->GetAllMaps();
+
+      for(const auto& pM : mvpAllMaps) {
+        if (pM->GetId() == mapId) {
+          pMap = pM;
+          break;
+        }
+      }
+    }
 
     if (!bLocMap)
     {
@@ -4369,7 +4399,7 @@ void Tracking::ResetActiveMap(bool bLocMap)
 
     // Reset Loop Closing
     Verbose::PrintMess("Reseting Loop Closing...", Verbose::VERBOSITY_NORMAL);
-    //mpLoopClosing->RequestResetActiveMap(pMap);
+    mpLoopClosing->RequestResetActiveMap(pMap);
     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
     // Clear BoW Database

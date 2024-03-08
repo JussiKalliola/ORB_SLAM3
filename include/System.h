@@ -135,7 +135,7 @@ public:
 
     // Reset the system (clear Atlas or the active map)
     void Reset();
-    void ResetActiveMap();
+    void ResetActiveMap(long int mapId = -1);
 
     // All threads will be requested to finish.
     // It waits until all threads have finished.
@@ -272,6 +272,7 @@ private:
     std::mutex mMutexReset;
     bool mbReset;
     bool mbResetActiveMap;
+    long int mnResetActiveMapId;
 
     // Change mode flags
     std::mutex mMutexMode;

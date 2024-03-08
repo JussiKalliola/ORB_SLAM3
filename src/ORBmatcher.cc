@@ -1329,15 +1329,32 @@ namespace ORB_SLAM3
                     if(!pMPinKF->isBad())
                     {
                         if(pMPinKF->Observations()>pMP->Observations())
+                        {
                             pMP->Replace(pMPinKF);
-                        else
+                            if(pMP->GetMap())
+                              pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                            else
+                              pKF->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                        } else {
                             pMPinKF->Replace(pMP);
+                            if(pMPinKF->GetMap())
+                              pMPinKF->GetMap()->AddUpdatedMPId(pMPinKF->mstrHexId);
+                            else
+                              pKF->GetMap()->AddUpdatedMPId(pMPinKF->mstrHexId);
+                        }
+
+                        pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                     }
                 }
                 else
                 {
                     pMP->AddObservation(pKF,bestIdx);
                     pKF->AddMapPoint(pMP,bestIdx);
+                    if(pMP->GetMap())
+                      pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                    else
+                      pKF->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                    pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                 }
                 nFused++;
             }
@@ -1912,14 +1929,14 @@ namespace ORB_SLAM3
                     for(size_t j=0, jend=rotHist[i].size(); j<jend; j++)
                     {
                         CurrentFrame.mvpMapPoints[rotHist[i][j]]=static_cast<MapPoint*>(NULL);
-                        std::cout << ", nmatches--";
+                        //std::cout << ", nmatches--";
                         nmatches--;
                     }
                 }
             }
         }
 
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         return nmatches;
     }

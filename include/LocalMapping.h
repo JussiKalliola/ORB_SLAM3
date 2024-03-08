@@ -229,6 +229,7 @@ protected:
     std::chrono::high_resolution_clock::time_point msLastMUStop;
     
     unsigned long int mnLastKeyFrameId;
+    bool mbKFsAfterMapUpdate;
 
     int MAP_FREQ;  // Set to: after how many ms from last map update, a new map update should be sent
     int KF_NUM;    // Set to: how many keyframes should a map update consist of

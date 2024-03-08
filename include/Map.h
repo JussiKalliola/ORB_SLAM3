@@ -55,8 +55,12 @@ class Map
         // Save/load a set structure, the set structure is broken in libboost 1.58 for ubuntu 16.04, a vector is serializated
         //ar & mspKeyFrames;
         //ar & mspMapPoints;
-        ar & mvpBackupKeyFrames;
-        ar & mvpBackupMapPoints;
+        //ar & mvpBackupKeyFrames;
+        //ar & mvpBackupMapPoints;
+
+        ar & mvpBackupReferenceMapPointsId;
+        ar & mvpBackupMapPointsId;
+        ar & mvpBackupKeyFramesId;
 
         ar & mvBackupKeyFrameOriginsId;
 
@@ -73,10 +77,10 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Map();
     Map(int initKFid);
-    Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs, long unsigned int mnId, std::vector<std::string> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId, unsigned long int mnBackupKFinitialID, unsigned long int mnBackupKFlowerID, std::vector<std::string> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange, int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail, bool mbBad, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2);
+    Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs, long unsigned int mnId, std::vector<std::string> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId, std::vector<unsigned long int> mvBackupKeyFrameOriginsId, unsigned long int mnBackupKFinitialID, unsigned long int mnBackupKFlowerID, std::vector<std::string> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange, int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail, bool mbBad, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2);
     ~Map();
 
-    void UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/);
+    void UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/);
     void AddKeyFrame(KeyFrame* pKF);
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);
@@ -88,6 +92,11 @@ public:
     std::vector<KeyFrame*> GetAllKeyFrames();
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
+    
+    std::set<unsigned long int> GetErasedKFIds();
+    std::set<std::string> GetErasedMPIds();
+    
+    void ClearErasedData();
 
     long unsigned int MapPointsInMap();
     long unsigned  KeyFramesInMap();
@@ -140,7 +149,7 @@ public:
     unsigned int GetLowerKFID();
 
     void PreSave(std::set<GeometricCamera*> &spCams);
-    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<std::string, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed);
+    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<std::string, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
 
     void printReprojectionError(list<KeyFrame*> &lpLocalWindowKFs, KeyFrame* mpCurrentKF, string &name, string &name_folder);
 
@@ -163,6 +172,13 @@ public:
     // DEBUG: show KFs which are used in LBA
     std::set<long unsigned int> msOptKFs;
     std::set<long unsigned int> msFixedKFs;
+
+    std::set<unsigned long int> GetUpdatedKFIds();
+    void AddUpdatedKFId(unsigned long int id);
+    void ClearUpdatedKFIds();
+    std::set<std::string> GetUpdatedMPIds();
+    void AddUpdatedMPId(std::string id);
+    void ClearUpdatedMPIds();
 
     inline std::vector<long unsigned int> GetOptKFs() {
       std::vector<long unsigned int> ids(msOptKFs.begin(), msOptKFs.end());
@@ -286,6 +302,11 @@ protected:
     std::vector<MapPoint*> mvpBackupMapPoints;
     std::vector<KeyFrame*> mvpBackupKeyFrames;
 
+    std::set<unsigned long int> mspErasedKeyFrameIds;
+    std::set<std::string> mspErasedMapPointIds;
+
+    std::set<unsigned long int> mspUpdatedKeyFrameIds;
+    std::set<std::string> mspUpdatedMapPointIds;
 
     std::vector<std::string> mvpBackupMapPointsId;
     std::vector<unsigned long int> mvpBackupKeyFramesId;
@@ -325,7 +346,7 @@ protected:
 
     // Mutex
     std::mutex mMutexMap;
-
+    std::mutex mMutexLMUpdate;
 };
 
 } //namespace ORB_SLAM3

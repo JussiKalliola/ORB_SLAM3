@@ -122,6 +122,19 @@ public:
       }
     }
     
+    void notifyObserverLMResetRequested() {
+      if (observer_) {
+        observer_->onLMResetRequested();
+      }
+    }
+    
+    void notifyObserverResetActiveMap(unsigned long int mnMapId) {
+      if (observer_) {
+        observer_->onActiveMapReset(mnMapId);
+      }
+    }
+    
+
     //DEBUG
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, string strFolder="");
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, Map* pMap);
@@ -182,7 +195,9 @@ public:
     bool mbOnlyTracking;
 
     void Reset(bool bLocMap = false);
-    void ResetActiveMap(bool bLocMap = false);
+    void ResetActiveMap(bool bLocMap = false, long int mapId = -1);
+    std::chrono::system_clock::time_point mcLastResetTimeStamp;
+
     void LocalMapIsUpdating(bool mbLocalMapStatus);
 
     float mMeanTrack;

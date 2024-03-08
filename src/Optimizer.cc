@@ -1471,6 +1471,8 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             MapPoint* pMPi = vToErase[i].second;
             pKFi->EraseMapPointMatch(pMPi);
             pMPi->EraseObservation(pKFi);
+            pMap->AddUpdatedMPId(pMPi->mstrHexId);
+            pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
         }
     }
 
@@ -1483,6 +1485,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::SE3Quat SE3quat = vSE3->estimate();
         Sophus::SE3f Tiw(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>());
         pKFi->SetPose(Tiw);
+        pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
     //Points
@@ -1492,6 +1495,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
         pMP->SetWorldPos(vPoint->estimate().cast<float>());
         pMP->UpdateNormalAndDepth();
+        pMap->AddUpdatedMPId(pMP->mstrHexId);
     }
 
     pMap->IncreaseChangeIndex();

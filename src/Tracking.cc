@@ -1812,8 +1812,8 @@ void Tracking::Track()
     // TODO:Temporarily disable BA in local mapping
     //mpLocalMapper->InterruptBA();
     
-    Verbose::PrintMess("\nThread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
-    std::cout << "mState=" << mState << std::endl;
+    Verbose::PrintMess("Thread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
+    //std::cout << "mState=" << mState << std::endl;
     if (bStepByStep)
     {
         std::cout << "Tracking: Waiting to the next step" << std::endl;
@@ -1917,7 +1917,7 @@ void Tracking::Track()
     }
 
 
-    std::cout << "mState=" << mState << std::endl;
+    //std::cout << "mState=" << mState << std::endl;
     if(mState==NOT_INITIALIZED)
     {
         Verbose::PrintMess("Thread1=Tracking::Track : mState==NOT_INITIALIZED", Verbose::VERBOSITY_NORMAL);
@@ -1960,6 +1960,9 @@ void Tracking::Track()
             // State OK
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
+            //if(mCurrentFrame.mnId > 300)
+            //  mState=RECENTLY_LOST;
+            
             std::cout << "mState=" << mState << std::endl;
             if(mState==OK)
             {
@@ -2028,7 +2031,7 @@ void Tracking::Track()
                         bOK = Relocalization();
                         //std::cout << "mCurrentFrame.mTimeStamp:" << to_string(mCurrentFrame.mTimeStamp) << std::endl;
                         //std::cout << "mTimeStampLost:" << to_string(mTimeStampLost) << std::endl;
-                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>3.0f && !bOK)
+                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>10.0f && !bOK)
                         {
                             mState = LOST;
                             Verbose::PrintMess("Track Lost...", Verbose::VERBOSITY_NORMAL);
@@ -2229,7 +2232,7 @@ void Tracking::Track()
 
         if(bOK || mState==RECENTLY_LOST)
         {
-            Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Update motion model.", Verbose::VERBOSITY_NORMAL);
+            //Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Update motion model.", Verbose::VERBOSITY_NORMAL);
             // Update motion model
             if(mLastFrame.isSet() && mCurrentFrame.isSet())
             {
@@ -2244,7 +2247,7 @@ void Tracking::Track()
             if(mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
                 mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.GetPose());
 
-            Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Clean VO matches.", Verbose::VERBOSITY_NORMAL);
+            //Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Clean VO matches.", Verbose::VERBOSITY_NORMAL);
             // Clean VO matches
             for(int i=0; i<mCurrentFrame.N; i++)
             {
@@ -2257,7 +2260,7 @@ void Tracking::Track()
                     }
             }
 
-            Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Delete temporal MapPoints.", Verbose::VERBOSITY_NORMAL);
+            //Verbose::PrintMess("Thread1=Tracking::Track : bOK || mState==RECENTLY_LOST, update drawer section. -> Delete temporal MapPoints.", Verbose::VERBOSITY_NORMAL);
             // Delete temporal MapPoints
             for(list<MapPoint*>::iterator lit = mlpTemporalPoints.begin(), lend =  mlpTemporalPoints.end(); lit!=lend; lit++)
             {
@@ -2327,12 +2330,12 @@ void Tracking::Track()
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
         Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
-        std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
-        std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
+        //std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
+        //std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
         mLastFrame = Frame(mCurrentFrame);
         
         
-        std::cout << "Current Map ID=" << mpAtlas->GetCurrentMap()->GetId() << ", number of maps=" << mpAtlas->GetAllMaps().size() << std::endl;
+        //std::cout << "Current Map ID=" << mpAtlas->GetCurrentMap()->GetId() << ", number of maps=" << mpAtlas->GetAllMaps().size() << std::endl;
     }
 
 
@@ -2360,7 +2363,7 @@ void Tracking::Track()
 
     }
 
-    std::cout << "last mState=" << mState << std::endl;
+    //std::cout << "last mState=" << mState << std::endl;
 
 #ifdef REGISTER_LOOP
     if (Stop()) {
@@ -2588,8 +2591,8 @@ void Tracking::CreateInitialMapMonocular()
     mpAtlas->AddKeyFrame(pKFcur);
 
     // Edge-SLAM: Add Keyframe to database
-    //mpKeyFrameDB->add(pKFini);
-    //mpKeyFrameDB->add(pKFcur);
+    mpKeyFrameDB->add(pKFini);
+    mpKeyFrameDB->add(pKFcur);
     
     for(size_t i=0; i<mvIniMatches.size();i++)
     {
@@ -2841,7 +2844,7 @@ bool Tracking::TrackReferenceKeyFrame()
 void Tracking::UpdateLastFrame()
 {
 
-    std::cout << "Thread1=Tracking::UpdateLastFrame" << std::endl;
+    //std::cout << "Thread1=Tracking::UpdateLastFrame" << std::endl;
     // Update pose according to reference keyframe
     KeyFrame* pRef = mLastFrame.mpReferenceKF;
     Sophus::SE3f Tlr = mlRelativeFramePoses.back();
@@ -2917,7 +2920,7 @@ bool Tracking::TrackWithMotionModel()
 {
     ORBmatcher matcher(0.9,true);
 
-    Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel", Verbose::VERBOSITY_NORMAL);
     // Update last frame pose according to its reference keyframe
     // Create "visual odometry" points if in Localization Mode
     UpdateLastFrame();
@@ -2925,14 +2928,14 @@ bool Tracking::TrackWithMotionModel()
     if (mpAtlas->isImuInitialized() && (mCurrentFrame.mnId>mnLastRelocFrameId+mnFramesToResetIMU))
     {
         
-        Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel : imu not initialized. Run PredictStateIMU()", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel : imu not initialized. Run PredictStateIMU()", Verbose::VERBOSITY_NORMAL);
         // Predict state with IMU if it is initialized and it doesnt need reset
         PredictStateIMU();
         return true;
     }
     else
     {
-        Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel : Update current frame pose velocity*lastframe.pose", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel : Update current frame pose velocity*lastframe.pose", Verbose::VERBOSITY_NORMAL);
         mCurrentFrame.SetPose(mVelocity * mLastFrame.GetPose());
     }
 
@@ -2949,12 +2952,12 @@ bool Tracking::TrackWithMotionModel()
     else
         th=15;
     
-    std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
+    //std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
 
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
     
     std::cout << "nmatches=" << nmatches << ", mCurrentFrame.N" << mCurrentFrame.N << ", mLastFrame.N=" << mLastFrame.N << std::endl;
-    std::cout << "after search by projection" << std::endl;
+    //std::cout << "after search by projection" << std::endl;
     // If few matches, uses a wider window search
     if(nmatches<20)
     {
@@ -3099,16 +3102,16 @@ bool Tracking::TrackLocalMap()
         }
     }
 
-    Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : Decide if tracking was succesful based on inliers and relocalization frequency.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : Decide if tracking was succesful based on inliers and relocalization frequency.", Verbose::VERBOSITY_NORMAL);
     std::cout << mnMatchesInliers << ", " << mnLastRelocFrameId << ", " <<  mnLastRelocFrameId+mMaxFrames << ", " << mCurrentFrame.mnId << ", " << mCurrentFrame.mvpMapPoints.size() << ", " << aux2 << std::endl; 
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
     mpLocalMapper->mnMatchesInliers=mnMatchesInliers;
-    std::cout << "if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)"<<std::endl; 
+    //std::cout << "if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)"<<std::endl; 
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
         return false;
 
-    std::cout << "if((mnMatchesInliers>10)&&(mState==RECENTLY_LOST))"<<std::endl; 
+    //std::cout << "if((mnMatchesInliers>10)&&(mState==RECENTLY_LOST))"<<std::endl; 
     if((mnMatchesInliers>10)&&(mState==RECENTLY_LOST))
         return true;
 
@@ -3133,7 +3136,7 @@ bool Tracking::TrackLocalMap()
     }
     else
     {
-        std::cout << "if(mnMatchesInliers<30)"<<std::endl; 
+        //std::cout << "if(mnMatchesInliers<30)"<<std::endl; 
         if(mnMatchesInliers<30)
             return false;
         else
@@ -3148,7 +3151,7 @@ void Tracking::SetLocalMappingIsInIdle(bool flag)
 
 bool Tracking::NeedNewKeyFrame()
 {
-    Verbose::PrintMess("Thread1=Tracking::NeedNewKeyFrame : based on the time between frames, check if new KF is needed.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::NeedNewKeyFrame : based on the time between frames, check if new KF is needed.", Verbose::VERBOSITY_NORMAL);
     if((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && !mpAtlas->GetCurrentMap()->isImuInitialized())
     {
         if (mSensor == System::IMU_MONOCULAR && (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.25)
@@ -3328,6 +3331,7 @@ void Tracking::CreateNewKeyFrame()
     //    return;
 
     KeyFrame* pKF = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
+    pKF->ComputeBoW();
 
     if(mpAtlas->isImuInitialized()) //  || mpLocalMapper->IsInitializing())
         pKF->bImu = true;
@@ -3439,9 +3443,9 @@ void Tracking::CreateNewKeyFrame()
     }
     //notifyObserverAddKeyframe(pKF);
     mpAtlas->AddKeyFrame(pKF); 
-    //mpKeyFrameDB->add(pKF);
     mapUpToDate = false;
-    //pKF->UpdateConnections();
+    pKF->UpdateConnections();
+    mpKeyFrameDB->add(pKF);
 
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     // TODO: Here the keyframe needs to be sent to ros network!!
@@ -3458,7 +3462,7 @@ void Tracking::CreateNewKeyFrame()
 
 void Tracking::SearchLocalPoints()
 {
-    Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : set map points in current frame to null if already matched.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : set map points in current frame to null if already matched.", Verbose::VERBOSITY_NORMAL);
     // Do not search map points already matched
     for(vector<MapPoint*>::iterator vit=mCurrentFrame.mvpMapPoints.begin(), vend=mCurrentFrame.mvpMapPoints.end(); vit!=vend; vit++)
     {
@@ -3481,7 +3485,7 @@ void Tracking::SearchLocalPoints()
 
     int nToMatch=0;
 
-    Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : project points in frame and check visibility.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : project points in frame and check visibility.", Verbose::VERBOSITY_NORMAL);
     // Project points in frame and check its visibility
     for(vector<MapPoint*>::iterator vit=mvpLocalMapPoints.begin(), vend=mvpLocalMapPoints.end(); vit!=vend; vit++)
     {
@@ -3503,7 +3507,7 @@ void Tracking::SearchLocalPoints()
         }
     }
 
-    Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : Match the KPs which are in frustum/view. N th based on the # of frames since relocalization.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::SearchLocalPoints : Match the KPs which are in frustum/view. N th based on the # of frames since relocalization.", Verbose::VERBOSITY_NORMAL);
     if(nToMatch>0)
     {
         ORBmatcher matcher(0.8);
@@ -3548,36 +3552,36 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   // refKFSet = false; Edge-slam variable
 
   // Before clearing the map, we should retrieve the ids of map points within last frame
-  vector<std::string> lastFrame_points_ids;
-  vector<bool> lastFrame_points_availability;
-  vector<std::string> mvpLocalMapPoints_ids;
+  //vector<std::string> lastFrame_points_ids;
+  //vector<bool> lastFrame_points_availability;
+  //vector<std::string> mvpLocalMapPoints_ids;
 
   std::cout << std::endl;
   std::cout << "reference id in the beginning of the function: " << refId << std::endl;
   std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
   std::cout << "mLastFrame Points=" << mLastFrame.mvpMapPoints.size() << " : ";
-  for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
-  {
-      MapPoint* pMP = mLastFrame.mvpMapPoints[i];
+  //for(int i =0; i<mLastFrame.N; i++) // mLastFrame is from tracking
+  //{
+  //    MapPoint* pMP = mLastFrame.mvpMapPoints[i];
 
-      if(pMP)
-      {
-          //std::cout << pMP->mstrHexId << ",";
-          lastFrame_points_ids.push_back(pMP->mstrHexId);
-          lastFrame_points_availability.push_back(true);
-      }
-      else
-      {
-          lastFrame_points_availability.push_back(false);
-      }
-  }
-  //std::cout << std::endl;
-  for (unsigned int i = 0 ; i < mvpLocalMapPoints.size(); i++)
-  {
-      mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mstrHexId);
-  }
+  //    if(pMP)
+  //    {
+  //        //std::cout << pMP->mstrHexId << ",";
+  //        lastFrame_points_ids.push_back(pMP->mstrHexId);
+  //        lastFrame_points_availability.push_back(true);
+  //    }
+  //    else
+  //    {
+  //        lastFrame_points_availability.push_back(false);
+  //    }
+  //}
+  ////std::cout << std::endl;
+  //for (unsigned int i = 0 ; i < mvpLocalMapPoints.size(); i++)
+  //{
+  //    mvpLocalMapPoints_ids.push_back(mvpLocalMapPoints[i]->mstrHexId);
+  //}
 
-  int numOfLocalMPs = mvpLocalMapPoints.size();
+  //int numOfLocalMPs = mvpLocalMapPoints.size();
 
   
 
@@ -3750,19 +3754,19 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   std::cout << "vpKeyFrames[0]->mnFrameId=" << mnLastKeyFrameId << ", vpKeyFrames[0]->mnId=" << mnMapUpdateLastKFId << ", refSet=" << refKFSet << ", mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl;
 
   // Edge-SLAM: debug
-  cout << "log,Tracking::mapCallback,keyframes in update: ";
+  //cout << "log,Tracking::mapCallback,keyframes in update: ";
 
   // Iterate through keyframes and reconstruct connections
   for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
   {
       KeyFrame* pKFCon = *it;
-      if(pKFCon)
-        mpKeyFrameDB->add(pKFCon);
+      //if(pKFCon)
+      //  mpKeyFrameDB->add(pKFCon);
       /* ================= This is done in PostLoad =======================*/
       //pKFCon->ReconstructConnections();
 
       // Edge-SLAM: debug
-      cout << pKFCon->mnId << " ";
+      //cout << pKFCon->mnId << " ";
 
       // If RefKF has lower id than current KF, then set it to that KF
       if(!refKFSet && mpReferenceKF->mnId < pKFCon->mnId)
@@ -3781,7 +3785,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   }
 
   // Edge-SLAM: debug
-  cout << endl;
+  //cout << endl;
 
   std::cout << "vpKeyFrames[0]->mnFrameId=" << mnLastKeyFrameId << ", vpKeyFrames[0]->mnId=" << mnMapUpdateLastKFId << ", refSet=" << refKFSet << ", mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl;
   
@@ -3808,7 +3812,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //}
 
   // Updating mLastFrame
-  std::cout << "Availability vector=" << lastFrame_points_availability.size() << ", points=" << lastFrame_points_ids.size() << std::endl;
+  //std::cout << "Availability vector=" << lastFrame_points_availability.size() << ", points=" << lastFrame_points_ids.size() << std::endl;
   //int lastFrameMPCounter = 0;
   //for(int i =0; i<mLastFrame.N; i++)
   //{
@@ -3849,7 +3853,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   }
   std::cout << std::endl;
 
-  std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << mLastFrame.mvpMapPoints.size() << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
+  //std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << mLastFrame.mvpMapPoints.size() << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
   //if(mpViewer)
   //    mpViewer->Release();
 
@@ -3860,11 +3864,11 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //LocalMapIsUpdating(false); 
 
   //msRelocStatus = false;
-  std::cout << "reference id in the end of the function: " << mpReferenceKF->mnId << std::endl;
-  std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
+  //std::cout << "reference id in the end of the function: " << mpReferenceKF->mnId << std::endl;
+  //std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
   
   // Edge-SLAM: debug
-  cout << "log,Tracking::mapCallback,local map update is done" << endl;
+  //cout << "log,Tracking::mapCallback,local map update is done" << endl;
 
 
 
@@ -3926,7 +3930,7 @@ void Tracking::MUReset()
 
 void Tracking::UpdateLocalMap()
 {
-    Verbose::PrintMess("Thread1=Tracking::UpdateLocalMap", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::UpdateLocalMap", Verbose::VERBOSITY_NORMAL);
     // This is for visualization
     mpAtlas->SetReferenceMapPoints(mvpLocalMapPoints);
 
@@ -3937,7 +3941,7 @@ void Tracking::UpdateLocalMap()
 
 void Tracking::UpdateLocalPoints()
 {
-    Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyPoints : Collect valid KPs", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyPoints : Collect valid KPs", Verbose::VERBOSITY_NORMAL);
     mvpLocalMapPoints.clear();
 
     int count_pts = 0;
@@ -3972,7 +3976,7 @@ void Tracking::UpdateLocalKeyFrames()
     map<KeyFrame*,int> keyframeCounter;
     if(!mpAtlas->isImuInitialized() || (mCurrentFrame.mnId<mnLastRelocFrameId+2))
     {
-        Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : Imu is initialized or more than two frames have been since last relocalization id.", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : Imu is initialized or more than two frames have been since last relocalization id.", Verbose::VERBOSITY_NORMAL);
         for(int i=0; i<mCurrentFrame.N; i++)
         {
             MapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
@@ -3993,7 +3997,7 @@ void Tracking::UpdateLocalKeyFrames()
     }
     else
     {
-        Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : else", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : else", Verbose::VERBOSITY_NORMAL);
         for(int i=0; i<mLastFrame.N; i++)
         {
             // Using lastframe since current frame has not matches yet
@@ -4024,7 +4028,7 @@ void Tracking::UpdateLocalKeyFrames()
     mvpLocalKeyFrames.clear();
     mvpLocalKeyFrames.reserve(3*keyframeCounter.size());
 
-        Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : Add KFs which shares most points, neighbors of those KFs, and 10 last temporal for IMU.", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::UpdateLocalKeyFrames : Add KFs which shares most points, neighbors of those KFs, and 10 last temporal for IMU.", Verbose::VERBOSITY_NORMAL);
     // All keyframes that observe a map point are included in the local map. Also check which keyframe shares most points
     for(map<KeyFrame*,int>::const_iterator it=keyframeCounter.begin(), itEnd=keyframeCounter.end(); it!=itEnd; it++)
     {
@@ -4123,7 +4127,8 @@ void Tracking::UpdateLocalKeyFrames()
 
 bool Tracking::Relocalization()
 {
-    Verbose::PrintMess("Starting relocalization", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Starting relocalization",Verbose::VERBOSITY_NORMAL);
+    //std::cout << "map id=" << mpAtlas->GetCurrentMap()->GetId() << std::endl;
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 
@@ -4161,7 +4166,7 @@ bool Tracking::Relocalization()
         else
         {
             int nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
-            std::cout << "candidate id=" << pKF->mnId << ", #matches=" << nmatches << std::endl;
+            //std::cout << "candidate id=" << pKF->mnId << ", #matches=" << nmatches << std::endl;
             if(nmatches<15)
             {
                 vbDiscarded[i] = true;
@@ -4283,8 +4288,8 @@ bool Tracking::Relocalization()
             }
         }
 
-        //if(tries > maxTries) // Fix
-        //  break; // fix
+        if(tries > maxTries) // Fix
+          break; // fix
     }
 
     if(!bMatch)

@@ -91,13 +91,16 @@ Map::~Map()
     mvpKeyFrameOrigins.clear();
 }
 
-void Map::UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/)
+void Map::UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, std::set<unsigned long int> msUpdatedKFIds, std::set<std::string> msUpdatedMPIds, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/)
 {
     unique_lock<mutex> lock(mMutexMap);
     mbFail                        =  mbFail_;                        
     //msOptKFs                      =  msOptKFs_;                      
     //msFixedKFs                    =  msFixedKFs_;                    
     //mnId                          =  mnId_;
+
+    mspUpdatedMapPointIds = msUpdatedMPIds;
+    mspUpdatedKeyFrameIds = msUpdatedKFIds;
     
     for(const auto& mpId : mvpBackupMapPointsId_)
     {
@@ -259,7 +262,12 @@ void Map::EraseMapPoint(MapPoint *pMP)
 {
     unique_lock<mutex> lock(mMutexMap);
     if(!pMP)
-      return;
+    {
+        mspMapPoints.erase(pMP);
+        return;
+    }
+    
+    
     mspErasedMapPointIds.insert(pMP->mstrHexId);
     
     std::string idToRemove = pMP->mstrHexId;
@@ -547,8 +555,9 @@ void Map::SetLastMapChange(int currentChangeId)
 
 void Map::PreSave(std::set<GeometricCamera*> &spCams)
 {
-    unique_lock<mutex> lock(mMutexMap);
+    //unique_lock<mutex> lock(mMutexMap);
     int nMPWithoutObs = 0;
+
     for(MapPoint* pMPi : mspMapPoints)
     {
         if(!pMPi || pMPi->isBad())
@@ -558,6 +567,7 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
         {
             nMPWithoutObs++;
         }
+
         map<KeyFrame*, std::tuple<int,int>> mpObs = pMPi->GetObservations();
         for(map<KeyFrame*, std::tuple<int,int>>::iterator it= mpObs.begin(), end=mpObs.end(); it!=end; ++it)
         {
@@ -565,7 +575,6 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
             {
                 pMPi->EraseObservation(it->first);
             }
-
         }
     }
 
@@ -582,8 +591,6 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
     // Backup of MapPoints
     mvpBackupMapPoints.clear();
     
-    //std::cout << "before mspMapPoints" << std::endl;
-    //std::cout << "#MPs=" << mspMapPoints.size() << ", #KFs=" << mspKeyFrames.size() << std::endl;
     for(MapPoint* pMPi : mspMapPoints)
     {
         //std::cout << "MP->presave()" << std::endl;
@@ -690,7 +697,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
       mvpReferenceMapPoints.push_back(mpMapPointId[id]);
     }
 
-    std::cout << "Map::PostLoad() == #MPs=" << mspMapPoints.size() << ", #KFs=" << mspKeyFrames.size() << std::endl;
+    std::cout << "Map::PostLoad() == #MPs=" <<mspUpdatedMapPointIds.size() << "/" << mspMapPoints.size() << ", #KFs=" << mspUpdatedKeyFrameIds.size() << "/" << mspKeyFrames.size() << std::endl;
     // References reconstruction between different instances
     for(MapPoint* pMPi : mspMapPoints)
     {
@@ -698,6 +705,9 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         {
           continue;
         }
+        
+        if(mspUpdatedMapPointIds.find(pMPi->mstrHexId) == mspUpdatedMapPointIds.end())
+          continue;
         bool mbTempUnprocessed = false;
         pMPi->PostLoad(mpKeyFrameId, mpMapPointId, &mbTempUnprocessed, mspUnprocKFids);
         pMPi->UpdateMap(this);
@@ -709,19 +719,24 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
 
     for(KeyFrame* pKFi : mspKeyFrames)
     {
+        
         if(!pKFi || pKFi->isBad())
         {
           pKFDB->erase(pKFi);
           continue;
         }  
         
+        if(mspUpdatedKeyFrameIds.find(pKFi->mnId) == mspUpdatedKeyFrameIds.end())
+          continue;
+        
         bool mbTempUnprocessed = false;
         pKFi->PostLoad(mpKeyFrameId, mpMapPointId, mpCams, &mbTempUnprocessed, mspUnprocKFids);
         pKFi->UpdateMap(this);
-        //pKFDB->add(pKFi);
         //pKFi->UpdateConnections();
         //pKFi->UpdateBestCovisibles();
 
+        //pKFDB->add(pKFi);
+        
         *bUnprocessed = mbTempUnprocessed;
         if(mbTempUnprocessed)
           std::cout << "pKFi " << pKFi->mnId << " is unprocessed" << std::endl;
@@ -746,6 +761,8 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     }
 
     mvpBackupMapPoints.clear();
+    ClearUpdatedKFIds();
+    ClearUpdatedMPIds();
 }
 
 std::vector<std::string> Map::GetBackupMapPointsId() {

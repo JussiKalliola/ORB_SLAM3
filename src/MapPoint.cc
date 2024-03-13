@@ -249,7 +249,7 @@ MapPoint::MapPoint(
     if(mnId_ >= 0)
     {
       mnId=mnId_;
-      
+      nNextId++; 
     } else if(mnId_<0)
     {
       mnId=nNextId++;
@@ -261,7 +261,14 @@ MapPoint::MapPoint(
 }
 
 void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, float mTrackProjX_, float mTrackProjY_, float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_, long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int> mBackupObservationsId1_, std::map<long unsigned int, int> mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, cv::Mat mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */) {
-    lock_guard<mutex> lock(mMutexMap);
+    
+
+    //unique_lock<mutex> lock1(mMutexPos,std::defer_lock);
+    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
+    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
+    
+    lock(lock2, lock3);
+
     mnFirstKFid               = mnFirstKFid_;
     mnFirstFrame              = mnFirstFrame_;
     nObs                      = nObs_;
@@ -311,7 +318,8 @@ void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int
     mfMinDistance             = mfMinDistance_;
     mfMaxDistance             = mfMaxDistance_;
     mpMap                     = static_cast<Map*>(NULL);
-
+    
+    nNextId++;
     SetWorldPos(mWorldPos_);
 }
 
@@ -834,7 +842,13 @@ std::string MapPoint::createHashId(const std::string& strSystemId, unsigned long
 
 void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 {
-    unique_lock<mutex> lock2(mMutexMap);
+    unique_lock<mutex> lock1(mMutexPos,std::defer_lock);
+    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
+    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
+    
+    lock(lock1, lock2, lock3);
+    
+    //unique_lock<mutex> lock2(mMutexMap);
     //std::cout << "start of a presave" << std::endl;
     mBackupReplacedStrId = "";
     if(mpReplaced)
@@ -842,7 +856,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
       if(spMP.find(mpReplaced) != spMP.end())
           mBackupReplacedStrId = mpReplaced->mstrHexId;
       else  
-        mpReplaced = static_cast<MapPoint*>(NULL);
+          mpReplaced = static_cast<MapPoint*>(NULL);
     }
 
     mBackupObservationsId1.clear();
@@ -863,21 +877,24 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
             //std::cout << " found from set pKFi->mnId=" << pKFi->mnId << " .. " << get<0>(it->second) << ", " << get<1>(it->second); 
             mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
             mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
+            //++it;
         }
-        else
-        {
-            //std::cout << " not found."; 
-            //mvpEraseObservationsKF.insert(pKFi);
-            EraseObservation(pKFi);
-        }
+        //else
+        //{
+        //    //auto itCopy = it++;
+        //    //std::cout << " not found."; 
+        //    mvpEraseObservationsKF.insert(pKFi);
+        //    //EraseObservation(pKFi);
+        //}
 
         //std::cout << " end." << std::endl;
     }
 
     //for(const auto& eraseKF : mvpEraseObservationsKF)
     //{
-    //  EraseObservation(eraseKF);
+    //    EraseObservation(eraseKF);
     //}
+    
     //std::cout << "after observations" << std::endl;
     // Save the id of the reference KF
     mBackupRefKFId = -1;
@@ -885,7 +902,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     {
         mBackupRefKFId = mpRefKF->mnId;
     } else {
-      mpHostKF = static_cast<KeyFrame*>(NULL);
+        mpHostKF = static_cast<KeyFrame*>(NULL);
     }
 
 
@@ -895,7 +912,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     {
         mBackupHostKFId = mpHostKF->mnId;
     } else {
-      mpHostKF = static_cast<KeyFrame*>(NULL);
+        mpHostKF = static_cast<KeyFrame*>(NULL);
     }
 
 }

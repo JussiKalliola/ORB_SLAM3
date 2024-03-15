@@ -334,11 +334,11 @@ void LocalMapping::Run()
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
             //SetLocalMappingActive(false);
-            //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 30) {
-            //  MAP_FREQ = 100;
-            //} else {
-            //  MAP_FREQ = 0;
-            //} 
+            if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 30) {
+              MAP_FREQ = 100;
+            } else {
+              MAP_FREQ = 0;
+            } 
           }
         }
         //}
@@ -492,6 +492,7 @@ void LocalMapping::ProcessNewKeyFrame()
                     pMP->AddObservation(mpCurrentKeyFrame, i);
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
+                    pMP->SetLastModule(1); // Last module 1=LM
                     if(pMP->GetMap())
                       pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                     else 
@@ -514,6 +515,7 @@ void LocalMapping::ProcessNewKeyFrame()
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
     mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
 }
 
@@ -894,11 +896,13 @@ void LocalMapping::CreateNewMapPoints()
 
             mpCurrentKeyFrame->AddMapPoint(pMP,idx1);
             pKF2->AddMapPoint(pMP,idx2);
+            pKF2->SetLastModule(1); // Last module 1=LM
 
             mpAtlas->GetCurrentMap()->AddUpdatedKFId(pKF2->mnId);
             pMP->ComputeDistinctiveDescriptors();
 
             pMP->UpdateNormalAndDepth();
+            pMP->SetLastModule(1); // Last module 1=LM
             
             if(pMP->GetMap())
               pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
@@ -1038,6 +1042,7 @@ void LocalMapping::SearchInNeighbors()
             {
                 pMP->ComputeDistinctiveDescriptors();
                 pMP->UpdateNormalAndDepth();
+                pMP->SetLastModule(1); // Last module 1=LM
                 if(pMP->GetMap())
                   pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                 else 
@@ -1052,6 +1057,7 @@ void LocalMapping::SearchInNeighbors()
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections();
     mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
 }
 
 void LocalMapping::RequestStop()

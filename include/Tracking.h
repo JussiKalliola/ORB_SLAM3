@@ -116,9 +116,9 @@ public:
     }
     
 
-    void notifyObserverAddKeyframe(KeyFrame* pKF) {
+    void notifyObserverAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
       if (observer_) {
-        observer_->onKeyframeAdded(pKF);
+        observer_->onKeyframeAdded(pKF, mnTargetModule);
       }
     }
     

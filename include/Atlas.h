@@ -181,33 +181,6 @@ protected:
 
 private:
     std::shared_ptr<Observer> observer_;
-    
-    void notifyObserverKeyframeAdded(KeyFrame* kf) {
-      if (observer_) {
-        observer_->onKeyframeAdded(kf);
-      }
-    }
-    
-    void notifyObserverMapPointAddedAction(unsigned long int mpId) {
-      if (observer_) {
-        //observer_->onAtlasActionAddMapPoint(mpId);
-      }
-    }
-    
-    
-    void notifyObserverMapAddedById(unsigned long int id) {
-      if (observer_) {
-        observer_->onMapAddedById(id);
-      }
-    }
-
-    //void notifyObserverMapAdded(Map* pM) {
-    //  if (observer_) {
-    //    observer_->onMapAdded(pM);
-    //  }
-    //}
-
-
 }; // class Atlas
 
 } // namespace ORB_SLAM3

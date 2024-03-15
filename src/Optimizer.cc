@@ -1471,6 +1471,8 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             MapPoint* pMPi = vToErase[i].second;
             pKFi->EraseMapPointMatch(pMPi);
             pMPi->EraseObservation(pKFi);
+            pMPi->SetLastModule(1); // Last module 1=LM
+            pKFi->SetLastModule(1); // Last module 1=LM
             pMap->AddUpdatedMPId(pMPi->mstrHexId);
             pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
         }
@@ -1485,6 +1487,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::SE3Quat SE3quat = vSE3->estimate();
         Sophus::SE3f Tiw(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>());
         pKFi->SetPose(Tiw);
+        pKFi->SetLastModule(1); // Last module 1=LM
         pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
@@ -1495,6 +1498,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
         pMP->SetWorldPos(vPoint->estimate().cast<float>());
         pMP->UpdateNormalAndDepth();
+        pMP->SetLastModule(1); // Last module 1=LM
         pMap->AddUpdatedMPId(pMP->mstrHexId);
     }
 

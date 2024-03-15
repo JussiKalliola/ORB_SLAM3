@@ -21,11 +21,8 @@ class Map;
 
 class Observer {
   public:
-        virtual void onKeyframeChanged(int keyframeId) = 0;
-        virtual void onKeyframeAdded(KeyFrame* kf) = 0;
-        virtual void onMapPointAdded(MapPoint* pMp) = 0;
+        virtual void onKeyframeAdded(KeyFrame* pKF, unsigned int mnTargetModule) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
-        virtual void onMapAddedById(unsigned long int id) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;
         virtual void onChangeLMActive(bool bActive) = 0;
         virtual void onLMResetRequested() = 0;

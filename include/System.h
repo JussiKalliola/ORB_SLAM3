@@ -299,13 +299,6 @@ private:
 
     std::shared_ptr<Observer> observer_;
     
-    void notifyObserverAddKeyframe(KeyFrame* pKF) {
-      if (observer_) {
-        observer_->onKeyframeAdded(pKF);
-      }
-    }
-
-
 
 };
 

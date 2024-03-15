@@ -284,16 +284,7 @@ void Map::EraseMapPoint(MapPoint *pMP)
         }
       }
     }
-    // Find the MapPoint with the specified id
-    //auto it = std::find_if(mvpReferenceMapPoints.begin(), mvpReferenceMapPoints.end(), [idToRemove](const MapPoint* mp) {
-    //    if(mp)
-    //      return mp->mstrHexId == idToRemove;
-    //});
-
-    //if (it != mvpReferenceMapPoints.end()) 
-    //    mvpReferenceMapPoints.erase(it);
     
-
     mspMapPoints.erase(pMP);
     // TODO: This only erase the pointer.
     // Delete the MapPoint

@@ -167,7 +167,8 @@ void Atlas::AddKeyFrame(KeyFrame* pKF)
 void Atlas::AddMapPoint(MapPoint* pMP)
 {
     Map* pMapMP = pMP->GetMap();
-    pMapMP->AddMapPoint(pMP);
+    if(pMapMP)
+      pMapMP->AddMapPoint(pMP);
 }
 
 bool Atlas::CheckIfMapPointInMap(MapPoint* pMP)

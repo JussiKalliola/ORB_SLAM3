@@ -2031,7 +2031,7 @@ void Tracking::Track()
                         bOK = Relocalization();
                         //std::cout << "mCurrentFrame.mTimeStamp:" << to_string(mCurrentFrame.mTimeStamp) << std::endl;
                         //std::cout << "mTimeStampLost:" << to_string(mTimeStampLost) << std::endl;
-                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>10.0f && !bOK)
+                        if(mCurrentFrame.mTimeStamp-mTimeStampLost>3.0f && !bOK)
                         {
                             mState = LOST;
                             Verbose::PrintMess("Track Lost...", Verbose::VERBOSITY_NORMAL);
@@ -2432,6 +2432,9 @@ void Tracking::StereoInitialization()
                     Eigen::Vector3f x3D;
                     mCurrentFrame.UnprojectStereo(i, x3D);
                     MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
+                    
+                    pNewMP->SetLastModule(0); // Last module 0=tracking
+                    
                     pNewMP->AddObservation(pKFini,i);
                     pKFini->AddMapPoint(pNewMP,i);
                     pNewMP->ComputeDistinctiveDescriptors();
@@ -2449,6 +2452,8 @@ void Tracking::StereoInitialization()
 
                     MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
 
+                    pNewMP->SetLastModule(0); // Last module 0=tracking
+                    
                     pNewMP->AddObservation(pKFini,i);
                     pNewMP->AddObservation(pKFini,rightIndex + mCurrentFrame.Nleft);
 
@@ -2586,6 +2591,10 @@ void Tracking::CreateInitialMapMonocular()
     pKFini->ComputeBoW();
     pKFcur->ComputeBoW();
 
+
+    pKFini->SetLastModule(0); // Last module 0=tracking
+    pKFcur->SetLastModule(0); // Last module 0=tracking
+
     // Insert KFs in the map
     mpAtlas->AddKeyFrame(pKFini);
     mpAtlas->AddKeyFrame(pKFcur);
@@ -2604,6 +2613,8 @@ void Tracking::CreateInitialMapMonocular()
         worldPos << mvIniP3D[i].x, mvIniP3D[i].y, mvIniP3D[i].z;
         
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
+        
+        pMP->SetLastModule(0); // Last module 0=tracking
 
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -2677,8 +2688,8 @@ void Tracking::CreateInitialMapMonocular()
     }
 
 
-    notifyObserverAddKeyframe(pKFini);
-    notifyObserverAddKeyframe(pKFcur);
+    notifyObserverAddKeyframe(pKFini, 2); // Send KF to LM (Module 2)
+    notifyObserverAddKeyframe(pKFcur, 2); // Send KF to LM (Module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKFini);
     //mpLocalMapper->InsertKeyFrame(pKFcur);
@@ -2900,6 +2911,7 @@ void Tracking::UpdateLastFrame()
             }
 
             MapPoint* pNewMP = new MapPoint(x3D,mpAtlas->GetCurrentMap(),&mLastFrame,i);
+            pNewMP->SetLastModule(0); // Last module 0=tracking
             mLastFrame.mvpMapPoints[i]=pNewMP;
 
             mlpTemporalPoints.push_back(pNewMP);
@@ -3332,6 +3344,8 @@ void Tracking::CreateNewKeyFrame()
 
     KeyFrame* pKF = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
     pKF->ComputeBoW();
+    pKF->SetLastModule(0); // Last module 0=tracking
+
 
     if(mpAtlas->isImuInitialized()) //  || mpLocalMapper->IsInitializing())
         pKF->bImu = true;
@@ -3410,6 +3424,7 @@ void Tracking::CreateNewKeyFrame()
                     }
 
                     MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap());
+                    pNewMP->SetLastModule(0); // Last module 0=tracking
                     pNewMP->AddObservation(pKF,i);
 
                     //Check if it is a stereo observation in order to not
@@ -3444,12 +3459,12 @@ void Tracking::CreateNewKeyFrame()
     //notifyObserverAddKeyframe(pKF);
     mpAtlas->AddKeyFrame(pKF); 
     mapUpToDate = false;
-    pKF->UpdateConnections();
+    //pKF->UpdateConnections();
     mpKeyFrameDB->add(pKF);
 
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     // TODO: Here the keyframe needs to be sent to ros network!!
-    notifyObserverAddKeyframe(pKF);
+    notifyObserverAddKeyframe(pKF, 2); // Send KF to LM (module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKF);
 
@@ -3838,7 +3853,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
 
   //// We should update mvpLocalMapPoints for viewer
   //std::cout << "#MPs in Map=" << pM->GetAllMapPoints().size() << std::endl;
-  mvpLocalMapPoints.clear(); // from tracking = mpAtlas->GetAllMapPoints()
+  //mvpLocalMapPoints.clear(); // from tracking = mpAtlas->GetAllMapPoints()
   //std::cout << "#MPs in Map after clearing=" << pM->GetAllMapPoints().size() << std::endl;
   
   //vector<MapPoint*> vpMapPoints = pM->GetAllMapPoints();
@@ -3854,8 +3869,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   std::cout << std::endl;
 
   //std::cout << "Lastframe.N=" << mLastFrame.N << ", ptrs=" << mLastFrame.mvpMapPoints.size() << ", mvpLocalMapPoints=" << mvpLocalMapPoints.size() << ", before=" << numOfLocalMPs << std::endl;
-  //if(mpViewer)
-  //    mpViewer->Release();
+  if(mpViewer)
+      mpViewer->Release();
 
   // Edge-SLAM: measure
   //msRelocLastMapUpdateStart = std::chrono::high_resolution_clock::now();

@@ -285,7 +285,8 @@ void LocalMapping::Run()
             //std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            notifyObserverAddKeyframe(mpCurrentKeyFrame, 3); // Send KF to loop closing (module 3)
 
             //mbLocalMappingDone=true;
 #ifdef REGISTER_TIMES
@@ -319,11 +320,12 @@ void LocalMapping::Run()
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
           if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
           {
+
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
-            //std::cout << "this is before notify map" << std::endl;
+            std::cout << "this is before notify map" << std::endl;
             notifyObserverLocalMapUpdated(mpCurrentKeyFrame->GetMap());
-            //std::cout << "This is after notify map" << std::endl;
+            std::cout << "This is after notify map" << std::endl;
             
             //mpCurrentKeyFrame->GetMap()->ClearErasedData();
             //mpCurrentKeyFrame->GetMap()->ClearUpdatedKFIds();
@@ -334,11 +336,11 @@ void LocalMapping::Run()
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
             //SetLocalMappingActive(false);
-            if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 30) {
-              MAP_FREQ = 100;
-            } else {
-              MAP_FREQ = 0;
-            } 
+            //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 30) {
+            //  MAP_FREQ = 100;
+            //} else {
+            //  MAP_FREQ = 0;
+            //} 
           }
         }
         //}
@@ -1101,9 +1103,9 @@ void LocalMapping::Release()
         return;
     mbStopped = false;
     mbStopRequested = false;
-    for(list<KeyFrame*>::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
-        delete *lit;
-    mlNewKeyFrames.clear();
+    //for(list<KeyFrame*>::iterator lit = mlNewKeyFrames.begin(), lend=mlNewKeyFrames.end(); lit!=lend; lit++)
+    //    delete *lit;
+    //mlNewKeyFrames.clear();
 
     cout << "Local Mapping RELEASE" << endl;
 }

@@ -193,6 +193,9 @@ public:
       return mpTracker;
     }
 
+    inline LoopClosing* GetLoopClosingPtr() {
+      return mpLoopCloser;
+    }
 
     inline LocalMapping* GetMapperPtr() {
       return mpLocalMapper;

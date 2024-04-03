@@ -1536,6 +1536,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     z_vec << 0.0, 0.0, 1.0;
 
     const int minFeat = 100;
+    std::cout << "before looping KF vertices" << std::endl;
 
     // Set KeyFrame vertices
     for(size_t i=0, iend=vpKFs.size(); i<iend;i++)
@@ -1574,12 +1575,14 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
         vpVertices[nIDi]=VSim3;
     }
+    std::cout << "after looping KF vertices" << std::endl;
 
 
     set<pair<long unsigned int,long unsigned int> > sInsertedEdges;
 
     const Eigen::Matrix<double,7,7> matLambda = Eigen::Matrix<double,7,7>::Identity();
 
+    std::cout << "before setting loop edges" << std::endl;
     // Set Loop edges
     int count_loop = 0;
     for(map<KeyFrame *, set<KeyFrame *> >::const_iterator mit = LoopConnections.begin(), mend=LoopConnections.end(); mit!=mend; mit++)
@@ -1612,6 +1615,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         }
     }
 
+    std::cout << "before setting normal edges" << std::endl;
     // Set normal edges
     for(size_t i=0, iend=vpKFs.size(); i<iend; i++)
     {
@@ -1654,6 +1658,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             optimizer.addEdge(e);
         }
 
+        std::cout << "before loop edges" << std::endl;
         // Loop edges
         const set<KeyFrame*> sLoopEdges = pKF->GetLoopEdges();
         for(set<KeyFrame*>::const_iterator sit=sLoopEdges.begin(), send=sLoopEdges.end(); sit!=send; sit++)
@@ -1680,6 +1685,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             }
         }
 
+        std::cout << "before cov graph edges" << std::endl;
         // Covisibility graph edges
         const vector<KeyFrame*> vpConnectedKFs = pKF->GetCovisiblesByWeight(minFeat);
         for(vector<KeyFrame*>::const_iterator vit=vpConnectedKFs.begin(); vit!=vpConnectedKFs.end(); vit++)
@@ -1734,12 +1740,14 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     }
 
 
+    std::cout << "init optimixation" << std::endl;
     optimizer.initializeOptimization();
     optimizer.computeActiveErrors();
     optimizer.optimize(20);
     optimizer.computeActiveErrors();
     unique_lock<mutex> lock(pMap->mMutexMapUpdate);
 
+    std::cout << "recover poses" << std::endl;
     // SE3 Pose Recovering. Sim3:[sR t;0 1] -> SE3:[R t/s;0 1]
     for(size_t i=0;i<vpKFs.size();i++)
     {
@@ -1756,6 +1764,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         pKFi->SetPose(Tiw);
     }
 
+    std::cout << "correct points" << std::endl;
     // Correct points. Transform to "non-optimized" reference keyframe pose and transform back with optimized pose
     for(size_t i=0, iend=vpMPs.size(); i<iend; i++)
     {
@@ -1772,6 +1781,8 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         else
         {
             KeyFrame* pRefKF = pMP->GetReferenceKeyFrame();
+            if(!pRefKF)
+                continue;
             nIDr = pRefKF->mnId;
         }
 
@@ -1793,10 +1804,10 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFixedKFs, vector<KeyFrame*> &vpFixedCorrectedKFs,
                                        vector<KeyFrame*> &vpNonFixedKFs, vector<MapPoint*> &vpNonCorrectedMPs)
 {
-    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpFixedKFs.size()) + " KFs fixed in the merged map", Verbose::VERBOSITY_DEBUG);
-    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpFixedCorrectedKFs.size()) + " KFs fixed in the old map", Verbose::VERBOSITY_DEBUG);
-    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpNonFixedKFs.size()) + " KFs non-fixed in the merged map", Verbose::VERBOSITY_DEBUG);
-    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpNonCorrectedMPs.size()) + " MPs non-corrected in the merged map", Verbose::VERBOSITY_DEBUG);
+    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpFixedKFs.size()) + " KFs fixed in the merged map", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpFixedCorrectedKFs.size()) + " KFs fixed in the old map", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpNonFixedKFs.size()) + " KFs non-fixed in the merged map", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Opt_Essential: There are " + to_string(vpNonCorrectedMPs.size()) + " MPs non-corrected in the merged map", Verbose::VERBOSITY_NORMAL);
 
     g2o::SparseOptimizer optimizer;
     optimizer.setVerbose(false);

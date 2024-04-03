@@ -264,6 +264,7 @@ void Map::EraseMapPoint(MapPoint *pMP)
     if(!pMP)
     {
         mspMapPoints.erase(pMP);
+        pMP = static_cast<MapPoint*>(NULL);
         return;
     }
     
@@ -286,6 +287,7 @@ void Map::EraseMapPoint(MapPoint *pMP)
     }
     
     mspMapPoints.erase(pMP);
+    pMP = static_cast<MapPoint*>(NULL);
     // TODO: This only erase the pointer.
     // Delete the MapPoint
 }
@@ -551,9 +553,12 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
 
     for(MapPoint* pMPi : mspMapPoints)
     {
-        if(!pMPi || pMPi->isBad())
+        if(!pMPi)
             continue;
-
+        //std::cout << pMPi->mstrHexId << std::endl;
+        if(pMPi->isBad())
+            continue;
+        
         if(pMPi->GetObservations().size() == 0)
         {
             nMPWithoutObs++;
@@ -757,11 +762,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
 }
 
 std::vector<std::string> Map::GetBackupMapPointsId() {
-  std::vector<std::string> ids;
-  for(MapPoint* mp : mspMapPoints) {
-    ids.push_back(mp->mstrHexId);
-  }
-  return ids;
+  return mvpBackupMapPointsId;
 }
 std::vector<long unsigned int> Map::GetBackupKeyFrames() {
   std::vector<long unsigned int> ids;

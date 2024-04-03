@@ -262,6 +262,7 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
 
         CheckInliers();
 
+        //std::cout << "mnInliersi=" << mnInliersi <<">=mnBestInliers" << mnBestInliers << std::endl;
         if(mnInliersi>=mnBestInliers)
         {
             mvbBestInliers = mvbInliersi;
@@ -270,7 +271,7 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
             mBestRotation = mR12i;
             mBestTranslation = mt12i;
             mBestScale = ms12i;
-
+            std::cout << "mnInliersi=" << mnInliersi <<">mRansacMinInliers" << mRansacMinInliers << std::endl;
             if(mnInliersi>mRansacMinInliers)
             {
                 nInliers = mnInliersi;

@@ -77,6 +77,17 @@ public:
         unique_lock<std::mutex> lock(mMutexGBA);
         return mbFinishedGBA;
     }   
+    
+    void attachObserver(std::shared_ptr<Observer> observer) {
+      observer_ = observer;
+    } 
+    
+    void notifyObserverMapUpdated(Map* pM) {
+      //unique_lock<std::mutex> lock(mMutexNewKFs);
+      if (observer_) { 
+        observer_->onLocalMapUpdated(pM);
+      }
+    }
 
     void RequestFinish();
 
@@ -239,6 +250,15 @@ protected:
 
     // To (de)activate LC
     bool mbActiveLC = true;
+    
+    // Observer for ROS wrapper
+    std::shared_ptr<Observer> observer_;
+    
+    // Time between updates
+    std::chrono::high_resolution_clock::time_point msLastMUStart;
+    std::chrono::high_resolution_clock::time_point msLastMUStop;
+    
+    int MAP_FREQ;  // Set to: after how many ms from last map update, a new map update should be sent
 
 #ifdef REGISTER_LOOP
     string mstrFolderLoop;

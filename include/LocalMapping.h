@@ -140,6 +140,12 @@ public:
     void attachObserver(std::shared_ptr<Observer> observer) {
       observer_ = observer;
     } 
+    
+    void notifyObserverAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
+      if (observer_) {
+        observer_->onKeyframeAdded(pKF, mnTargetModule);
+      }
+    }
 
     void notifyObserverLocalMapUpdated(Map* pM) {
       unique_lock<std::mutex> lock(mMutexNewKFs);

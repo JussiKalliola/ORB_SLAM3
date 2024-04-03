@@ -2265,7 +2265,8 @@ void Tracking::Track()
             for(list<MapPoint*>::iterator lit = mlpTemporalPoints.begin(), lend =  mlpTemporalPoints.end(); lit!=lend; lit++)
             {
                 MapPoint* pMP = *lit;
-                delete pMP;
+                if(pMP)
+                    delete pMP;
             }
             mlpTemporalPoints.clear();
 
@@ -3775,6 +3776,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
   {
       KeyFrame* pKFCon = *it;
+      mpKeyFrameDB->erase(pKFCon);
+      mpKeyFrameDB->add(pKFCon);
       //if(pKFCon)
       //  mpKeyFrameDB->add(pKFCon);
       /* ================= This is done in PostLoad =======================*/

@@ -630,7 +630,8 @@ void KeyFrame::EraseMapPointMatch(const int &idx)
 
 void KeyFrame::EraseMapPointMatch(MapPoint* pMP)
 {
-    
+    if(!pMP)
+        return;
     tuple<size_t,size_t> indexes = pMP->GetIndexInKeyFrame(this);
     size_t leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
     if(leftIndex != -1)
@@ -927,7 +928,8 @@ void KeyFrame::SetBadFlag()
 
     for(map<KeyFrame*,int>::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
     {
-        mit->first->EraseConnection(this);
+        if(mit->first)
+            mit->first->EraseConnection(this);
     }
     for(size_t i=0; i<mvpMapPoints.size(); i++)
     {
@@ -1062,12 +1064,13 @@ vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const
     const int nMaxCellY = min((int)mnGridRows-1,(int)ceil((y-mnMinY+factorY)*mfGridElementHeightInv));
     if(nMaxCellY<0)
         return vIndices;
-
+    //std::cout << "GetFeaturesInArea=nMinCellX=" << nMinCellX << ", nMaxCellX=" << nMaxCellX << ", nMaxCellY=" << nMaxCellY << ", NLeft=" << NLeft<< std::endl;
     for(int ix = nMinCellX; ix<=nMaxCellX; ix++)
     {
         for(int iy = nMinCellY; iy<=nMaxCellY; iy++)
         {
             const vector<size_t> vCell = (!bRight) ? mGrid[ix][iy] : mGridRight[ix][iy];
+            //std::cout << bRight << ", " << vCell.size() << std::endl;
             for(size_t j=0, jend=vCell.size(); j<jend; j++)
             {
                 const cv::KeyPoint &kpUn = (NLeft == -1) ? mvKeysUn[vCell[j]]
@@ -1076,6 +1079,7 @@ vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const
                 const float distx = kpUn.pt.x-x;
                 const float disty = kpUn.pt.y-y;
 
+                //std::cout << "distx=" << distx << ", disty=" << disty << std::endl;
                 if(fabs(distx)<r && fabs(disty)<r)
                     vIndices.push_back(vCell[j]);
             }
@@ -1319,12 +1323,14 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
           {
             // Check if map point ptr can be found, if not, return
             if(mpMPid.find(mvBackupMapPointsId[i]) == mpMPid.end()) {
-              std::cout << "MP is unprocessed " << mvBackupMapPointsId[i] << std::endl;
-              *bUnprocessed = true; 
-              return;
+              //std::cout << "MP is unprocessed " << mvBackupMapPointsId[i] << std::endl;
+              //*bUnprocessed = true; 
+              //return;
+              mvpMapPoints[i] = static_cast<MapPoint*>(NULL);
+            } else {
+              mvpMapPoints[i] = mpMPid[mvBackupMapPointsId[i]];
             }
 
-            mvpMapPoints[i] = mpMPid[mvBackupMapPointsId[i]];
           } else {
             mvpMapPoints[i] = static_cast<MapPoint*>(NULL);
           }
@@ -1344,9 +1350,15 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         }
         // Check if keyframe ptr can be found, if not, return
         if(mpKFid.find(it->first) == mpKFid.end()) {
-          *bUnprocessed = true; 
-          std::cout << "mConnectedKeyFrameWeights" << std::endl;
-          return;
+          if(it->first < mpKFid.rbegin()->first)
+          {
+            continue;
+          } else {
+
+            *bUnprocessed = true; 
+            std::cout << "mConnectedKeyFrameWeights" << std::endl;
+            return;
+          }
         }
         KeyFrame* pKFi = mpKFid[it->first];
         mConnectedKeyFrameWeights[pKFi] = it->second;
@@ -1364,8 +1376,9 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
       }
       
       if(mpKFid.find(mBackupParentId) == mpKFid.end()) {
-        *bUnprocessed = true; 
+        //*bUnprocessed = true; 
         std::cout << "ERROR: parentKF=" << mBackupParentId << " not found. This ID=" << mnId << std::endl;
+        mBackupParentId = -1;
         mpParent = static_cast<KeyFrame*>(NULL);
       } else {
         mpParent = mpKFid[mBackupParentId];
@@ -1389,9 +1402,14 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         }
         
         if(mpKFid.find(*it) == mpKFid.end()) {
-          *bUnprocessed = true; 
-          std::cout << "mspChildrens" << std::endl;
-          return;
+          if(*it < mpKFid.rbegin()->first)
+          {
+            continue;
+          } else { 
+            *bUnprocessed = true; 
+            std::cout << "mspChildrens" << std::endl;
+            return;
+          }
         }
         mspChildrens.insert(mpKFid[*it]);
     }
@@ -1409,9 +1427,15 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         }
         
         if(mpKFid.find(*it) == mpKFid.end()) {
-          *bUnprocessed = true; 
-          std::cout << "mspLoopEdges" << std::endl;
-          return;
+          if(*it < mpKFid.rbegin()->first)
+          {
+            continue;
+          } else {  
+            *bUnprocessed = true; 
+            std::cout << "mspLoopEdges" << std::endl;
+            return;
+          }
+
         }
         mspLoopEdges.insert(mpKFid[*it]);
     }
@@ -1429,9 +1453,14 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         }
         
         if(mpKFid.find(*it) == mpKFid.end()) {
-          *bUnprocessed = true; 
-          std::cout << "mspMergeEdges" << std::endl;
-          return;
+          if(*it < mpKFid.rbegin()->first)
+          {
+            continue;
+          } else {  
+            *bUnprocessed = true; 
+            std::cout << "mspMergeEdges" << std::endl;
+            return;
+          }
         }
         mspMergeEdges.insert(mpKFid[*it]);
     }
@@ -1477,9 +1506,33 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         }
         
         if(mpKFid.find(mBackupPrevKFId) == mpKFid.end()) {
-          *bUnprocessed = true; 
-          std::cout << "ERROR: prevKF=" << mBackupPrevKFId << " not found. This ID=" << mnId << std::endl;
-          mPrevKF = static_cast<KeyFrame*>(NULL);
+          
+          unsigned long int nLargestId;
+          // Correct reverse iteration
+          for (auto it = mpKFid.rbegin(); it != mpKFid.rend(); ++it) {
+              if(it->second)
+              {
+                nLargestId=it->second->mnId;
+                break;
+              }
+          }
+
+          if(mBackupPrevKFId < nLargestId)
+          {
+            for (int i = mBackupPrevKFId-1; i >= 0; --i) {
+                if(mpKFid.find(i) != mpKFid.end())
+                {
+                    std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i << std::endl;
+                    mBackupPrevKFId=i;
+                    mPrevKF = mpKFid[mBackupPrevKFId];
+                    break;
+                }  
+            }
+          } else {
+            *bUnprocessed = true; 
+            std::cout << "ERROR: prevKF=" << mBackupPrevKFId << " not found. This ID=" << mnId  << ", biggest id in map=" << nLargestId<< std::endl;
+            return;
+          }
         } else {
           mPrevKF = mpKFid[mBackupPrevKFId];
         }

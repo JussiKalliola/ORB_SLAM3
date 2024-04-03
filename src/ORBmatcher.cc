@@ -548,18 +548,21 @@ namespace ORB_SLAM3
         spAlreadyFound.erase(static_cast<MapPoint*>(NULL));
 
         int nmatches=0;
-
+        
+        //std::cout << "num of points=" << vpPoints.size() << std::endl;
         // For each Candidate MapPoint Project and Match
         for(int iMP=0, iendMP=vpPoints.size(); iMP<iendMP; iMP++)
         {
             MapPoint* pMP = vpPoints[iMP];
             KeyFrame* pKFi = vpPointsKFs[iMP];
-            
+            //std::cout << std::endl;            
+            //std::cout << "MP in the SearchByProjection=" << pMP->mnId;
 
             // Discard Bad MapPoints and already found
             if(pMP->isBad() || spAlreadyFound.count(pMP))
                 continue;
-
+            
+            //std::cout << ", not bad and not found, ";
             // Get 3D Coords.
             Eigen::Vector3f p3Dw = pMP->GetWorldPos();
 
@@ -570,6 +573,7 @@ namespace ORB_SLAM3
             if(p3Dc(2)<0.0)
                 continue;
 
+            //std::cout << ", positive depth, ";
             // Project into Image
             const float invz = 1/p3Dc(2);
             const float x = p3Dc(0)*invz;
@@ -582,21 +586,25 @@ namespace ORB_SLAM3
             if(!pKF->IsInImage(u,v))
                 continue;
 
+            //std::cout << ", is in image, ";
             // Depth must be inside the scale invariance region of the point
             const float maxDistance = pMP->GetMaxDistanceInvariance();
             const float minDistance = pMP->GetMinDistanceInvariance();
+            
             Eigen::Vector3f PO = p3Dw-Ow;
             const float dist = PO.norm();
 
             if(dist<minDistance || dist>maxDistance)
                 continue;
 
+            //std::cout << ", depth is inside the scale invariance region, ";
             // Viewing angle must be less than 60 deg
             Eigen::Vector3f Pn = pMP->GetNormal();
 
             if(PO.dot(Pn)<0.5*dist)
                 continue;
 
+            //std::cout << ", viewing angle is less than 60 deg, ";
             int nPredictedLevel = pMP->PredictScale(dist,pKF);
 
             // Search in a radius
@@ -607,6 +615,7 @@ namespace ORB_SLAM3
             if(vIndices.empty())
                 continue;
 
+            //std::cout << ", !vIndices.empty() ";
             // Match to the most similar keypoint in the radius
             const cv::Mat dMP = pMP->GetDescriptor();
 
@@ -627,6 +636,7 @@ namespace ORB_SLAM3
 
                 const int dist = DescriptorDistance(dMP,dKF);
 
+                //std::cout << "dist=" << dist << "<bestDist=" << bestDist << std::endl;
                 if(dist<bestDist)
                 {
                     bestDist = dist;
@@ -634,6 +644,7 @@ namespace ORB_SLAM3
                 }
             }
 
+            //std::cout << "MP in the SearchByProjection=" << pMP->mnId << ", bestDist" << bestDist << std::endl;
             if(bestDist<=TH_LOW*ratioHamming)
             {
                 vpMatched[bestIdx] = pMP;

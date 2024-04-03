@@ -454,7 +454,8 @@ void MapPoint::SetBadFlag()
     }
     
     if(mpMap)
-      mpMap->EraseMapPoint(this);
+        mpMap->EraseMapPoint(this);
+        
 }
 
 MapPoint* MapPoint::GetReplaced()
@@ -466,6 +467,8 @@ MapPoint* MapPoint::GetReplaced()
 
 void MapPoint::Replace(MapPoint* pMP)
 {
+    if(!pMP || pMP->isBad())
+        return;
     if(pMP->mstrHexId==this->mstrHexId)
         return;
 
@@ -504,10 +507,10 @@ void MapPoint::Replace(MapPoint* pMP)
         }
         else
         {
-            if(leftIndex != -1){
+            if(leftIndex != -1 && leftIndex < 10000){
                 pKF->EraseMapPointMatch(leftIndex);
             }
-            if(rightIndex != -1){
+            if(rightIndex != -1 && rightIndex < 10000){
                 pKF->EraseMapPointMatch(rightIndex);
             }
         }
@@ -515,7 +518,10 @@ void MapPoint::Replace(MapPoint* pMP)
     pMP->IncreaseFound(nfound);
     pMP->IncreaseVisible(nvisible);
     pMP->ComputeDistinctiveDescriptors();
-
+    
+    if(!mpMap)
+        return;
+    
     mpMap->EraseMapPoint(this);
 }
 
@@ -882,19 +888,18 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     {
         //std::cout << "iteration ";
         KeyFrame* pKFi = it->first;
+        if(!pKFi)
+            continue;
         if(spKF.find(pKFi) != spKF.end())
         {
             //std::cout << " found from set pKFi->mnId=" << pKFi->mnId << " .. " << get<0>(it->second) << ", " << get<1>(it->second); 
             mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
             mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
             //++it;
-        }
-        //else
-        //{
-        //    //auto itCopy = it++;
-        //    //std::cout << " not found."; 
-        //    mvpEraseObservationsKF.insert(pKFi);
-        //    //EraseObservation(pKFi);
+        } 
+        // Memory problem, fix!
+        //else {
+        //    EraseObservation(pKFi);
         //}
 
         //std::cout << " end." << std::endl;
@@ -939,12 +944,20 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
 
     // Check if map point ptr can be found, if not, return
     if(mBackupRefKFId > -1 && mBackupRefKFId < 10000 && mpKFid.find(mBackupRefKFId) == mpKFid.end()) {
-      *bUnprocessed = true; 
-      std::cout << "ref kf id " << mBackupRefKFId << std::endl;
-      return;
+      if(mBackupRefKFId < mpKFid.rbegin()->first)
+      {
+        mBackupRefKFId = -1;
+        mpRefKF=static_cast<KeyFrame*>(NULL);
+      } else {
+
+        *bUnprocessed = true; 
+        std::cout << "ref kf id " << mBackupRefKFId << std::endl;
+        return;
+      }
+    } else {
+      mpRefKF = mpKFid[mBackupRefKFId];
     }
     
-    mpRefKF = mpKFid[mBackupRefKFId];
     if(!mpRefKF)
     {
         mpRefKF=static_cast<KeyFrame*>(NULL);
@@ -960,14 +973,23 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     }
     // Check if map point ptr can be found, if not, return
     if(mBackupHostKFId > -1 && mBackupHostKFId < 10000 && mpKFid.find(mBackupHostKFId) == mpKFid.end()) {
-      *bUnprocessed = true; 
-      std::cout << "host kf id " << mBackupHostKFId << std::endl;
-      return;
+      if(mBackupHostKFId < mpKFid.rbegin()->first)
+      {
+        mBackupHostKFId = -1;
+        mpHostKF=static_cast<KeyFrame*>(NULL);
+      } else {
+      
+        *bUnprocessed = true; 
+        std::cout << "host kf id " << mBackupHostKFId << std::endl;
+        return;
+      }
+    } else {
+      mpHostKF = mpKFid[mBackupHostKFId];
     }
 
-    mpHostKF = mpKFid[mBackupHostKFId];
     if(!mpHostKF)
     {
+        mpHostKF = static_cast<KeyFrame*>(NULL);   
         //cout << "ERROR: MP without KF HOST " << mBackupHostKFId << "; Num obs: " << nObs << endl;
     }
     
@@ -1001,21 +1023,28 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         
         // Check if map point ptr can be found, if not, return
         if(mpKFid.find(it->first) == mpKFid.end()) {
-          *bUnprocessed = true;
-          std::cout << "obs kf id " << it->first << std::endl;
-          return;
-        }
-        KeyFrame* pKFi = mpKFid[it->first];
-        map<long unsigned int, int>::const_iterator it2 = mBackupObservationsId2.find(it->first);
-        std::tuple<int, int> indexes = tuple<int,int>(it->second,it2->second);
-        if(pKFi)
-        {
-           mObservations[pKFi] = indexes;
+          if(it->first < mpKFid.rbegin()->first)
+          {
+            continue;
+          } else {
+            *bUnprocessed = true;
+            std::cout << "obs kf id " << it->first << std::endl;
+            return;
+          }
+        } else {
+
+          KeyFrame* pKFi = mpKFid[it->first];
+          map<long unsigned int, int>::const_iterator it2 = mBackupObservationsId2.find(it->first);
+          std::tuple<int, int> indexes = tuple<int,int>(it->second,it2->second);
+          if(pKFi)
+          {
+             mObservations[pKFi] = indexes;
+          }
         }
     }
 
-    mBackupObservationsId1.clear();
-    mBackupObservationsId2.clear();
+    //mBackupObservationsId1.clear();
+    //mBackupObservationsId2.clear();
     //std::cout << "end of postload" << std::endl;
 }
 

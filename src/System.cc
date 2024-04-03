@@ -237,6 +237,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
       mpAtlas->attachObserver(observer);
       mpTracker->attachObserver(observer); 
       mpLocalMapper->attachObserver(observer);
+      mpLoopCloser->attachObserver(observer);
     }
 
     //usleep(10*1000*1000);

@@ -55,7 +55,7 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
     mpCurrentKeyFrame = static_cast<KeyFrame*>(NULL);
 
     // map update variables
-    MAP_FREQ=0;
+    MAP_FREQ=1000;
     KF_NUM=4;
     CONN_KF=2;
     ////msNewKFFlag=false;
@@ -336,8 +336,8 @@ void LocalMapping::Run()
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
             //SetLocalMappingActive(false);
-            //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 30) {
-            //  MAP_FREQ = 100;
+            //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
+            //  MAP_FREQ = 2000;
             //} else {
             //  MAP_FREQ = 0;
             //} 

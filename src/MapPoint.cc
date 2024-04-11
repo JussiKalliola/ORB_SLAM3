@@ -22,6 +22,7 @@
 #include<mutex>
 #include <chrono>
 #include <ctime>
+#include<random>
 
 namespace ORB_SLAM3
 {
@@ -35,6 +36,7 @@ MapPoint::MapPoint():
     mnCorrectedReference(0), mnBAGlobalForKF(0), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL))
 {
+    ++nNextId;
     mpReplaced = static_cast<MapPoint*>(NULL);
     mpRefKF = static_cast<KeyFrame*>(NULL);
     mpHostKF = static_cast<KeyFrame*>(NULL);
@@ -243,15 +245,15 @@ MapPoint::MapPoint(
 
     //mbTrackInViewR = false;
     //mbTrackInView = false;
-
+    
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
     if(mnId_ > nNextId)
     {
       nNextId=mnId_;
-      ++nNextId;
     }
-    mnId=mnId_;
+    
+    mnId=nNextId++;
     
     //mnId=nNextId++;
     //mstrHexId=createHashId("sub", nNextId)

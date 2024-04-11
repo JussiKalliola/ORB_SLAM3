@@ -3323,7 +3323,7 @@ bool Tracking::NeedNewKeyFrame()
    // else
    //     return false;
    
-    std::cout << "c2=" << c2 << ", c1c=" << c1c << ", c4=" << c4 << ", c3=" << c3 << std::endl;
+    std::cout << "c2=" << c2 << ", c1c=" << c1c << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << std::endl;
     if(c2)
         if(c1c || c1a)
             return true;

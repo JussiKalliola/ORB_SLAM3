@@ -24,6 +24,7 @@ class Observer {
         virtual void onKeyframeAdded(KeyFrame* pKF, unsigned int mnTargetModule) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;
+        virtual void onGlobalMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergeIds) = 0;
         virtual void onChangeLMActive(bool bActive) = 0;
         virtual void onLMResetRequested() = 0;
         virtual void onActiveMapReset(unsigned long int mnMapId) = 0;

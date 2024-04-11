@@ -82,12 +82,14 @@ public:
       observer_ = observer;
     } 
     
-    void notifyObserverMapUpdated(Map* pM) {
+    void notifyObserverMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergedIds) {
       //unique_lock<std::mutex> lock(mMutexNewKFs);
       if (observer_) { 
-        observer_->onLocalMapUpdated(pM);
+        observer_->onGlobalMapUpdated(mbMerged, mbLoopClosure, mvMergedIds);
       }
     }
+    
+    bool CheckIfRunning();
 
     void RequestFinish();
 
@@ -207,6 +209,7 @@ protected:
     std::vector<MapPoint*> mvpLoopMPs;
     std::vector<MapPoint*> mvpLoopMatchedMPs;
     bool mbMergeDetected;
+    std::vector<unsigned long int> mvMergedIds;
     int mnMergeNumCoincidences;
     int mnMergeNumNotFound;
     KeyFrame* mpMergeLastCurrentKF;
@@ -220,6 +223,11 @@ protected:
 
     g2o::Sim3 mSold_new;
     //-------
+    
+    // Is loop closing/map merging running
+    void SetRunning(bool mbRunning);
+    bool mbRunningLC;
+    std::mutex mMutexRunning;
 
     long unsigned int mLastLoopKFid;
 

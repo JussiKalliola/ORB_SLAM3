@@ -36,7 +36,7 @@ LoopClosing::LoopClosing(Atlas *pAtlas, KeyFrameDatabase *pDB, ORBVocabulary *pV
     mbResetRequested(false), mbResetActiveMapRequested(false), mbFinishRequested(false), mbFinished(true), mpAtlas(pAtlas),
     mpKeyFrameDB(pDB), mpORBVocabulary(pVoc), mpMatchedKF(NULL), mLastLoopKFid(0), mbRunningGBA(false), mbFinishedGBA(true),
     mbStopGBA(false), mpThreadGBA(NULL), mbFixScale(bFixScale), mnFullBAIdx(0), mnLoopNumCoincidences(0), mnMergeNumCoincidences(0),
-    mbLoopDetected(false), mbMergeDetected(false), mnLoopNumNotFound(0), mnMergeNumNotFound(0), mbActiveLC(bActiveLC)
+    mbLoopDetected(false), mbMergeDetected(false), mnLoopNumNotFound(0), mnMergeNumNotFound(0), mbRunningLC(false), mbActiveLC(bActiveLC)
 {
     Verbose::PrintMess("      Thread3=LoopClosing::LoopClosing : Constructing the class;", Verbose::VERBOSITY_NORMAL);
     mnCovisibilityConsistencyTh = 3;
@@ -95,7 +95,6 @@ void LoopClosing::SetLocalMapper(LocalMapping *pLocalMapper)
 void LoopClosing::Run()
 {
     
-    std::cout << " **************** Starting LoopClosing::Run() **************** " << std::endl;
     mbFinished =false;
 
     while(1)
@@ -117,6 +116,7 @@ void LoopClosing::Run()
             std::chrono::steady_clock::time_point time_StartPR = std::chrono::steady_clock::now();
 #endif
 
+            SetRunning(true);
             bool bFindedRegion = NewDetectCommonRegions();
 
 #ifdef REGISTER_TIMES
@@ -125,10 +125,14 @@ void LoopClosing::Run()
             double timePRTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPR - time_StartPR).count();
             vdPRTotal_ms.push_back(timePRTotal);
 #endif
+            bool tempMapMerged = false;
+            bool tempLoopClosure = false;
+            
             if(bFindedRegion)
             {
                 if(mbMergeDetected)
                 {
+                    
                     if ((mpTracker->mSensor==System::IMU_MONOCULAR || mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD) &&
                         (!mpCurrentKF->GetMap()->isImuInitialized()))
                     {
@@ -209,6 +213,13 @@ void LoopClosing::Run()
                     vnPR_TypeRecogn.push_back(1);
 
                     Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
+                    std::cout << "Number of maps=" << mpAtlas->GetAllMaps().size() << ", #KFs=" << mpAtlas->GetCurrentMap()->KeyFramesInMap() << ", #MPs=" << mpAtlas->GetCurrentMap()->MapPointsInMap() << ", map ID=" << mpAtlas->GetCurrentMap()->GetId()<< std::endl;
+                    
+                    tempMapMerged=true;
+                    //Map* pCurrentMap = mpCurrentKF->GetMap();
+                    //Map* pMergeMap = mpMergeMatchedKF->GetMap();
+                    
+                    //exit(1);
                     // Reset all variables
                     mpMergeLastCurrentKF->SetErase();
                     mpMergeMatchedKF->SetErase();
@@ -235,7 +246,7 @@ void LoopClosing::Run()
                 if(mbLoopDetected)
                 {
                     Verbose::PrintMess("      Thread3=LoopClosing::Run : mbLoopDetected=true;", Verbose::VERBOSITY_NORMAL);
-                    exit(1);
+                    //exit(1);
                     bool bGoodLoop = true;
                     vdPR_CurrentTime.push_back(mpCurrentKF->mTimeStamp);
                     vdPR_MatchedTime.push_back(mpLoopMatchedKF->mTimeStamp);
@@ -299,6 +310,8 @@ void LoopClosing::Run()
                     }
                     
                     Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
+                    tempLoopClosure=true;
+                    //exit(1);
                     // Reset all variables
                     mpLoopLastCurrentKF->SetErase();
                     mpLoopMatchedKF->SetErase();
@@ -309,6 +322,9 @@ void LoopClosing::Run()
                     mbLoopDetected = false;
                 }
 
+            } else {
+
+                SetRunning(false);
             }
             mpLastCurrentKF = mpCurrentKF;
             
@@ -317,14 +333,18 @@ void LoopClosing::Run()
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
             auto dCount = duration.count();
             
-            if ((dCount > MAP_FREQ) && !mbLoopDetected && !mbMergeDetected && mpCurrentKF->GetMap()->KeyFramesInMap() > 30)
+            if ((tempMapMerged))
             {
                 std::cout << "this is before notify map" << std::endl;
-                mpCurrentKF->GetMap()->ClearErasedData();
-                mpCurrentKF->GetMap()->ClearUpdatedKFIds();
-                notifyObserverMapUpdated(mpCurrentKF->GetMap());
+                if(!mvMergedIds.empty())
+                    std::cout << "merge, id1=" << mvMergedIds[0] << ", id2=" << mvMergedIds[1] << std::endl;
+                //mpCurrentKF->GetMap()->ClearErasedData();
+                //mpCurrentKF->GetMap()->ClearUpdatedKFIds();
+                notifyObserverMapUpdated(tempMapMerged, tempLoopClosure, mvMergedIds);
+                mvMergedIds.clear();
                 std::cout << "This is after notify map" << std::endl;
                 
+                SetRunning(false);
                 msLastMUStart = std::chrono::high_resolution_clock::now();
 
             }
@@ -1333,6 +1353,10 @@ void LoopClosing::MergeLocal()
     // Later, the elements of the current map will be transform to the new active map reference, in order to keep real time tracking
     Map* pCurrentMap = mpCurrentKF->GetMap();
     Map* pMergeMap = mpMergeMatchedKF->GetMap();
+    
+    mvMergedIds.push_back(pMergeMap->GetId());
+    mvMergedIds.push_back(pCurrentMap->GetId());
+    
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge Local, Active map: " + to_string(pCurrentMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge local, Non-Active map: " + to_string(pMergeMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
 
@@ -1855,6 +1879,7 @@ void LoopClosing::MergeLocal()
 
     mpMergeMatchedKF->AddMergeEdge(mpCurrentKF);
     mpCurrentKF->AddMergeEdge(mpMergeMatchedKF);
+    
 
     pCurrentMap->IncreaseChangeIndex();
     pMergeMap->IncreaseChangeIndex();
@@ -2541,7 +2566,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             {
                 MapPoint* pMP = vpMPs[i];
 
-                if(pMP->isBad())
+                if(!pMP || pMP->isBad())
                     continue;
 
                 if(pMP->mnBAGlobalForKF==nLoopKF)
@@ -2553,7 +2578,8 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 {
                     // Update according to the correction of its reference keyframe
                     KeyFrame* pRefKF = pMP->GetReferenceKeyFrame();
-
+                    if(!pRefKF)
+                        continue;
                     if(pRefKF->mnBAGlobalForKF!=nLoopKF)
                         continue;
 
@@ -2587,12 +2613,29 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             double timeFGBA = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndUpdateMap - time_StartFGBA).count();
             vdFGBATotal_ms.push_back(timeFGBA);
 #endif
+            notifyObserverMapUpdated(false, true, mvMergedIds);
+            SetRunning(false);
             Verbose::PrintMess("Map updated!", Verbose::VERBOSITY_NORMAL);
         }
 
         mbFinishedGBA = true;
         mbRunningGBA = false;
     }
+}
+
+
+bool LoopClosing::CheckIfRunning()
+{
+    unique_lock<mutex> lock(mMutexRunning);
+    // cout << "LC: Finish requested" << endl;
+    return mbRunningLC;
+}
+
+void LoopClosing::SetRunning(bool mbRunning)
+{
+    unique_lock<mutex> lock(mMutexRunning);
+    // cout << "LC: Finish requested" << endl;
+    mbRunningLC = mbRunning;
 }
 
 void LoopClosing::RequestFinish()

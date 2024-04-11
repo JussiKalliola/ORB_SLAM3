@@ -271,6 +271,7 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
             mBestTranslation = mt12i;
             mBestScale = ms12i;
 
+            std::cout << "mnInliersi=" << mnInliersi <<">mRansacMinInliers" << mRansacMinInliers << std::endl;
             if(mnInliersi>mRansacMinInliers)
             {
                 nInliers = mnInliersi;

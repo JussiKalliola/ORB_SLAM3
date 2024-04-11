@@ -634,6 +634,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
             }
         }
     }
+    std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
     if(lKFsSharingWords.empty())
         return;
 
@@ -658,13 +659,16 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
 
         if(pKFi->mnPlaceRecognitionWords>minCommonWords)
         {
+            std::cout << "pKFi->mnRelocWords=" << pKFi->mnPlaceRecognitionWords << ", minCommonWords=" << minCommonWords << std::endl;
             nscores++;
             float si = mpVoc->score(pKF->mBowVec,pKFi->mBowVec);
             pKFi->mPlaceRecognitionScore=si;
+            std::cout << pKFi->mnId << ". pKFi->mPlaceRecognitionScore=" << si <<  std::endl;
             lScoreAndMatch.push_back(make_pair(si,pKFi));
         }
     }
 
+    std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
     if(lScoreAndMatch.empty())
         return;
 

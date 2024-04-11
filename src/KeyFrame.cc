@@ -737,7 +737,7 @@ vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const
                                                                      : mvKeysRight[vCell[j]];
                 const float distx = kpUn.pt.x-x;
                 const float disty = kpUn.pt.y-y;
-
+                
                 if(fabs(distx)<r && fabs(disty)<r)
                     vIndices.push_back(vCell[j]);
             }

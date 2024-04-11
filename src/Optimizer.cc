@@ -1505,7 +1505,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 {   
     // Setup optimizer
     g2o::SparseOptimizer optimizer;
-    optimizer.setVerbose(false);
+    optimizer.setVerbose(true);
     g2o::BlockSolver_7_3::LinearSolverType * linearSolver =
            new g2o::LinearSolverEigen<g2o::BlockSolver_7_3::PoseMatrixType>();
     g2o::BlockSolver_7_3 * solver_ptr= new g2o::BlockSolver_7_3(linearSolver);

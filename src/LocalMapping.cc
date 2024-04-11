@@ -73,6 +73,7 @@ void LocalMapping::Run()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames() && !mbBadImu)
         {
+            std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
 #ifdef REGISTER_TIMES
             double timeLBA_ms = 0;
             double timeKFCulling_ms = 0;
@@ -151,6 +152,7 @@ void LocalMapping::Run()
                     }
                     else
                     {
+                        std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
                         b_doneLBA = true;
                     }
@@ -164,6 +166,7 @@ void LocalMapping::Run()
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
+                    std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2 -> LocalBA done;" << std::endl; 
                     nLBA_exec += 1;
                     if(mbAbortBA)
                     {
@@ -247,6 +250,7 @@ void LocalMapping::Run()
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
 
+            std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
 
 #ifdef REGISTER_TIMES
@@ -303,6 +307,7 @@ void LocalMapping::ProcessNewKeyFrame()
         mlNewKeyFrames.pop_front();
     }
 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
 
@@ -345,6 +350,7 @@ void LocalMapping::EmptyQueue()
 
 void LocalMapping::MapPointCulling()
 {
+    std::cout << "  Thread2=LocalMapping::MapPointCulling : Check recently added map points and erase if not in observation;" << std::endl; 
     // Check Recent Added MapPoints
     list<MapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
     const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
@@ -387,6 +393,7 @@ void LocalMapping::MapPointCulling()
 
 void LocalMapping::CreateNewMapPoints()
 {
+    std::cout << "  Thread2=LocalMapping::CreateNewMapPoints : Triangulate new map points;" << std::endl; 
     // Retrieve neighbor keyframes in covisibility graph
     int nn = 10;
     // For stereo inertial case
@@ -713,6 +720,7 @@ void LocalMapping::CreateNewMapPoints()
 
 void LocalMapping::SearchInNeighbors()
 {
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
     // Retrieve neighbor keyframes
     int nn = 10;
     if(mbMonocular)

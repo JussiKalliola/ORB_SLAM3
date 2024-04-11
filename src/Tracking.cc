@@ -1794,6 +1794,7 @@ void Tracking::ResetFrameIMU()
 void Tracking::Track()
 {
 
+    Verbose::PrintMess("Thread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
     if (bStepByStep)
     {
         std::cout << "Tracking: Waiting to the next step" << std::endl;
@@ -1898,6 +1899,7 @@ void Tracking::Track()
 
     if(mState==NOT_INITIALIZED)
     {
+        Verbose::PrintMess("Thread1=Tracking::Track : mState==NOT_INITIALIZED", Verbose::VERBOSITY_NORMAL);
         if(mSensor==System::STEREO || mSensor==System::RGBD || mSensor==System::IMU_STEREO || mSensor==System::IMU_RGBD)
         {
             StereoInitialization();
@@ -1936,6 +1938,7 @@ void Tracking::Track()
             // State OK
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
+            std::cout << "mState=" << mState << std::endl;
             if(mState==OK)
             {
 
@@ -2290,6 +2293,7 @@ void Tracking::Track()
 
         if(!mCurrentFrame.mpReferenceKF)
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
+        Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
 
         mLastFrame = Frame(mCurrentFrame);
     }
@@ -2661,6 +2665,7 @@ void Tracking::CreateInitialMapMonocular()
 
 void Tracking::CreateMapInAtlas()
 {
+    Verbose::PrintMess("Thread1=Tracking::CreateMapInAtlas : Initialize map in atlas?", Verbose::VERBOSITY_NORMAL);
     mnLastInitFrameId = mCurrentFrame.mnId;
     mpAtlas->CreateNewMap();
     if (mSensor==System::IMU_STEREO || mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_RGBD)
@@ -2871,6 +2876,7 @@ bool Tracking::TrackWithMotionModel()
     }
 
 
+    std::cout << "after setting pose currentframeID=" << mCurrentFrame.mnId << std::endl;
 
 
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<MapPoint*>(NULL));
@@ -2953,6 +2959,7 @@ bool Tracking::TrackLocalMap()
     // We retrieve the local map and try to find matches to points in the local map.
     mTrackedFr++;
 
+    Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : # Tracked frames " + to_string(mTrackedFr), Verbose::VERBOSITY_NORMAL);
     UpdateLocalMap();
     SearchLocalPoints();
 
@@ -3215,6 +3222,7 @@ bool Tracking::NeedNewKeyFrame()
 
 void Tracking::CreateNewKeyFrame()
 {
+    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
     if(mpLocalMapper->IsInitializing() && !mpAtlas->isImuInitialized())
         return;
 
@@ -3332,6 +3340,7 @@ void Tracking::CreateNewKeyFrame()
     }
 
 
+    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     mpLocalMapper->InsertKeyFrame(pKF);
 
     mpLocalMapper->SetNotStop(false);

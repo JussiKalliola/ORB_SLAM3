@@ -548,7 +548,7 @@ namespace ORB_SLAM3
         spAlreadyFound.erase(static_cast<MapPoint*>(NULL));
 
         int nmatches=0;
-
+        
         // For each Candidate MapPoint Project and Match
         for(int iMP=0, iendMP=vpPoints.size(); iMP<iendMP; iMP++)
         {
@@ -608,7 +608,7 @@ namespace ORB_SLAM3
 
             // Match to the most similar keypoint in the radius
             const cv::Mat dMP = pMP->GetDescriptor();
-
+            std::cout << "MP in the SearchByProjection=" << pMP->mnId << std::endl;
             int bestDist = 256;
             int bestIdx = -1;
             for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
@@ -633,6 +633,7 @@ namespace ORB_SLAM3
                 }
             }
 
+            std::cout << "MP in the SearchByProjection=" << pMP->mnId << ", bestDist" << bestDist << std::endl;
             if(bestDist<=TH_LOW*ratioHamming)
             {
                 vpMatched[bestIdx] = pMP;

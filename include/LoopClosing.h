@@ -78,14 +78,14 @@ public:
         return mbFinishedGBA;
     }   
     
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     } 
     
-    void notifyObserverMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergedIds) {
+    void notifyDistributorMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergedIds) {
       //unique_lock<std::mutex> lock(mMutexNewKFs);
-      if (observer_) { 
-        observer_->onGlobalMapUpdated(mbMerged, mbLoopClosure, mvMergedIds);
+      if (distributor_) { 
+        distributor_->onGlobalMapUpdated(mbMerged, mbLoopClosure, mvMergedIds);
       }
     }
     
@@ -259,8 +259,8 @@ protected:
     // To (de)activate LC
     bool mbActiveLC = true;
     
-    // Observer for ROS wrapper
-    std::shared_ptr<Observer> observer_;
+    // Distributor for ROS wrapper
+    std::shared_ptr<Distributor> distributor_;
     
     // Time between updates
     std::chrono::high_resolution_clock::time_point msLastMUStart;

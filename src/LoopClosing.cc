@@ -77,7 +77,7 @@ LoopClosing::LoopClosing(Atlas *pAtlas, KeyFrameDatabase *pDB, ORBVocabulary *pV
     mnCorrectionGBA = 0;
     
     // map update variables
-    MAP_FREQ=1000;
+    MAP_FREQ=20000;
     msLastMUStart = std::chrono::high_resolution_clock::now();
 }
 
@@ -96,6 +96,7 @@ void LoopClosing::Run()
 {
     
     mbFinished =false;
+    msLastMUStart = std::chrono::high_resolution_clock::now();
 
     while(1)
     {
@@ -328,11 +329,6 @@ void LoopClosing::Run()
             }
             mpLastCurrentKF = mpCurrentKF;
             
-            // Send update after certain amount of time
-            msLastMUStop = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
-            auto dCount = duration.count();
-            
             if ((tempMapMerged))
             {
                 std::cout << "this is before notify map" << std::endl;
@@ -340,7 +336,7 @@ void LoopClosing::Run()
                     std::cout << "merge, id1=" << mvMergedIds[0] << ", id2=" << mvMergedIds[1] << std::endl;
                 //mpCurrentKF->GetMap()->ClearErasedData();
                 //mpCurrentKF->GetMap()->ClearUpdatedKFIds();
-                notifyObserverMapUpdated(tempMapMerged, tempLoopClosure, mvMergedIds);
+                notifyDistributorMapUpdated(tempMapMerged, tempLoopClosure, mvMergedIds);
                 mvMergedIds.clear();
                 std::cout << "This is after notify map" << std::endl;
                 
@@ -348,9 +344,20 @@ void LoopClosing::Run()
                 msLastMUStart = std::chrono::high_resolution_clock::now();
 
             }
+            
+            msLastMUStop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
+            auto dCount = duration.count();
+            if (!tempMapMerged && !tempLoopClosure && (dCount > MAP_FREQ) && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 10)
+            {
+
+              notifyDistributorMapUpdated(false, false, std::vector<unsigned long int>());
+              msLastMUStart = std::chrono::high_resolution_clock::now();
+            }
 
             Verbose::PrintMess("      Thread3=LoopClosing::Run : End of the function;", Verbose::VERBOSITY_NORMAL);
         }
+        
 
         ResetIfRequested();
 
@@ -2354,6 +2361,7 @@ void LoopClosing::ResetIfRequested()
         mLastLoopKFid=0;  //TODO old variable, it is not use in the new algorithm
         mbResetRequested=false;
         mbResetActiveMapRequested = false;
+        msLastMUStart = std::chrono::high_resolution_clock::now();
     }
     else if(mbResetActiveMapRequested)
     {
@@ -2613,7 +2621,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             double timeFGBA = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndUpdateMap - time_StartFGBA).count();
             vdFGBATotal_ms.push_back(timeFGBA);
 #endif
-            notifyObserverMapUpdated(false, true, mvMergedIds);
+            notifyDistributorMapUpdated(false, true, mvMergedIds);
             SetRunning(false);
             Verbose::PrintMess("Map updated!", Verbose::VERBOSITY_NORMAL);
         }

@@ -2303,13 +2303,13 @@ void Tracking::Track()
         if(mState==LOST)
         {
             Verbose::PrintMess("Thread1=Tracking::Track : mState==LOST, update drawer section. -> Reset if the camera get lost soon after init.", Verbose::VERBOSITY_NORMAL);
-            //if(pCurrentMap->KeyFramesInMap()<=10)
-            if(pCurrentMap->KeyFramesInMap()<=5 && mnMapUpdateLastKFId<=10)
+            //if(pCurrentMap->KeyFramesInMap()<=5 && mnMapUpdateLastKFId<=10)
+            if(pCurrentMap->KeyFramesInMap()<=10)
             {
                 Verbose::PrintMess("Thread1=Tracking::Track : less than 10 KFs in map -> reset active map.", Verbose::VERBOSITY_NORMAL);
                 std::cout << "mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", pCurrentMap->KeyFramesInMap()=" << pCurrentMap->KeyFramesInMap() << std::endl;
                 mpSystem->ResetActiveMap();
-                notifyObserverResetActiveMap(pCurrentMap->GetId());
+                notifyDistributorResetActiveMap(pCurrentMap->GetId());
                 
                 mcLastResetTimeStamp = std::chrono::system_clock::now();
                 return;
@@ -2689,8 +2689,8 @@ void Tracking::CreateInitialMapMonocular()
     }
 
 
-    notifyObserverAddKeyframe(pKFini, 2); // Send KF to LM (Module 2)
-    notifyObserverAddKeyframe(pKFcur, 2); // Send KF to LM (Module 2)
+    notifyDistributorAddKeyframe(pKFini, 2); // Send KF to LM (Module 2)
+    notifyDistributorAddKeyframe(pKFcur, 2); // Send KF to LM (Module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKFini);
     //mpLocalMapper->InsertKeyFrame(pKFcur);
@@ -3181,6 +3181,7 @@ bool Tracking::NeedNewKeyFrame()
     // Don't send update if local map is still updating
     if(mbLocalMapIsUpdating)
         return false;
+    
 
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     //if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested()) {
@@ -3196,10 +3197,10 @@ bool Tracking::NeedNewKeyFrame()
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
     // TODO: Disabled since this is not in the edge slam
-    //if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
-    //{
-    //    return false;
-    //}
+    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
+    {
+        return false;
+    }
 
     // Tracked MapPoints in the reference keyframe
     int nMinObs = 3;
@@ -3262,11 +3263,11 @@ bool Tracking::NeedNewKeyFrame()
             thRefRatio = 0.90f;
     }
 
-    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << std::endl;
+    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << std::endl;
     // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
     const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
-    //const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames) && mbLocalMappingIdle); //mpLocalMapper->KeyframesInQueue() < 2);
+    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames)); //mpLocalMapper->KeyframesInQueue() < 2);
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
@@ -3322,20 +3323,21 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
+    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05;  
    
-    std::cout << "c2=" << c2 << ", c1c=" << c1c << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << std::endl;
-    if(c2)
-        if(c1c || c1a)
+    std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
+    if((c2 && (c1a||c1b)) && c5)
+        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
             return true;
         else
-            return true;
+            return false;
     else
         return false;
 }
 
 void Tracking::CreateNewKeyFrame()
 {
-    // TODO:: Here, notify observer and broadcast KF 
+    // TODO:: Here, notify Distributor and broadcast KF 
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
     if(mpLocalMapper->IsInitializing() && !mpAtlas->isImuInitialized())
         return;
@@ -3457,15 +3459,16 @@ void Tracking::CreateNewKeyFrame()
             //Verbose::PrintMess("new mps for stereo KF: " + to_string(nPoints), Verbose::VERBOSITY_NORMAL);
         }
     }
-    //notifyObserverAddKeyframe(pKF);
+    //notifyDistributorAddKeyframe(pKF);
     mpAtlas->AddKeyFrame(pKF); 
     mapUpToDate = false;
     //pKF->UpdateConnections();
     mpKeyFrameDB->add(pKF);
 
     Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
+    ProcessNewKeyFrame(pKF);
     // TODO: Here the keyframe needs to be sent to ros network!!
-    notifyObserverAddKeyframe(pKF, 2); // Send KF to LM (module 2)
+    notifyDistributorAddKeyframe(pKF, 2); // Send KF to LM (module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKF);
 
@@ -3474,6 +3477,53 @@ void Tracking::CreateNewKeyFrame()
     std::cout << "before assigning keyframe as lastkeyframe" << std::endl;
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
+}
+
+void Tracking::ProcessNewKeyFrame(ORB_SLAM3::KeyFrame* pKF)
+{
+    // Compute Bags of Words structures
+    //pKF->ComputeBoW();
+
+    // Associate MapPoints to the new keyframe and update normal and descriptor
+    const vector<MapPoint*> vpMapPointMatches = pKF->GetMapPointMatches();
+    
+    for(size_t i=0; i<vpMapPointMatches.size(); i++)
+    {
+        MapPoint* pMP = vpMapPointMatches[i];
+        if(pMP)
+        {
+            if(!pMP->isBad())
+            {
+                //if(pMP->GetMap())
+                //  mpAtlas->AddMapPoint(pMP);
+                
+                if(!pMP->IsInKeyFrame(pKF))
+                {
+                    pMP->AddObservation(pKF, i);
+                    pMP->UpdateNormalAndDepth();
+                    pMP->ComputeDistinctiveDescriptors();
+                    //pMP->SetLastModule(1); // Last module 1=LM
+                    //if(pMP->GetMap())
+                    //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                    //else 
+                    //  mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+  
+                }
+                //else // this can only happen for new stereo points inserted by the Tracking
+                //{
+                //    mlpRecentAddedMapPoints.push_back(pMP);
+                //}
+            }
+        }
+    }
+
+    // Update links in the Covisibility Graph
+    pKF->UpdateConnections();
+
+    // Insert Keyframe in Map
+    //mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
+    //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    //mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
 }
 
 void Tracking::SearchLocalPoints()
@@ -4339,7 +4389,7 @@ void Tracking::Reset(bool bLocMap)
     {
         Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_NORMAL);
         mpLocalMapper->RequestReset();
-        notifyObserverLMResetRequested();
+        notifyDistributorLMResetRequested();
         Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
     }
 

@@ -118,7 +118,7 @@ include/TwoViewReconstruction.h
 include/SerializationUtils.h
 include/Config.h
 include/Settings.h
-include/Observer.h)
+include/Distributor.h)
 
 add_subdirectory(Thirdparty/g2o)
 

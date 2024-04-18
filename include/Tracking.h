@@ -111,26 +111,26 @@ public:
     bool IsMapUpToDate();
     void MUReset();
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     }
     
 
-    void notifyObserverAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
-      if (observer_) {
-        observer_->onKeyframeAdded(pKF, mnTargetModule);
+    void notifyDistributorAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
+      if (distributor_) {
+        distributor_->onKeyframeAdded(pKF, mnTargetModule);
       }
     }
     
-    void notifyObserverLMResetRequested() {
-      if (observer_) {
-        observer_->onLMResetRequested();
+    void notifyDistributorLMResetRequested() {
+      if (distributor_) {
+        distributor_->onLMResetRequested();
       }
     }
     
-    void notifyObserverResetActiveMap(unsigned long int mnMapId) {
-      if (observer_) {
-        observer_->onActiveMapReset(mnMapId);
+    void notifyDistributorResetActiveMap(unsigned long int mnMapId) {
+      if (distributor_) {
+        distributor_->onActiveMapReset(mnMapId);
       }
     }
     
@@ -258,6 +258,7 @@ protected:
 
     bool NeedNewKeyFrame();
     void CreateNewKeyFrame();
+    void ProcessNewKeyFrame(ORB_SLAM3::KeyFrame* pKF);
 
     // Perform preintegration from last frame
     void PreintegrateIMU();
@@ -412,7 +413,7 @@ protected:
 #endif
 
 private:
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
 
 
 public:

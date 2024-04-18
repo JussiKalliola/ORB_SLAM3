@@ -40,7 +40,7 @@
 #include "ImuTypes.h"
 #include "Settings.h"
 
-#include "Observer.h"
+#include "Distributor.h"
 
 
 namespace ORB_SLAM3
@@ -81,7 +81,7 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 class Settings;
-class Observer;
+class Distributor;
 
 class System
 {
@@ -105,7 +105,7 @@ public:
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const string &strSaveToPath = std::string("/"), std::shared_ptr<Observer> observer = nullptr, const bool mbOnlyTrack = false, const int initFr = 0, const string &strSequence = std::string());
+    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const string &strSaveToPath = std::string("/"), std::shared_ptr<Distributor> distributor = nullptr, const bool mbOnlyTrack = false, const int initFr = 0, const string &strSequence = std::string());
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
@@ -201,12 +201,12 @@ public:
       return mpLocalMapper;
     }
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     }
     
-    void deleteObserver() {
-      observer_ = nullptr;
+    void deleteDistributor() {
+      distributor_ = nullptr;
     }
 
     Atlas* GetAtlas() {
@@ -300,7 +300,7 @@ private:
 
     Settings* settings_;
 
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
     
 
 };

@@ -28,7 +28,6 @@
 #include "Frame.h"
 #include "KeyFrameDatabase.h"
 #include "ImuTypes.h"
-#include "Observer.h"
 
 #include "GeometricCamera.h"
 #include "SerializationUtils.h"
@@ -47,7 +46,6 @@ class Map;
 class MapPoint;
 class Frame;
 class KeyFrameDatabase;
-class Observer;
 
 class GeometricCamera;
 
@@ -199,6 +197,9 @@ public:
     KeyFrame();
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
+    // Copy constructor.
+    KeyFrame(const KeyFrame &kf);
+    
     // Constructor for ROS message
     KeyFrame(bool bImu, long unsigned int nNextId, long unsigned int mnId, const long unsigned int mnFrameId, const double mTimeStamp, const int mnGridCols, const int mnGridRows, const float mfGridElementWidthInv, const float mfGridElementHeightInv, long unsigned int mnTrackReferenceForFrame, long unsigned int mnFuseTargetForKF, long unsigned int mnBALocalForKF, long unsigned int mnBAFixedForKF, long unsigned int mnNumberOfOpt, long unsigned int mnLoopQuery, int mnLoopWords, float mLoopScore, long unsigned int mnRelocQuery, int mnRelocWords, float mRelocScore, long unsigned int mnMergeQuery, int mnMergeWords, float mMergeScore, long unsigned int mnPlaceRecognitionQuery, int mnPlaceRecognitionWords, float mPlaceRecognitionScore, bool mbCurrentPlaceRecognition, Sophus::SE3f mTcwGBA, Sophus::SE3f mTcwBefGBA, Eigen::Vector3f mVwbGBA, Eigen::Vector3f mVwbBefGBA, IMU::Bias mBiasGBA, long unsigned int mnBAGlobalForKF, Sophus::SE3f mTcwMerge, Sophus::SE3f mTcwBefMerge, Sophus::SE3f mTwcBefMerge, Eigen::Vector3f mVwbMerge, Eigen::Vector3f mVwbBefMerge, IMU::Bias mBiasMerge, long unsigned int mnMergeCorrectedForKF, long unsigned int mnMergeForKF, float mfScaleMerge, long unsigned int mnBALocalForMerge, float mfScale, const float fx, const float fy, const float cx, const float cy, const float invfx, const float invfy, const float mbf, const float mb, const float mThDepth, cv::Mat mDistCoef, const int N, const std::vector<cv::KeyPoint> mvKeys, const std::vector<cv::KeyPoint> mvKeysUn, const std::vector<float> mvuRight, const std::vector<float> mvDepth, const cv::Mat mDescriptors, /*DBoW2::BowVector mBowVec, DBoW2::FeatureVector mFeatVec, */ Sophus::SE3f mTcp, const int mnScaleLevels, const float mfScaleFactor, const float mfLogScaleFactor, const std::vector<float> mvScaleFactors, const std::vector<float> mvLevelSigma2, const std::vector<float> mvInvLevelSigma2, const int mnMinX, const int mnMinY, const int mnMaxX, const int mnMaxY, /*KeyFrame* mPrevKF, KeyFrame* mNextKF,*/ 
         //IMU::Preintegrated* mpImuPreintegrated, 
@@ -212,6 +213,8 @@ public:
     /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(), */ /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int> mvOrderedWeights_, std::map<long unsigned int, int> mBackupConnectedKeyFrameIdWeights_, bool mbFirstConnection_,  /*KeyFrame* mpParent = nullptr, */ /*std::set<KeyFrame*> mspChildrens = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspLoopEdges = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(), */long long int mBackupParentId_, std::vector<long unsigned int> mvBackupChildrensId_, std::vector<long unsigned int> mvBackupLoopEdgesId_, std::vector<long unsigned int> mvBackupMergeEdgesId_, bool mbNotErase_, bool mbToBeErased_, bool mbBad_, float mHalfBaseline_, /*Map* mpMap = nullptr,*/ long long int mBackupPrevKFId_, long long int mBackupNextKFId_, /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */unsigned int mnBackupIdCamera_, unsigned int mnBackupIdCamera2_, /*Eigen::Matrix3f mK__,*/ unsigned int mnLastModule_ /*GeometricCamera* mpCamera = nullptr, */ /*GeometricCamera* mpCamera2 = nullptr, *//*std::vector<int> mvLeftToRightMatch_, std::vector<int> mvRightToLeftMatch_,*/ /*const std::vector<cv::KeyPoint> mvKeysRight_,*/ /*const int NLeft_,*/ /*const int NRight_,*/ /*std::vector< std::vector <std::vector<size_t> > > mGridRight_*/);
 
 
+    void UpdateKeyFrame(KeyFrame &kf);
+    
     // Pose functions
     void SetPose(const Sophus::SE3f &Tcw);
     void SetVelocity(const Eigen::Vector3f &Vw_);
@@ -343,10 +346,6 @@ public:
     void SetLastModule(unsigned int mnId);
 
     bool bImu;
-
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
-    }
 
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
@@ -543,7 +542,6 @@ protected:
     // Module where object was created/last update
     unsigned int mnLastModule;
 
-    std::shared_ptr<Observer> observer_;
 
     // Mutex
     std::mutex mMutexPose; // for pose, velocity and biases

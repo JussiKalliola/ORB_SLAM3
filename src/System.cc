@@ -40,7 +40,7 @@ namespace ORB_SLAM3
 Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, 
-               const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Observer> observer, const bool mbOnlyTrack, const int initFr, const string &strSequence):
+               const bool bUseViewer, const string &strSaveToPath, std::shared_ptr<Distributor> distributor, const bool mbOnlyTrack, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
     mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(mbOnlyTrack), mbShutDown(false)
 {
@@ -129,7 +129,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-        mpKeyFrameDatabase->attachObserver(observer);
+        mpKeyFrameDatabase->attachDistributor(distributor);
 
         //Create the Atlas
         cout << "Initialization of Atlas from scratch " << endl;
@@ -152,7 +152,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         //Create KeyFrame Database
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-        mpKeyFrameDatabase->attachObserver(observer);
+        mpKeyFrameDatabase->attachDistributor(distributor);
 
         cout << "Load File" << endl;
 
@@ -231,13 +231,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
 
-    // Set observers of all classes
-    if (observer != nullptr) {
-      attachObserver(observer);
-      mpAtlas->attachObserver(observer);
-      mpTracker->attachObserver(observer); 
-      mpLocalMapper->attachObserver(observer);
-      mpLoopCloser->attachObserver(observer);
+    // Set distributors of all classes
+    if (distributor != nullptr) {
+      attachDistributor(distributor);
+      mpAtlas->attachDistributor(distributor);
+      mpTracker->attachDistributor(distributor); 
+      mpLocalMapper->attachDistributor(distributor);
+      mpLoopCloser->attachDistributor(distributor);
     }
 
     //usleep(10*1000*1000);

@@ -1,6 +1,7 @@
+#pragma once
 
-#ifndef OBSERVER_H
-#define OBSERVER_H
+#ifndef DISTRIBUTOR_H
+#define DISTRIBUTOR_H
 
 #include "Thirdparty/Sophus/sophus/geometry.hpp"
 #include "Thirdparty/Sophus/sophus/sim3.hpp"
@@ -19,7 +20,7 @@ class KeyFrame;
 class MapPoint;
 class Map;
 
-class Observer {
+class Distributor {
   public:
         virtual void onKeyframeAdded(KeyFrame* pKF, unsigned int mnTargetModule) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
@@ -28,11 +29,15 @@ class Observer {
         virtual void onChangeLMActive(bool bActive) = 0;
         virtual void onLMResetRequested() = 0;
         virtual void onActiveMapReset(unsigned long int mnMapId) = 0;
+        
+        virtual int KeyFramesInQueue() = 0;
+        virtual int MapsInQueue() = 0;
 
-        virtual ~Observer() {}
+
+        virtual ~Distributor() {}
 };
 
 }// namespace ORB_SLAM
 
-#endif // SYSTEM_H
+#endif // DISTRIBUTOR_H
 

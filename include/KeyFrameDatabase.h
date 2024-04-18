@@ -28,7 +28,7 @@
 #include "Frame.h"
 #include "ORBVocabulary.h"
 #include "Map.h"
-#include "Observer.h"
+#include "Distributor.h"
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/vector.hpp>
@@ -43,7 +43,7 @@ namespace ORB_SLAM3
 class KeyFrame;
 class Frame;
 class Map;
-class Observer;
+class Distributor;
 
 class KeyFrameDatabase
 {
@@ -83,8 +83,8 @@ public:
     void PostLoad(map<long unsigned int, KeyFrame*> mpKFid);
     void SetORBVocabulary(ORBVocabulary* pORBVoc);
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     }
 
 
@@ -104,7 +104,7 @@ protected:
 
 private:
 
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
     
 };
 

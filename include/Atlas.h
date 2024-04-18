@@ -25,7 +25,7 @@
 #include "GeometricCamera.h"
 #include "Pinhole.h"
 #include "KannalaBrandt8.h"
-#include "Observer.h"
+#include "Distributor.h"
 
 #include <set>
 #include <mutex>
@@ -43,7 +43,7 @@ class KeyFrameDatabase;
 class Frame;
 class KannalaBrandt8;
 class Pinhole;
-class Observer;
+class Distributor;
 
 //BOOST_CLASS_EXPORT_GUID(Pinhole, "Pinhole")
 //BOOST_CLASS_EXPORT_GUID(KannalaBrandt8, "KannalaBrandt8")
@@ -146,11 +146,11 @@ public:
     long unsigned int GetNumLivedMP();
 
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
 
       if (this->mpCurrentMap) {
-        this->mpCurrentMap->attachObserver(this->observer_);
+        this->mpCurrentMap->attachDistributor(this->distributor_);
       }
     }
 
@@ -180,7 +180,7 @@ protected:
     std::mutex mMutexAtlas;
 
 private:
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
 }; // class Atlas
 
 } // namespace ORB_SLAM3

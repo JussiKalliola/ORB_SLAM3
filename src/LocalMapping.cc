@@ -55,7 +55,7 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
     mpCurrentKeyFrame = static_cast<KeyFrame*>(NULL);
 
     // map update variables
-    MAP_FREQ=1000;
+    MAP_FREQ=5000;
     KF_NUM=4;
     CONN_KF=2;
     ////msNewKFFlag=false;
@@ -82,6 +82,7 @@ void LocalMapping::Run()
 {
     std::cout << " **************** Starting LocalMapping::Run() **************** " << std::endl;
     mbFinished = false;
+    msLastMUStart = std::chrono::high_resolution_clock::now();
 
     
 
@@ -286,7 +287,7 @@ void LocalMapping::Run()
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
             //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
-            notifyObserverAddKeyframe(mpCurrentKeyFrame, 3); // Send KF to loop closing (module 3)
+            notifyDistributorAddKeyframe(mpCurrentKeyFrame, 3); // Send KF to loop closing (module 3)
 
             //mbLocalMappingDone=true;
 #ifdef REGISTER_TIMES
@@ -324,7 +325,7 @@ void LocalMapping::Run()
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
             std::cout << "this is before notify map" << std::endl;
-            notifyObserverLocalMapUpdated(mpCurrentKeyFrame->GetMap());
+            notifyDistributorLocalMapUpdated(mpCurrentKeyFrame->GetMap());
             std::cout << "This is after notify map" << std::endl;
             
             //mpCurrentKeyFrame->GetMap()->ClearErasedData();
@@ -516,7 +517,7 @@ void LocalMapping::ProcessNewKeyFrame()
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
-    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
     mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
 }
@@ -1058,7 +1059,7 @@ void LocalMapping::SearchInNeighbors()
 
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections();
-    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
     mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
 }
 

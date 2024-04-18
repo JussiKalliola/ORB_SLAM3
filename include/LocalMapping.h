@@ -137,27 +137,27 @@ public:
     void InsertKeyframeFromRos(KeyFrame* pKF);
     bool NeedNewKeyFrame(KeyFrame* pKF);
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     } 
     
-    void notifyObserverAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
-      if (observer_) {
-        observer_->onKeyframeAdded(pKF, mnTargetModule);
+    void notifyDistributorAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
+      if (distributor_) {
+        distributor_->onKeyframeAdded(pKF, mnTargetModule);
       }
     }
 
-    void notifyObserverLocalMapUpdated(Map* pM) {
+    void notifyDistributorLocalMapUpdated(Map* pM) {
       unique_lock<std::mutex> lock(mMutexNewKFs);
-      if (observer_) { 
-        observer_->onLocalMapUpdated(pM);
+      if (distributor_) { 
+        distributor_->onLocalMapUpdated(pM);
       }
     }
 
-    void notifyObserverLMActive(bool bActive) {
+    void notifyDistributorLMActive(bool bActive) {
       //unique_lock<std::mutex> lock(mMutexNewKFs);
-      if (observer_) { 
-        observer_->onChangeLMActive(bActive);
+      if (distributor_) { 
+        distributor_->onChangeLMActive(bActive);
       }
     }
 
@@ -242,7 +242,7 @@ protected:
     int CONN_KF;   // Set to: for every keyframe, how many connected keyframes should be included in a map update
 
 private:
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
 
 
 };

@@ -22,7 +22,7 @@
 
 #include "MapPoint.h"
 #include "KeyFrame.h"
-#include "Observer.h"
+#include "Distributor.h"
 
 #include <set>
 #include <pangolin/pangolin.h>
@@ -38,7 +38,7 @@ class MapPoint;
 class KeyFrame;
 class Atlas;
 class KeyFrameDatabase;
-class Observer;
+class Distributor;
 
 class Map
 {
@@ -80,6 +80,7 @@ public:
     Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs, long unsigned int mnId, std::vector<std::string> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId, std::vector<unsigned long int> mvBackupKeyFrameOriginsId, unsigned long int mnBackupKFinitialID, unsigned long int mnBackupKFlowerID, std::vector<std::string> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange, int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail, bool mbBad, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2);
     ~Map();
 
+    void UpdateMap(Map &tempMap);
     void UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, std::set<unsigned long int> msUpdatedKFIds, std::set<std::string> msUpdatedMPIds, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/);
     void AddKeyFrame(KeyFrame* pKF);
     void AddMapPoint(MapPoint* pMP);
@@ -217,12 +218,12 @@ public:
       return mbBad;
     }
 
-    void attachObserver(std::shared_ptr<Observer> observer) {
-      observer_ = observer;
+    void attachDistributor(std::shared_ptr<Distributor> distributor) {
+      distributor_ = distributor;
     }
     
-    std::shared_ptr<Observer> GetObserver() {
-      return observer_;
+    std::shared_ptr<Distributor> GetDistributor() {
+      return distributor_;
     }
     
     void UpdateMapPoints(std::set<MapPoint*> mspMPs)
@@ -292,7 +293,7 @@ public:
 
 protected:
 
-    std::shared_ptr<Observer> observer_;
+    std::shared_ptr<Distributor> distributor_;
     
     long unsigned int mnId;
 

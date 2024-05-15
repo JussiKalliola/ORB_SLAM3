@@ -24,9 +24,11 @@ class Distributor {
   public:
         virtual void onKeyframeAdded(KeyFrame* pKF, unsigned int mnTargetModule) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
+        virtual void onNewKeyFrame(ORB_SLAM3::KeyFrame* pKF) = 0;
+        virtual void onNewMapPoint(ORB_SLAM3::MapPoint* pMP) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;
         virtual void onGlobalMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergeIds) = 0;
-        virtual void onChangeLMActive(bool bActive) = 0;
+        //virtual void onChangeLMActive(bool bActive) = 0;
         virtual void onLMResetRequested() = 0;
         virtual void onActiveMapReset(unsigned long int mnMapId) = 0;
         

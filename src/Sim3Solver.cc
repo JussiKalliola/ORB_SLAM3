@@ -87,6 +87,7 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
             int indexKF1 = get<0>(pMP1->GetIndexInKeyFrame(pKF1));
             int indexKF2 = get<0>(pMP2->GetIndexInKeyFrame(pKFm));
 
+            //std::cout << indexKF1 << "," << indexKF2 << std::endl;
             if(indexKF1<0 || indexKF2<0)
                 continue;
 
@@ -222,6 +223,7 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
     vbInliers = vector<bool>(mN1,false);
     nInliers=0;
 
+    //std::cout << "N<mRansacMinInliers=" << N << "<" << mRansacMinInliers << std::endl; 
     if(N<mRansacMinInliers)
     {
         bNoMore = true;
@@ -237,6 +239,8 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
 
     Eigen::Matrix4f bestSim3;
 
+    //std::cout << "before mnIterations<mRansacMaxIts && nCurrentIterations<nIterations" << std::endl;
+    //std::cout << mnIterations << "<" << mRansacMaxIts << "&&" << nCurrentIterations <<"<"<<nIterations<<std::endl;
     while(mnIterations<mRansacMaxIts && nCurrentIterations<nIterations)
     {
         nCurrentIterations++;
@@ -271,7 +275,7 @@ Eigen::Matrix4f Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool>
             mBestRotation = mR12i;
             mBestTranslation = mt12i;
             mBestScale = ms12i;
-            std::cout << "mnInliersi=" << mnInliersi <<">mRansacMinInliers" << mRansacMinInliers << std::endl;
+            //std::cout << "mnInliersi=" << mnInliersi <<">mRansacMinInliers" << mRansacMinInliers << std::endl;
             if(mnInliersi>mRansacMinInliers)
             {
                 nInliers = mnInliersi;

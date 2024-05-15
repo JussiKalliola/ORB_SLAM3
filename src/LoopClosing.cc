@@ -77,7 +77,7 @@ LoopClosing::LoopClosing(Atlas *pAtlas, KeyFrameDatabase *pDB, ORBVocabulary *pV
     mnCorrectionGBA = 0;
     
     // map update variables
-    MAP_FREQ=20000;
+    MAP_FREQ=2500;
     msLastMUStart = std::chrono::high_resolution_clock::now();
 }
 
@@ -117,7 +117,6 @@ void LoopClosing::Run()
             std::chrono::steady_clock::time_point time_StartPR = std::chrono::steady_clock::now();
 #endif
 
-            SetRunning(true);
             bool bFindedRegion = NewDetectCommonRegions();
 
 #ifdef REGISTER_TIMES
@@ -125,12 +124,14 @@ void LoopClosing::Run()
 
             double timePRTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPR - time_StartPR).count();
             vdPRTotal_ms.push_back(timePRTotal);
+            vtStartTimePR_ms.push_back(time_StartPR);
 #endif
             bool tempMapMerged = false;
             bool tempLoopClosure = false;
             
             if(bFindedRegion)
             {
+                SetRunning(true);
                 if(mbMergeDetected)
                 {
                     
@@ -203,6 +204,7 @@ void LoopClosing::Run()
 
                         double timeMergeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMerge - time_StartMerge).count();
                         vdMergeTotal_ms.push_back(timeMergeTotal);
+                        vtStartTimeMerge_ms.push_back(time_StartMerge);
 #endif
 
                         Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge finished;", Verbose::VERBOSITY_NORMAL);
@@ -305,6 +307,7 @@ void LoopClosing::Run()
 
                         double timeLoopTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLoop - time_StartLoop).count();
                         vdLoopTotal_ms.push_back(timeLoopTotal);
+                        vtStartTimeLoop_ms.push_back(time_StartLoop);
 #endif
 
                         mnNumCorrection += 1;
@@ -340,7 +343,6 @@ void LoopClosing::Run()
                 mvMergedIds.clear();
                 std::cout << "This is after notify map" << std::endl;
                 
-                SetRunning(false);
                 msLastMUStart = std::chrono::high_resolution_clock::now();
 
             }
@@ -354,11 +356,13 @@ void LoopClosing::Run()
               notifyDistributorMapUpdated(false, false, std::vector<unsigned long int>());
               msLastMUStart = std::chrono::high_resolution_clock::now();
             }
+            SetRunning(false);
 
             Verbose::PrintMess("      Thread3=LoopClosing::Run : End of the function;", Verbose::VERBOSITY_NORMAL);
         }
         
 
+        SetRunning(false);
         ResetIfRequested();
 
         if(CheckFinish()){
@@ -398,6 +402,9 @@ bool LoopClosing::NewDetectCommonRegions()
         // Avoid that a keyframe can be erased while it is being process by this thread
         mpCurrentKF->SetNotErase();
         mpCurrentKF->mbCurrentPlaceRecognition = true;
+
+        mpCurrentKF->GetMap()->AddUpdatedKFId(mpCurrentKF->mnId);
+        mpCurrentKF->SetLastModule(3); // Last module 1=LM
 
         mpLastMap = mpCurrentKF->GetMap();
     }
@@ -775,6 +782,7 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*> &vpBowCand, 
             if(mpTracker->mSensor==System::IMU_MONOCULAR && !mpCurrentKF->GetMap()->GetIniertialBA2())
                 bFixedScale=false;
 
+            std::cout << "vpMatchedPoints.size()=" << vpMatchedPoints.size() << std::endl;
             Sim3Solver solver = Sim3Solver(mpCurrentKF, pMostBoWMatchesKF, vpMatchedPoints, bFixedScale, vpKeyFrameMatchedMP);
             solver.SetRansacParameters(0.99, nBoWInliers, 300); // at least 15 inliers
 
@@ -788,7 +796,7 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*> &vpBowCand, 
                 mTcm = solver.iterate(20,bNoMore, vbInliers, nInliers, bConverge);
                 //Verbose::PrintMess("BoW guess: Solver achieve " + to_string(nInliers) + " geometrical inliers among " + to_string(nBoWInliers) + " BoW matches", Verbose::VERBOSITY_DEBUG);
             }
-            std::cout << "bConverge=" << bConverge << ", vbInliers.size()=" << vbInliers.size() << std::endl;
+            std::cout << "bConverge=" << bConverge << ", nInliers=" << nInliers << std::endl;
             if(bConverge)
             {
                 //std::cout << "Check BoW: SolverSim3 converged" << std::endl;
@@ -929,7 +937,7 @@ bool LoopClosing::DetectCommonRegionsFromBoW(std::vector<KeyFrame*> &vpBowCand, 
                                 vnMatchesStage[index] = nNumKFs;
                             }
 
-                            std::cout << "numProjOptMatches=" << numProjOptMatches << std::endl;
+                            std::cout << "nBestMatchesReproj=" << nBestMatchesReproj << "<numProjOptMatches" << numProjOptMatches<< ", nNumKFs=" << nNumKFs << std::endl;
 
                             if(nBestMatchesReproj < numProjOptMatches)
                             {
@@ -2620,6 +2628,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
 
             double timeFGBA = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndUpdateMap - time_StartFGBA).count();
             vdFGBATotal_ms.push_back(timeFGBA);
+            vtStartTimeFGBA_ms.push_back(time_StartFGBA);
 #endif
             notifyDistributorMapUpdated(false, true, mvMergedIds);
             SetRunning(false);

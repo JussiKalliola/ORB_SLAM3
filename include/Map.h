@@ -152,6 +152,7 @@ public:
 
     void PreSave(std::set<GeometricCamera*> &spCams);
     void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, map<std::string, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
+    void PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long unsigned int, KeyFrame*>& mpKeyFrameId, unordered_map<std::string, MapPoint*>& mpMapPointId, map<unsigned int, GeometricCamera*> &mpCams, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
 
     void printReprojectionError(list<KeyFrame*> &lpLocalWindowKFs, KeyFrame* mpCurrentKF, string &name, string &name_folder);
 
@@ -292,6 +293,22 @@ public:
     }
 
 protected:
+
+    void notifyNewMapPointCreated(ORB_SLAM3::MapPoint* pMP)
+    {
+      if (distributor_) {
+        distributor_->onNewMapPoint(pMP);
+      }
+
+    }
+    
+    void notifyNewKeyFrameAdded(ORB_SLAM3::KeyFrame* pKF)
+    {
+      if (distributor_) {
+        distributor_->onNewKeyFrame(pKF);
+      }
+
+    }
 
     std::shared_ptr<Distributor> distributor_;
     

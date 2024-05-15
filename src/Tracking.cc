@@ -188,7 +188,9 @@ double calcDeviation(vector<int> v_values, double average)
 void Tracking::LocalMapStats2File()
 {
     ofstream f;
-    f.open("LocalMapTimeStats.txt");
+    string sysId(std::getenv("SLAM_SYSTEM_ID"));
+    string fileName = "LocalMapTimeStats-"+sysId+".txt"; 
+    f.open(mpSystem->mStrSaveToPath + "stats/" + fileName);
     f << fixed << setprecision(6);
     f << "#Stereo rect[ms], MP culling[ms], MP creation[ms], LBA[ms], KF culling[ms], Total[ms]" << endl;
     for(int i=0; i<mpLocalMapper->vdLMTotal_ms.size(); ++i)
@@ -200,7 +202,8 @@ void Tracking::LocalMapStats2File()
 
     f.close();
 
-    f.open("LBA_Stats.txt");
+    fileName = "LBA_Stats-"+sysId+".txt"; 
+    f.open(mpSystem->mStrSaveToPath + "stats/" + fileName);
     f << fixed << setprecision(6);
     f << "#LBA time[ms], KF opt[#], KF fixed[#], MP[#], Edges[#]" << endl;
     for(int i=0; i<mpLocalMapper->vdLBASync_ms.size(); ++i)
@@ -217,7 +220,9 @@ void Tracking::LocalMapStats2File()
 void Tracking::TrackStats2File()
 {
     ofstream f;
-    f.open("SessionInfo.txt");
+    string sysId(std::getenv("SLAM_SYSTEM_ID"));
+    string fileName = "SessionInfo-"+sysId+".txt"; 
+    f.open(mpSystem->mStrSaveToPath + "stats/" + fileName);
     f << fixed;
     f << "Number of KFs: " << mpAtlas->GetAllKeyFrames().size() << endl;
     f << "Number of MPs: " << mpAtlas->GetAllMapPoints().size() << endl;
@@ -225,8 +230,8 @@ void Tracking::TrackStats2File()
     f << "OpenCV version: " << CV_VERSION << endl;
 
     f.close();
-
-    f.open("TrackingTimeStats.txt");
+    fileName = "TrackingTimeStats-"+sysId+".txt"; 
+    f.open(mpSystem->mStrSaveToPath + "stats/" + fileName);
     f << fixed << setprecision(6);
 
     f << "#Image Rect[ms], Image Resize[ms], ORB ext[ms], Stereo match[ms], IMU preint[ms], Pose pred[ms], LM track[ms], KF dec[ms], Total[ms]" << endl;
@@ -267,12 +272,14 @@ void Tracking::TrackStats2File()
 void Tracking::PrintTimeStats()
 {
     // Save data in files
-    //TrackStats2File();
-    //LocalMapStats2File();
+    TrackStats2File();
+    LocalMapStats2File();
 
 
     ofstream f;
-    f.open("ExecMean.txt");
+    string sysId(std::getenv("SLAM_SYSTEM_ID"));
+    string fileName = "ExecMean-"+sysId+".txt"; 
+    f.open(mpSystem->mStrSaveToPath + "stats/" + fileName);
     f << fixed;
     //Report the mean and std of each one
     std::cout << std::endl << " TIME STATS in ms (mean$\\pm$std)" << std::endl;
@@ -412,6 +419,7 @@ void Tracking::PrintTimeStats()
     std::cout << std::endl << "Map complexity" << std::endl;
     std::cout << "KFs in map: " << mpAtlas->GetAllKeyFrames().size() << std::endl;
     std::cout << "MPs in map: " << mpAtlas->GetAllMapPoints().size() << std::endl;
+    std::cout << "#Times lost track: " << vnTimesLostTrack.size() << std::endl;
     f << "---------------------------" << std::endl;
     f << std::endl << "Map complexity" << std::endl;
     vector<Map*> vpMaps = mpAtlas->GetAllMaps();
@@ -1812,7 +1820,7 @@ void Tracking::Track()
     // TODO:Temporarily disable BA in local mapping
     //mpLocalMapper->InterruptBA();
     
-    Verbose::PrintMess("Thread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::Track : Start of the function", Verbose::VERBOSITY_NORMAL);
     //std::cout << "mState=" << mState << std::endl;
     if (bStepByStep)
     {
@@ -1963,7 +1971,7 @@ void Tracking::Track()
             //if(mCurrentFrame.mnId > 300)
             //  mState=RECENTLY_LOST;
             
-            std::cout << "mState=" << mState << std::endl;
+            //std::cout << "mState=" << mState << std::endl;
             if(mState==OK)
             {
 
@@ -2053,7 +2061,9 @@ void Tracking::Track()
 
                     if(mpLastKeyFrame)
                         mpLastKeyFrame = static_cast<KeyFrame*>(NULL);
-
+                    
+                    vnTimesLostTrack.push_back(1);
+                    vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
                     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
                     return;
@@ -2304,6 +2314,8 @@ void Tracking::Track()
         {
             Verbose::PrintMess("Thread1=Tracking::Track : mState==LOST, update drawer section. -> Reset if the camera get lost soon after init.", Verbose::VERBOSITY_NORMAL);
             //if(pCurrentMap->KeyFramesInMap()<=5 && mnMapUpdateLastKFId<=10)
+            vnTimesLostTrack.push_back(1);
+            vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
             if(pCurrentMap->KeyFramesInMap()<=10)
             {
                 Verbose::PrintMess("Thread1=Tracking::Track : less than 10 KFs in map -> reset active map.", Verbose::VERBOSITY_NORMAL);
@@ -2330,7 +2342,7 @@ void Tracking::Track()
         if(!mCurrentFrame.mpReferenceKF)
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
-        Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
         //std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
         //std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
         mLastFrame = Frame(mCurrentFrame);
@@ -2433,8 +2445,9 @@ void Tracking::StereoInitialization()
                     Eigen::Vector3f x3D;
                     mCurrentFrame.UnprojectStereo(i, x3D);
                     MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
+                    notifyNewMapPointCreated(pNewMP);
                     
-                    pNewMP->SetLastModule(0); // Last module 0=tracking
+                    pNewMP->SetLastModule(1); // Last module 0=tracking
                     
                     pNewMP->AddObservation(pKFini,i);
                     pKFini->AddMapPoint(pNewMP,i);
@@ -2453,7 +2466,7 @@ void Tracking::StereoInitialization()
 
                     MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
 
-                    pNewMP->SetLastModule(0); // Last module 0=tracking
+                    pNewMP->SetLastModule(1); // Last module 0=tracking
                     
                     pNewMP->AddObservation(pKFini,i);
                     pNewMP->AddObservation(pKFini,rightIndex + mCurrentFrame.Nleft);
@@ -2593,8 +2606,8 @@ void Tracking::CreateInitialMapMonocular()
     pKFcur->ComputeBoW();
 
 
-    pKFini->SetLastModule(0); // Last module 0=tracking
-    pKFcur->SetLastModule(0); // Last module 0=tracking
+    pKFini->SetLastModule(1); // Last module 0=tracking
+    pKFcur->SetLastModule(1); // Last module 0=tracking
 
     // Insert KFs in the map
     mpAtlas->AddKeyFrame(pKFini);
@@ -2615,7 +2628,7 @@ void Tracking::CreateInitialMapMonocular()
         
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
         
-        pMP->SetLastModule(0); // Last module 0=tracking
+        pMP->SetLastModule(1); // Last module 0=tracking
 
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -2912,7 +2925,8 @@ void Tracking::UpdateLastFrame()
             }
 
             MapPoint* pNewMP = new MapPoint(x3D,mpAtlas->GetCurrentMap(),&mLastFrame,i);
-            pNewMP->SetLastModule(0); // Last module 0=tracking
+            notifyNewMapPointCreated(pNewMP);
+            pNewMP->SetLastModule(1); // Last module 0=tracking
             mLastFrame.mvpMapPoints[i]=pNewMP;
 
             mlpTemporalPoints.push_back(pNewMP);
@@ -2952,7 +2966,7 @@ bool Tracking::TrackWithMotionModel()
         mCurrentFrame.SetPose(mVelocity * mLastFrame.GetPose());
     }
 
-    std::cout << "after setting pose currentframeID=" << mCurrentFrame.mnId << std::endl;
+    //std::cout << "after setting pose currentframeID=" << mCurrentFrame.mnId << std::endl;
 
 
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<MapPoint*>(NULL));
@@ -2969,7 +2983,7 @@ bool Tracking::TrackWithMotionModel()
 
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR);
     
-    std::cout << "nmatches=" << nmatches << ", mCurrentFrame.N" << mCurrentFrame.N << ", mLastFrame.N=" << mLastFrame.N << std::endl;
+    //std::cout << "nmatches=" << nmatches << ", mCurrentFrame.N" << mCurrentFrame.N << ", mLastFrame.N=" << mLastFrame.N << std::endl;
     //std::cout << "after search by projection" << std::endl;
     // If few matches, uses a wider window search
     if(nmatches<20)
@@ -3057,7 +3071,7 @@ bool Tracking::TrackLocalMap()
     int inliers;
 
     if (!mpAtlas->isImuInitialized()) {
-        Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : optimize current frame pose->Optimizer::PoseOptimization", Verbose::VERBOSITY_NORMAL);
+        //Verbose::PrintMess("Thread1=Tracking::TrackLocalMap : optimize current frame pose->Optimizer::PoseOptimization", Verbose::VERBOSITY_NORMAL);
         Optimizer::PoseOptimization(&mCurrentFrame);
     }
     else
@@ -3202,6 +3216,8 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     }
 
+    //UpdateReference();
+
     // Tracked MapPoints in the reference keyframe
     int nMinObs = 3;
     if(nKFs<=2)
@@ -3323,7 +3339,7 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
-    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05;  
+    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1;  
    
     std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2 && (c1a||c1b)) && c5)
@@ -3338,7 +3354,7 @@ bool Tracking::NeedNewKeyFrame()
 void Tracking::CreateNewKeyFrame()
 {
     // TODO:: Here, notify Distributor and broadcast KF 
-    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
     if(mpLocalMapper->IsInitializing() && !mpAtlas->isImuInitialized())
         return;
 
@@ -3347,7 +3363,7 @@ void Tracking::CreateNewKeyFrame()
 
     KeyFrame* pKF = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
     pKF->ComputeBoW();
-    pKF->SetLastModule(0); // Last module 0=tracking
+    pKF->SetLastModule(1); // Last module 0=tracking
 
 
     if(mpAtlas->isImuInitialized()) //  || mpLocalMapper->IsInitializing())
@@ -3427,7 +3443,7 @@ void Tracking::CreateNewKeyFrame()
                     }
 
                     MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap());
-                    pNewMP->SetLastModule(0); // Last module 0=tracking
+                    pNewMP->SetLastModule(1); // Last module 0=tracking
                     pNewMP->AddObservation(pKF,i);
 
                     //Check if it is a stereo observation in order to not
@@ -3465,8 +3481,8 @@ void Tracking::CreateNewKeyFrame()
     //pKF->UpdateConnections();
     mpKeyFrameDB->add(pKF);
 
-    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
-    ProcessNewKeyFrame(pKF);
+    //Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
+    //ProcessNewKeyFrame(pKF);
     // TODO: Here the keyframe needs to be sent to ros network!!
     notifyDistributorAddKeyframe(pKF, 2); // Send KF to LM (module 2)
     
@@ -3474,7 +3490,7 @@ void Tracking::CreateNewKeyFrame()
 
     mpLocalMapper->SetNotStop(false);
     
-    std::cout << "before assigning keyframe as lastkeyframe" << std::endl;
+    //std::cout << "before assigning keyframe as lastkeyframe" << std::endl;
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
 }
@@ -3609,6 +3625,56 @@ bool Tracking::IsMapUpToDate()
 }
 
 
+void Tracking::UpdateReference()
+{
+  if(mpReferenceKF->TrackedMapPoints(2)>0)
+    return;
+
+  vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
+  
+  // Initialize Reference KeyFrame and other KF variables
+  //if(vpKeyFrames.size() > 0)
+  //{
+  //    //if(!refKFSet)
+  //    //    mpReferenceKF = vpKeyFrames[0]; // from tracking
+  //    //else
+  //    //{
+  //    //    if(mpReferenceKF->mnId < vpKeyFrames[0]->mnId) // from tracking
+  //    //    {
+  //    //        mpReferenceKF = vpKeyFrames[0]; // from tracking
+  //    //        refKFSet = false; // edge-slam tracking
+  //    //    }
+  //    //}
+
+  //    mnLastKeyFrameId = vpKeyFrames[0]->mnFrameId; // from tracking
+  //    mpLastKeyFrame = vpKeyFrames[0]; // from tracking 
+  //    mnMapUpdateLastKFId = vpKeyFrames[0]->mnId; // edge-slam tracking
+  //}
+
+  // Iterate through keyframes and reconstruct connections
+  for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
+  {
+      KeyFrame* pKFCon = *it;
+      int nRefMatches = pKFCon->TrackedMapPoints(2);
+      // If RefKF has lower id than current KF, then set it to that KF
+      if(mpReferenceKF->mnId < pKFCon->mnId && nRefMatches>0)
+      {
+          mpReferenceKF = pKFCon;
+      }
+
+      // Update other KF variables
+      if(mnMapUpdateLastKFId < pKFCon->mnId)
+      {
+          //mnLastKeyFrameId = pKFCon->mnFrameId;
+          //mpLastKeyFrame = pKFCon;
+          mnMapUpdateLastKFId = pKFCon->mnId;
+      }
+  }
+
+  // Set current-frame RefKF
+  mCurrentFrame.mpReferenceKF = mpReferenceKF;
+
+}
 
 void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string, MapPoint*>mpOrbMapPoints)
 {

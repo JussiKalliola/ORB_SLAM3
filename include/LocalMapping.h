@@ -68,6 +68,7 @@ public:
     void SetAcceptKeyFrames(bool flag);
     bool SetNotStop(bool flag);
     void SetLocalMappingActive(bool flag);
+    bool IsLMRunning();
 
     void InterruptBA();
 
@@ -122,6 +123,8 @@ public:
     vector<double> vdKFCulling_ms;
     vector<double> vdLMTotal_ms;
 
+    vector<std::chrono::steady_clock::time_point> vtStartTimeLM_ms;
+    vector<std::chrono::steady_clock::time_point> vtStartTimeLBA_ms;
 
     vector<double> vdLBASync_ms;
     vector<double> vdKFCullingSync_ms;
@@ -154,12 +157,12 @@ public:
       }
     }
 
-    void notifyDistributorLMActive(bool bActive) {
-      //unique_lock<std::mutex> lock(mMutexNewKFs);
-      if (distributor_) { 
-        distributor_->onChangeLMActive(bActive);
-      }
-    }
+    //void notifyDistributorLMActive(bool bActive) {
+    //  //unique_lock<std::mutex> lock(mMutexNewKFs);
+    //  if (distributor_) { 
+    //    distributor_->onChangeLMActive(bActive);
+    //  }
+    //}
 
 
 protected:
@@ -212,6 +215,7 @@ protected:
     std::mutex mMutexStop;
 
     bool mbAcceptKeyFrames;
+    bool mbIsRunning;
     std::mutex mMutexAccept;
     
     std::mutex mMutexProcessKFs;

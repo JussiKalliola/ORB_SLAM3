@@ -107,6 +107,7 @@ public:
     
     void SetLocalMappingIsInIdle(bool flag);
     
+    void UpdateReference();
     void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string,MapPoint*> mpOrbMapPoints);
     bool IsMapUpToDate();
     void MUReset();
@@ -115,6 +116,13 @@ public:
       distributor_ = distributor;
     }
     
+    void notifyNewMapPointCreated(ORB_SLAM3::MapPoint* pMP)
+    {
+      if (distributor_) {
+        distributor_->onNewMapPoint(pMP);
+      }
+
+    }
 
     void notifyDistributorAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
       if (distributor_) {
@@ -226,6 +234,11 @@ public:
     vector<double> vdLMTrack_ms;
     vector<double> vdNewKF_ms;
     vector<double> vdTrackTotal_ms;
+
+    vector<std::chrono::steady_clock::time_point> vtStartTime_ms;
+
+    vector<int> vnTimesLostTrack;
+    vector<std::chrono::steady_clock::time_point> vtLostTrackTime_ms;
 #endif
 
 protected:

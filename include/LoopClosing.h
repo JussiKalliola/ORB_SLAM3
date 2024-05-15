@@ -102,6 +102,7 @@ public:
     vector<double> vdDataQuery_ms;
     vector<double> vdEstSim3_ms;
     vector<double> vdPRTotal_ms;
+    vector<std::chrono::steady_clock::time_point> vtStartTimePR_ms;
 
     vector<double> vdMergeMaps_ms;
     vector<double> vdWeldingBA_ms;
@@ -110,12 +111,14 @@ public:
     vector<int> vnMergeKFs;
     vector<int> vnMergeMPs;
     int nMerges;
+    vector<std::chrono::steady_clock::time_point> vtStartTimeMerge_ms;
 
     vector<double> vdLoopFusion_ms;
     vector<double> vdLoopOptEss_ms;
     vector<double> vdLoopTotal_ms;
     vector<int> vnLoopKFs;
     int nLoop;
+    vector<std::chrono::steady_clock::time_point> vtStartTimeLoop_ms;
 
     vector<double> vdGBA_ms;
     vector<double> vdUpdateMap_ms;
@@ -124,6 +127,7 @@ public:
     vector<int> vnGBAMPs;
     int nFGBA_exec;
     int nFGBA_abort;
+    vector<std::chrono::steady_clock::time_point> vtStartTimeFGBA_ms;
 
 #endif
 

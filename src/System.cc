@@ -238,6 +238,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
       mpTracker->attachDistributor(distributor); 
       mpLocalMapper->attachDistributor(distributor);
       mpLoopCloser->attachDistributor(distributor);
+      mpAtlas->GetCurrentMap()->attachDistributor(distributor);
     }
 
     //usleep(10*1000*1000);

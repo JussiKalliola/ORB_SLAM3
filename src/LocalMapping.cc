@@ -33,7 +33,7 @@ namespace ORB_SLAM3
 LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, bool bInertial, const string &_strSeqName):
     mpSystem(pSys), mbMonocular(bMonocular), mbInertial(bInertial), mbResetRequested(false), mbResetRequestedActiveMap(false), mbFinishRequested(false), mbFinished(true), mpAtlas(pAtlas), bInitializing(false),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true), mbAllowLM(true),
-    mIdxInit(0), mScale(1.0), mInitSect(0), mbNotBA1(true), mbNotBA2(true), mIdxIteration(0), infoInertial(Eigen::MatrixXd::Zero(9,9))
+    mIdxInit(0), mScale(1.0), mInitSect(0), mbNotBA1(true), mbNotBA2(true), mIdxIteration(0), infoInertial(Eigen::MatrixXd::Zero(9,9)), mbIsRunning(false)
 {
     mnMatchesInliers = 0;
 
@@ -55,7 +55,7 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
     mpCurrentKeyFrame = static_cast<KeyFrame*>(NULL);
 
     // map update variables
-    MAP_FREQ=5000;
+    MAP_FREQ=200;
     KF_NUM=4;
     CONN_KF=2;
     ////msNewKFFlag=false;
@@ -196,6 +196,9 @@ void LocalMapping::Run()
                 {
                     mbLocalMappingDone=true; 
                     //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2 -> LocalBA done;" << std::endl; 
+
+                    // Save the starting time at the same time as end duration for visualization
+                    vtStartTimeLBA_ms.push_back(time_EndMPCreation);
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
@@ -293,9 +296,14 @@ void LocalMapping::Run()
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndLocalMap = std::chrono::steady_clock::now();
 
+            // Save the starting time at the same time as end duration for visualization
+            vtStartTimeLM_ms.push_back(time_StartProcessKF);
+
             double timeLocalMap = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLocalMap - time_StartProcessKF).count();
             vdLMTotal_ms.push_back(timeLocalMap);
 #endif
+        
+            SetLocalMappingActive(false);
         }
         else if(Stop() && !mbBadImu)
         {
@@ -315,6 +323,8 @@ void LocalMapping::Run()
         auto dCount = duration.count();
         //if (mbLocalMappingDone)
         //{
+        
+        
         if(mpCurrentKeyFrame)
         {
 
@@ -324,9 +334,9 @@ void LocalMapping::Run()
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
-            std::cout << "this is before notify map" << std::endl;
+            //std::cout << "this is before notify map" << std::endl;
             notifyDistributorLocalMapUpdated(mpCurrentKeyFrame->GetMap());
-            std::cout << "This is after notify map" << std::endl;
+            //std::cout << "This is after notify map" << std::endl;
             
             //mpCurrentKeyFrame->GetMap()->ClearErasedData();
             //mpCurrentKeyFrame->GetMap()->ClearUpdatedKFIds();
@@ -336,7 +346,6 @@ void LocalMapping::Run()
             mbKFsAfterMapUpdate=false;
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
-            //SetLocalMappingActive(false);
             //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
             //  MAP_FREQ = 2000;
             //} else {
@@ -495,7 +504,7 @@ void LocalMapping::ProcessNewKeyFrame()
                     pMP->AddObservation(mpCurrentKeyFrame, i);
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
-                    pMP->SetLastModule(1); // Last module 1=LM
+                    pMP->SetLastModule(2); // Last module 1=LM
                     if(pMP->GetMap())
                       pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                     else 
@@ -517,8 +526,8 @@ void LocalMapping::ProcessNewKeyFrame()
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
-    //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
-    mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
+    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    mpCurrentKeyFrame->SetLastModule(2); // Last module 1=LM
     //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
 }
 
@@ -899,13 +908,13 @@ void LocalMapping::CreateNewMapPoints()
 
             mpCurrentKeyFrame->AddMapPoint(pMP,idx1);
             pKF2->AddMapPoint(pMP,idx2);
-            pKF2->SetLastModule(1); // Last module 1=LM
+            pKF2->SetLastModule(2); // Last module 1=LM
 
             mpAtlas->GetCurrentMap()->AddUpdatedKFId(pKF2->mnId);
             pMP->ComputeDistinctiveDescriptors();
 
             pMP->UpdateNormalAndDepth();
-            pMP->SetLastModule(1); // Last module 1=LM
+            pMP->SetLastModule(2); // Last module 1=LM
             
             if(pMP->GetMap())
               pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
@@ -1045,7 +1054,7 @@ void LocalMapping::SearchInNeighbors()
             {
                 pMP->ComputeDistinctiveDescriptors();
                 pMP->UpdateNormalAndDepth();
-                pMP->SetLastModule(1); // Last module 1=LM
+                pMP->SetLastModule(2); // Last module 1=LM
                 if(pMP->GetMap())
                   pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                 else 
@@ -1059,8 +1068,8 @@ void LocalMapping::SearchInNeighbors()
 
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections();
-    //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
-    mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
+    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
+    mpCurrentKeyFrame->SetLastModule(2); // Last module 1=LM
 }
 
 void LocalMapping::RequestStop()
@@ -1122,11 +1131,16 @@ void LocalMapping::SetAcceptKeyFrames(bool flag)
     unique_lock<mutex> lock(mMutexAccept);
     mbAcceptKeyFrames=flag;
 }
+bool LocalMapping::IsLMRunning()
+{
+    unique_lock<mutex> lock(mMutexAccept);
+    return mbIsRunning; 
+}
 
 void LocalMapping::SetLocalMappingActive(bool flag)
 {
     unique_lock<mutex> lock(mMutexAccept);
-    //notifyObserverLMActive(flag);
+    mbIsRunning = flag;
 }
 
 bool LocalMapping::SetNotStop(bool flag)
@@ -1217,7 +1231,7 @@ void LocalMapping::KeyFrameCulling()
                         const int &scaleLevel = (pKF -> NLeft == -1) ? pKF->mvKeysUn[i].octave
                                                                      : (i < pKF -> NLeft) ? pKF -> mvKeys[i].octave
                                                                                           : pKF -> mvKeysRight[i].octave;
-                        const map<KeyFrame*, tuple<int,int>> observations = pMP->GetObservations();
+                        const map<KeyFrame*, tuple<int,int>> observations(pMP->GetObservations());
                         int nObs=0;
                         for(map<KeyFrame*, tuple<int,int>>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {

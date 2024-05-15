@@ -221,6 +221,9 @@ public:
     { 
         return mpVocabulary;
     }
+
+    string mStrSaveToPath;
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);
@@ -294,7 +297,6 @@ private:
     //
     string mStrLoadAtlasFromFile;
     string mStrSaveAtlasToFile;
-    string mStrSaveToPath;
 
     string mStrVocabularyFilePath;
 

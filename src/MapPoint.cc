@@ -165,7 +165,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
 }
 
 // Copy constructor
-MapPoint::MapPoint(const MapPoint &mp):   
+MapPoint::MapPoint(const MapPoint& mp):   
     mnId(mp.mnId), mstrHexId(mp.mstrHexId), mnFirstKFid(mp.mnFirstKFid), mnFirstFrame(mp.mnFirstFrame), nObs(mp.nObs), mTrackProjX(mp.mTrackProjX), 
     mTrackProjY(mp.mTrackProjY), mTrackDepth(mp.mTrackDepth), mTrackDepthR(mp.mTrackDepthR), mTrackProjXR(mp.mTrackProjXR), mTrackProjYR(mp.mTrackProjYR), 
     mbTrackInView(mp.mbTrackInView), mbTrackInViewR(mp.mbTrackInViewR), mnTrackScaleLevel(mp.mnTrackScaleLevel), mnTrackScaleLevelR(mp.mnTrackScaleLevelR), 
@@ -173,12 +173,37 @@ MapPoint::MapPoint(const MapPoint &mp):
     mnBALocalForKF(mp.mnBALocalForKF), mnFuseCandidateForKF(mp.mnFuseCandidateForKF), mnLoopPointForKF(mp.mnLoopPointForKF), mnCorrectedByKF(mp.mnCorrectedByKF), 
     mnCorrectedReference(mp.mnCorrectedReference), mPosGBA(mp.mPosGBA), mnBAGlobalForKF(mp.mnBAGlobalForKF), mnBALocalForMerge(mp.mnBALocalForMerge), 
     mPosMerge(mp.mPosMerge), mNormalVectorMerge(mp.mNormalVectorMerge), mInvDepth(mp.mInvDepth), mInitU(mp.mInitU), mInitV(mp.mInitV), mpHostKF(mp.mpHostKF), 
-    mBackupHostKFId(mp.mBackupHostKFId), mnOriginMapId(mp.mnOriginMapId), mWorldPos(mp.mWorldPos), mObservations(mp.mObservations), 
-    mBackupObservationsId1(mp.mBackupObservationsId1), mBackupObservationsId2(mp.mBackupObservationsId2), mNormalVector(mp.mNormalVector), 
-    mDescriptor(mp.mDescriptor.clone()), mpRefKF(mp.mpRefKF), mBackupRefKFId(mp.mBackupRefKFId), mnVisible(mp.mnVisible), mnFound(mp.mnFound), mbBad(mp.mbBad), 
+    mBackupHostKFId(mp.mBackupHostKFId), mnOriginMapId(mp.mnOriginMapId), mWorldPos(mp.mWorldPos), /*mObservations(mp.mObservations),*/ 
+    /*mBackupObservationsId1(mp.mBackupObservationsId1), mBackupObservationsId2(mp.mBackupObservationsId2),*/ mNormalVector(mp.mNormalVector), 
+    /*mDescriptor(mp.mDescriptor.clone()),*/ mpRefKF(mp.mpRefKF), mBackupRefKFId(mp.mBackupRefKFId), mnVisible(mp.mnVisible), mnFound(mp.mnFound), mbBad(mp.mbBad), 
     mpReplaced(mp.mpReplaced), /*mBackupReplacedId(mp.mBackupReplacedId),*/ mBackupReplacedStrId(mp.mBackupReplacedStrId), 
     mfMinDistance(mp.mfMinDistance), mfMaxDistance(mp.mfMaxDistance), mpMap(mp.mpMap), mnLastModule(mp.mnLastModule)
 {
+    //unique_lock<mutex> lock1(mMutexModule);
+    //unique_lock<mutex> lock3(mMutexMap);
+    //unique_lock<mutex> lock4(mMutexPos);
+    //unique_lock<mutex> lock4(mGlobalMutex,std::defer_lock);
+    
+    //lock(lock1, lock2, lock3, lock4);
+
+    {
+        unique_lock<mutex> lock2(mMutexFeatures);
+        map<KeyFrame*, std::tuple<int,int>> mObs(mp.mObservations);
+        for(map<KeyFrame*, std::tuple<int,int>>::const_iterator it = mObs.begin(), end = mObs.end(); it != end; ++it)
+        {
+          //std::cout << it->first->mnId << "," << get<0>(it->second) << std::endl;
+          if(it->first)
+          {
+              mObservations[it->first] = it->second;
+              mBackupObservationsId1[it->first->mnId] = get<0>(it->second); 
+              mBackupObservationsId2[it->first->mnId] = get<1>(it->second); 
+          }
+        }
+
+        if(!mp.mDescriptor.empty())
+            mDescriptor=mp.mDescriptor.clone();
+
+    }
 
 }
 
@@ -232,14 +257,16 @@ MapPoint::MapPoint(long long int mnId_, std::string mstrHexId, long int mnFirstK
     //std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << mstrHexId << std::endl;
 }
 
-void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, float mTrackProjX_, float mTrackProjY_, float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_, long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int> mBackupObservationsId1_, std::map<long unsigned int, int> mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, cv::Mat mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */, unsigned int mnLastModule_) {
+void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, /*float mTrackProjX_, float mTrackProjY_, float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_,*/ long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int> mBackupObservationsId1_, std::map<long unsigned int, int> mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, /*cv::Mat mDescriptor_,*/ /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */, unsigned int mnLastModule_) {
     
+    SetWorldPos(mWorldPos_);
 
-    unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
-    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
-    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
+    unique_lock<mutex> lock1(mMutexModule);
+    unique_lock<mutex> lock2(mMutexFeatures);
+    unique_lock<mutex> lock3(mMutexMap);
+    unique_lock<mutex> lock4(mMutexPos);
     
-    lock(lock1, lock2, lock3);
+    //lock(lock1, lock2, lock3);
 
     mnFirstKFid               = mnFirstKFid_;
     mnFirstFrame              = mnFirstFrame_;
@@ -278,7 +305,7 @@ void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int
     mBackupObservationsId1    = mBackupObservationsId1_;
     mBackupObservationsId2    = mBackupObservationsId2_;
     mNormalVector             = mNormalVector_;
-    mDescriptor               = mDescriptor_;
+    /*mDescriptor               = mDescriptor_;*/
     mpRefKF                   = static_cast<KeyFrame*>(NULL);
     mBackupRefKFId            = mBackupRefKFId_;
     mnVisible                 = mnVisible_;
@@ -292,21 +319,20 @@ void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int
     mpMap                     = static_cast<Map*>(NULL);
     mnLastModule              = mnLastModule_;
 
-    SetWorldPos(mWorldPos_);
 }
 
 
-void MapPoint::UpdateMapPoint(MapPoint &mp) 
+void MapPoint::UpdateMapPoint(const MapPoint& mp) 
 {
     
     SetWorldPos(mp.mWorldPos);
 
-    unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
-    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
-    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
-    unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+    unique_lock<mutex> lock1(mMutexModule);
+    unique_lock<mutex> lock3(mMutexMap);
+    unique_lock<mutex> lock4(mMutexPos);
+    //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
     
-    lock(lock1, lock2, lock3, lock4);
+    //lock(lock1, lock2, lock3, lock4);
 
     mnFirstKFid               = mp.mnFirstKFid;
     mnFirstFrame              = mp.mnFirstFrame;
@@ -339,21 +365,39 @@ void MapPoint::UpdateMapPoint(MapPoint &mp)
     mInitU                    = mp.mInitU;
     mInitV                    = mp.mInitV;
     mpHostKF                  = mp.mpHostKF;
-    mBackupHostKFId           = mp.mBackupHostKFId;
+    //mBackupHostKFId           = mp->mBackupHostKFId;
     mnOriginMapId             = mp.mnOriginMapId;
-    mObservations             = mp.mObservations;
-    mBackupObservationsId1    = mp.mBackupObservationsId1;
-    mBackupObservationsId2    = mp.mBackupObservationsId2;
+    //mObservations             = mp.mObservations;
+    {
+        unique_lock<mutex> lock2(mMutexFeatures);
+        mObservations.clear();
+        mBackupObservationsId1.clear();
+        mBackupObservationsId2.clear();
+
+        map<KeyFrame*, std::tuple<int,int>> mObs(mp.mObservations);
+        for(map<KeyFrame*, std::tuple<int,int>>::const_iterator it = mObs.begin(), end = mObs.end(); it != end; ++it)
+        {
+          //std::cout << it->first->mnId << "," << get<0>(it->second) << std::endl;
+          if(it->first)
+          {
+              mObservations[it->first] = it->second;
+              mBackupObservationsId1[it->first->mnId] = get<0>(it->second); 
+              mBackupObservationsId2[it->first->mnId] = get<1>(it->second); 
+          }
+        }
+        mDescriptor               = mp.mDescriptor.clone();
+    }
+
+
     mNormalVector             = mp.mNormalVector;
-    mDescriptor               = mp.mDescriptor;
     mpRefKF                   = mp.mpRefKF;
-    mBackupRefKFId            = mp.mBackupRefKFId;
+    //mBackupRefKFId            = mp->mBackupRefKFId;
     mnVisible                 = mp.mnVisible;
     mnFound                   = mp.mnFound;
     mbBad                     = mp.mbBad;
     mpReplaced                = mp.mpReplaced;
     //long long int mBackupReplacedId = -1,
-    mBackupReplacedStrId      = mp.mBackupReplacedStrId;
+    //mBackupReplacedStrId      = mp->mBackupReplacedStrId;
     mfMinDistance             = mp.mfMinDistance;
     mfMaxDistance             = mp.mfMaxDistance;
     mpMap                     = mp.mpMap;
@@ -490,13 +534,14 @@ void MapPoint::SetBadFlag()
         if(leftIndex != -1){
             pKF->EraseMapPointMatch(leftIndex);
         }
-        if(rightIndex != -1){
-            pKF->EraseMapPointMatch(rightIndex);
-        }
+        //TODO: Uncomment this
+        //if(rightIndex != -1){
+        //    pKF->EraseMapPointMatch(rightIndex);
+        //}
     }
     
-    //if(mpMap)
-    //    mpMap->EraseMapPoint(this);
+    if(mpMap)
+        mpMap->EraseMapPoint(this);
         
 }
 
@@ -538,11 +583,11 @@ void MapPoint::Replace(MapPoint* pMP)
 
         if(!pMP->IsInKeyFrame(pKF))
         {
-            if(leftIndex != -1){
+            if(leftIndex != -1 && leftIndex < 10000){
                 pKF->ReplaceMapPointMatch(leftIndex, pMP);
                 pMP->AddObservation(pKF,leftIndex);
             }
-            if(rightIndex != -1){
+            if(rightIndex != -1 && rightIndex < 10000){
                 pKF->ReplaceMapPointMatch(rightIndex, pMP);
                 pMP->AddObservation(pKF,rightIndex);
             }
@@ -975,6 +1020,139 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 
 }
 
+
+void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordered_map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids)
+{
+    
+    unique_lock<mutex> lock1(mMutexPos,std::defer_lock);
+    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
+    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
+    unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+    
+    lock(lock1, lock2, lock3, lock4);
+    //if(mspUnprocKFids.find(mBackupRefKFId) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
+    //{
+    //  *bUnprocessed = true; 
+    //  std::cout << "Required KF=" << mBackupRefKFId << " is not processed yet (mBackupRefKFId)" << std::endl;
+    //  return;
+    //}
+
+    // Check if map point ptr can be found, if not, return
+    if(mBackupRefKFId > -1 && mBackupRefKFId < 10000 && mpKFid.find(mBackupRefKFId) == mpKFid.end()) {
+      //if(mBackupRefKFId < mpKFid.rbegin()->first)
+      //{
+      //  mBackupRefKFId = -1;
+      //  mpRefKF=static_cast<KeyFrame*>(NULL);
+      //} 
+      mBackupRefKFId = -1;
+      mpRefKF=static_cast<KeyFrame*>(NULL);
+      //else {
+
+      //  *bUnprocessed = true; 
+      //  std::cout << "ref kf id " << mBackupRefKFId << std::endl;
+      //  return;
+      //}
+    } else {
+      mpRefKF = mpKFid[mBackupRefKFId];
+    }
+    
+    if(!mpRefKF)
+    {
+        mpRefKF=static_cast<KeyFrame*>(NULL);
+        //cout << "ERROR: MP without KF reference " << mBackupRefKFId << "; Num obs: " << nObs << endl;
+    }
+    
+
+    //if(mspUnprocKFids.find(mBackupHostKFId) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
+    //{
+    //  *bUnprocessed = true; 
+    //  std::cout << "Required KF=" << mBackupHostKFId << " is not processed yet (mBackupHostKFId)" << std::endl;
+    //  return;
+    //}
+    // Check if map point ptr can be found, if not, return
+    if(mBackupHostKFId > -1 && mBackupHostKFId < 10000 && mpKFid.find(mBackupHostKFId) == mpKFid.end()) {
+      mBackupHostKFId = -1;
+      mpHostKF=static_cast<KeyFrame*>(NULL);
+      //if(mBackupHostKFId < mpKFid.rbegin()->first)
+      //{
+      //  mBackupHostKFId = -1;
+      //  mpHostKF=static_cast<KeyFrame*>(NULL);
+      //} else {
+      //
+      //  *bUnprocessed = true; 
+      //  std::cout << "host kf id " << mBackupHostKFId << std::endl;
+      //  return;
+      //}
+    } else {
+      mpHostKF = mpKFid[mBackupHostKFId];
+    }
+
+    if(!mpHostKF)
+    {
+        mpHostKF = static_cast<KeyFrame*>(NULL);   
+        //cout << "ERROR: MP without KF HOST " << mBackupHostKFId << "; Num obs: " << nObs << endl;
+    }
+    
+    // TODO: Here we need to check the local mapping id and tracking id
+    mpReplaced = static_cast<MapPoint*>(NULL);
+    if(mBackupReplacedStrId!="" && mBackupReplacedStrId.length() == 6)
+    {
+        unordered_map<std::string, MapPoint*>::iterator it = mpMPid.find(mBackupReplacedStrId);
+        if(it != mpMPid.end())
+        {
+          if(it->second)
+          {
+              mpReplaced = it->second;
+          }
+        }
+        //else {
+        //  *bUnprocessed = true; 
+        //  std::cout << "replace mp id " << mBackupReplacedStrId << std::endl;
+        //  return;
+        //}
+    }
+    //std::cout << "after mp replaced" << std::endl;
+    mObservations.clear();
+
+    //std::cout << "before obs " << mBackupObservationsId1.size() << ", " << mBackupObservationsId2.size() << std::endl;
+    for(map<long unsigned int, int>::const_iterator it = mBackupObservationsId1.begin(), end = mBackupObservationsId1.end(); it != end; ++it)
+    {
+        //std::cout << "observations stuff " << it->first << std::endl;
+        //if(mspUnprocKFids.find(it->first) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
+        //{
+        //  *bUnprocessed = true; 
+        //  std::cout << "Required KF=" << it->first << " is not processed yet (observations)" << std::endl;
+        //  return;
+        //}
+        
+        // Check if map point ptr can be found, if not, return
+        if(mpKFid.find(it->first) == mpKFid.end()) {
+          continue;
+          //if(it->first < mpKFid.rbegin()->first)
+          //{
+          //  continue;
+          //} else {
+          //  *bUnprocessed = true;
+          //  std::cout << "obs kf id " << it->first << std::endl;
+          //  return;
+          //}
+        } else {
+
+          KeyFrame* pKFi = mpKFid[it->first];
+          map<long unsigned int, int>::const_iterator it2 = mBackupObservationsId2.find(it->first);
+          std::tuple<int, int> indexes = tuple<int,int>(it->second,it2->second);
+          if(pKFi)
+          {
+             mObservations[pKFi] = indexes;
+          }
+        }
+    }
+
+    //mBackupObservationsId1.clear();
+    //mBackupObservationsId2.clear();
+    //std::cout << "end of postload" << std::endl;
+}
+
 void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids)
 {
     
@@ -1094,7 +1272,8 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
           std::tuple<int, int> indexes = tuple<int,int>(it->second,it2->second);
           if(pKFi)
           {
-             mObservations[pKFi] = indexes;
+              //std::cout << pKFi->mnId << "," << "<" << it->second << "," << it2->second << std::endl;
+              mObservations[pKFi] = indexes;
           }
         }
     }
@@ -1106,11 +1285,27 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
 
 std::map<long unsigned int, int> MapPoint::GetObservationsBackup1() {
   unique_lock<mutex> lock(mMutexFeatures);
+  //mBackupObservationsId1.clear();
+  //for(std::map<KeyFrame*,std::tuple<int,int> >::const_iterator it = mObservations.begin(), end = mObservations.end(); it != end; ++it)
+  //{
+  //    KeyFrame* pKFi = it->first;
+  //    if(!pKFi)
+  //        continue;
+  //    mBackupObservationsId1[it->first->mnId] = get<0>(it->second);
+  //}
   return mBackupObservationsId1; 
 }
 
 std::map<long unsigned int, int> MapPoint::GetObservationsBackup2() {
   unique_lock<mutex> lock(mMutexFeatures);
+  //mBackupObservationsId2.clear();
+  //for(std::map<KeyFrame*,std::tuple<int,int> >::const_iterator it = mObservations.begin(), end = mObservations.end(); it != end; ++it)
+  //{
+  //    KeyFrame* pKFi = it->first;
+  //    if(!pKFi)
+  //        continue;
+  //    mBackupObservationsId2[it->first->mnId] = get<1>(it->second);
+  //}
   return mBackupObservationsId2; 
 }
 } //namespace ORB_SLAM

@@ -55,7 +55,7 @@ LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, 
     mpCurrentKeyFrame = static_cast<KeyFrame*>(NULL);
 
     // map update variables
-    MAP_FREQ=200;
+    MAP_FREQ=0;
     KF_NUM=4;
     CONN_KF=2;
     ////msNewKFFlag=false;
@@ -137,6 +137,10 @@ void LocalMapping::Run()
                 SearchInNeighbors();
                 //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             }
+
+            //mpCurrentKeyFrame->mnNextTarget = 3;
+            //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+            //msNewMapPointIds.clear();
 
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndMPCreation = std::chrono::steady_clock::now();
@@ -290,7 +294,10 @@ void LocalMapping::Run()
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
             //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
-            notifyDistributorAddKeyframe(mpCurrentKeyFrame, 3); // Send KF to loop closing (module 3)
+            mpCurrentKeyFrame->mnNextTarget = 3;
+            //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+            //msNewMapPointIds.clear();
+
 
             //mbLocalMappingDone=true;
 #ifdef REGISTER_TIMES
@@ -329,7 +336,7 @@ void LocalMapping::Run()
         {
 
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
+          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
           {
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
@@ -505,10 +512,10 @@ void LocalMapping::ProcessNewKeyFrame()
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
                     pMP->SetLastModule(2); // Last module 1=LM
-                    if(pMP->GetMap())
-                      pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                    else 
-                      mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                    //if(pMP->GetMap())
+                    //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                    //else 
+                    //mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
   
                 }
                 else // this can only happen for new stereo points inserted by the Tracking
@@ -916,12 +923,13 @@ void LocalMapping::CreateNewMapPoints()
             pMP->UpdateNormalAndDepth();
             pMP->SetLastModule(2); // Last module 1=LM
             
-            if(pMP->GetMap())
-              pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-            else
-              mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
+            //if(pMP->GetMap())
+            //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+            //else
+            mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
             mpAtlas->AddMapPoint(pMP);
             mlpRecentAddedMapPoints.push_back(pMP);
+            msNewMapPointIds.insert(pMP->mstrHexId);
         }
     }    
 }
@@ -1055,10 +1063,10 @@ void LocalMapping::SearchInNeighbors()
                 pMP->ComputeDistinctiveDescriptors();
                 pMP->UpdateNormalAndDepth();
                 pMP->SetLastModule(2); // Last module 1=LM
-                if(pMP->GetMap())
-                  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                else 
-                  mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                //if(pMP->GetMap())
+                //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                //else 
+                //mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
             }
         }
     }

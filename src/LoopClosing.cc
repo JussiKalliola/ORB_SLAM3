@@ -77,7 +77,7 @@ LoopClosing::LoopClosing(Atlas *pAtlas, KeyFrameDatabase *pDB, ORBVocabulary *pV
     mnCorrectionGBA = 0;
     
     // map update variables
-    MAP_FREQ=2500;
+    MAP_FREQ=1000;
     msLastMUStart = std::chrono::high_resolution_clock::now();
 }
 
@@ -347,15 +347,15 @@ void LoopClosing::Run()
 
             }
             
-            msLastMUStop = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
-            auto dCount = duration.count();
-            if (!tempMapMerged && !tempLoopClosure && (dCount > MAP_FREQ) && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 10)
-            {
+            //msLastMUStop = std::chrono::high_resolution_clock::now();
+            //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
+            //auto dCount = duration.count();
+            //if (!tempMapMerged && !tempLoopClosure && (dCount > MAP_FREQ) && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 10)
+            //{
 
-              notifyDistributorMapUpdated(false, false, std::vector<unsigned long int>());
-              msLastMUStart = std::chrono::high_resolution_clock::now();
-            }
+            //  notifyDistributorMapUpdated(false, false, std::vector<unsigned long int>());
+            //  msLastMUStart = std::chrono::high_resolution_clock::now();
+            //}
             SetRunning(false);
 
             Verbose::PrintMess("      Thread3=LoopClosing::Run : End of the function;", Verbose::VERBOSITY_NORMAL);
@@ -441,6 +441,7 @@ bool LoopClosing::NewDetectCommonRegions()
     // Loop candidates
     bool bLoopDetectedInKF = false;
     bool bCheckSpatial = false;
+    SetRunning(true);
 
 #ifdef REGISTER_TIMES
     std::chrono::steady_clock::time_point time_StartEstSim3_1 = std::chrono::steady_clock::now();
@@ -2631,6 +2632,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             vtStartTimeFGBA_ms.push_back(time_StartFGBA);
 #endif
             notifyDistributorMapUpdated(false, true, mvMergedIds);
+            msLastMUStart = std::chrono::high_resolution_clock::now();
             SetRunning(false);
             Verbose::PrintMess("Map updated!", Verbose::VERBOSITY_NORMAL);
         }

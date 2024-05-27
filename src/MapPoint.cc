@@ -187,7 +187,7 @@ MapPoint::MapPoint(const MapPoint& mp):
     //lock(lock1, lock2, lock3, lock4);
 
     {
-        unique_lock<mutex> lock2(mMutexFeatures);
+        //unique_lock<mutex> lock2(mMutexFeatures);
         map<KeyFrame*, std::tuple<int,int>> mObs(mp.mObservations);
         for(map<KeyFrame*, std::tuple<int,int>>::const_iterator it = mObs.begin(), end = mObs.end(); it != end; ++it)
         {
@@ -215,7 +215,7 @@ MapPoint::MapPoint(long long int mnId_, std::string mstrHexId, long int mnFirstK
     long unsigned int mnBALocalForMerge, Eigen::Vector3f mPosMerge, Eigen::Vector3f mNormalVectorMerge, double mInvDepth, double mInitU,
     double mInitV, /*KeyFrame* mpHostKF = nullptr,*/ long long int mBackupHostKFId, unsigned int mnOriginMapId, Eigen::Vector3f mWorldPos,
     /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),*/
-    std::map<long unsigned int, int> mBackupObservationsId1, std::map<long unsigned int, int> mBackupObservationsId2, Eigen::Vector3f mNormalVector,
+    std::map<long unsigned int, int>& mBackupObservationsId1, std::map<long unsigned int, int>& mBackupObservationsId2, Eigen::Vector3f mNormalVector,
     cv::Mat mDescriptor, /*KeyFrame* mpRefKF = nullptr,*/ long long int mBackupRefKFId, int mnVisible, int mnFound, bool mbBad,
     /*MapPoint* mpReplaced = nullptr,*/ /*long long int mBackupReplacedId = -1,*/ std::string mBackupReplacedStrId, float mfMinDistance,
     float mfMaxDistance, /*Map* mpMap = nullptr*/ unsigned int mnLastModule):
@@ -228,7 +228,7 @@ MapPoint::MapPoint(long long int mnId_, std::string mstrHexId, long int mnFirstK
     mPosMerge(mPosMerge), mNormalVectorMerge(mNormalVectorMerge), mInvDepth(mInvDepth), mInitU(mInitU), mInitV(mInitV), /*mpHostKF(mpHostKF),*/ 
     mBackupHostKFId(mBackupHostKFId), mnOriginMapId(mnOriginMapId), mWorldPos(mWorldPos), /*mObservations(mObservations),*/ 
     mBackupObservationsId1(mBackupObservationsId1), mBackupObservationsId2(mBackupObservationsId2), mNormalVector(mNormalVector), 
-    mDescriptor(mDescriptor), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), 
+    mDescriptor(mDescriptor.clone()), /*mpRefKF(mpRefKF),*/ mBackupRefKFId(mBackupRefKFId), mnVisible(mnVisible), mnFound(mnFound), mbBad(mbBad), 
     /*mpReplaced(mpReplaced),*/ /*mBackupReplacedId(mBackupReplacedId),*/ mBackupReplacedStrId(mBackupReplacedStrId), 
     mfMinDistance(mfMinDistance), mfMaxDistance(mfMaxDistance) /*mpMap(mpMap)*/, mnLastModule(mnLastModule)
 {
@@ -257,19 +257,29 @@ MapPoint::MapPoint(long long int mnId_, std::string mstrHexId, long int mnFirstK
     //std::cout << "MP ROS Constructor: nNextId=" << nNextId << "," << mnId << ", Hash=" << mstrHexId << std::endl;
 }
 
-void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, /*float mTrackProjX_, float mTrackProjY_, float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_,*/ long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int> mBackupObservationsId1_, std::map<long unsigned int, int> mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, /*cv::Mat mDescriptor_,*/ /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */, unsigned int mnLastModule_) {
+void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int nObs_, /*float mTrackProjX_, float mTrackProjY_, float mTrackDepth_,*/
+    /* float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, bool mbTrackInViewR_, int mnTrackScaleLevel_,*/
+    /* int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_,*/ 
+    long unsigned int mnBALocalForKF_, long unsigned int mnFuseCandidateForKF_, long unsigned int mnLoopPointForKF_, long unsigned int mnCorrectedByKF_, 
+    long unsigned int mnCorrectedReference_, Eigen::Vector3f mPosGBA_, long unsigned int mnBAGlobalForKF_, long unsigned int mnBALocalForMerge_, 
+    Eigen::Vector3f mPosMerge_, Eigen::Vector3f mNormalVectorMerge_, double mInvDepth_, double mInitU_, double mInitV_, /*KeyFrame* mpHostKF = nullptr, */
+    long long int mBackupHostKFId_, unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, 
+    /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */std::map<long unsigned int, int>& mBackupObservationsId1_, 
+    std::map<long unsigned int, int>& mBackupObservationsId2_, Eigen::Vector3f mNormalVector_, cv::Mat mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/
+    long long int mBackupRefKFId_,int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */
+    std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */, unsigned int mnLastModule_) {
     
     SetWorldPos(mWorldPos_);
 
-    unique_lock<mutex> lock1(mMutexModule);
-    unique_lock<mutex> lock2(mMutexFeatures);
-    unique_lock<mutex> lock3(mMutexMap);
-    unique_lock<mutex> lock4(mMutexPos);
+    //:unique_lock<mutex> lock1(mMutexModule);
+    //unique_lock<mutex> lock3(mMutexMap);
+    //unique_lock<mutex> lock4(mMutexPos);
+    //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
     
-    //lock(lock1, lock2, lock3);
+    //lock(lock1, /*lock2,*/ lock3, lock4);
 
-    mnFirstKFid               = mnFirstKFid_;
-    mnFirstFrame              = mnFirstFrame_;
+    //mnFirstKFid               = mnFirstKFid_;
+    //mnFirstFrame              = mnFirstFrame_;
     nObs                      = nObs_;
     //mTrackProjX               = mTrackProjX_;
     //mTrackProjY               = mTrackProjY_;
@@ -285,40 +295,83 @@ void MapPoint::UpdateMapPoint(long int mnFirstKFid_, long int mnFirstFrame_, int
     //mTrackViewCosR            = mTrackViewCosR_;
     //mnTrackReferenceForFrame  = mnTrackReferenceForFrame_;
     //mnLastFrameSeen           = mnLastFrameSeen_;
-    mnBALocalForKF            = mnBALocalForKF_;
-    mnFuseCandidateForKF      = mnFuseCandidateForKF_;
-    mnLoopPointForKF          = mnLoopPointForKF_;
-    mnCorrectedByKF           = mnCorrectedByKF_;
-    mnCorrectedReference      = mnCorrectedReference_;
-    mPosGBA                   = mPosGBA_;
-    mnBAGlobalForKF           = mnBAGlobalForKF_;
-    mnBALocalForMerge         = mnBALocalForMerge_;
-    mPosMerge                 = mPosMerge_;
-    mNormalVectorMerge        = mNormalVectorMerge_;
-    mInvDepth                 = mInvDepth_;
-    mInitU                    = mInitU_;
-    mInitV                    = mInitV_;
-    mpHostKF                  = static_cast<KeyFrame*>(NULL);
+    //mnBALocalForKF            = mnBALocalForKF_;
+    //mnFuseCandidateForKF      = mnFuseCandidateForKF_;
+    //mnLoopPointForKF          = mnLoopPointForKF_;
+    //mnCorrectedByKF           = mnCorrectedByKF_;
+    //mnCorrectedReference      = mnCorrectedReference_;
+    //mPosGBA                   = mPosGBA_;
+    //mnBAGlobalForKF           = mnBAGlobalForKF_;
+    //mnBALocalForMerge         = mnBALocalForMerge_;
+    //mPosMerge                 = mPosMerge_;
+    //mNormalVectorMerge        = mNormalVectorMerge_;
+    //mInvDepth                 = mInvDepth_;
+    //mInitU                    = mInitU_;
+    //mInitV                    = mInitV_;
+    if(!mpHostKF)
+        mpHostKF                  = static_cast<KeyFrame*>(NULL);
     mBackupHostKFId           = mBackupHostKFId_;
     mnOriginMapId             = mnOriginMapId_;
     //std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),
     mBackupObservationsId1    = mBackupObservationsId1_;
     mBackupObservationsId2    = mBackupObservationsId2_;
     mNormalVector             = mNormalVector_;
-    /*mDescriptor               = mDescriptor_;*/
-    mpRefKF                   = static_cast<KeyFrame*>(NULL);
+    mDescriptor               = mDescriptor_.clone();
+    if(!mpRefKF)
+        mpRefKF                   = static_cast<KeyFrame*>(NULL);
     mBackupRefKFId            = mBackupRefKFId_;
     mnVisible                 = mnVisible_;
     mnFound                   = mnFound_;
     mbBad                     = mbBad_;
-    mpReplaced                = static_cast<MapPoint*>(NULL);
+    if(mpReplaced)
+        mpReplaced                = static_cast<MapPoint*>(NULL);
     //long long int mBackupReplacedId = -1,
     mBackupReplacedStrId      = mBackupReplacedStrId_;
     mfMinDistance             = mfMinDistance_;
     mfMaxDistance             = mfMaxDistance_;
-    mpMap                     = static_cast<Map*>(NULL);
+    if(mpMap)
+        mpMap                     = static_cast<Map*>(NULL);
     mnLastModule              = mnLastModule_;
 
+}
+
+void MapPoint::UpdateMapPoint(int nObs_, /*KeyFrame* mpHostKF = nullptr, */long long int mBackupHostKFId_, 
+    unsigned int mnOriginMapId_, Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */
+    std::map<long unsigned int, int>& mBackupObservationsId1_, std::map<long unsigned int, int>& mBackupObservationsId2_, 
+    Eigen::Vector3f mNormalVector_, cv::Mat mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/long long int mBackupRefKFId_,
+    int mnVisible_,int mnFound_,bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */
+    std::string mBackupReplacedStrId_, float mfMinDistance_, float mfMaxDistance_ /*Map* mpMap = nullptr */, unsigned int mnLastModule_)
+{
+    
+    SetWorldPos(mWorldPos_);
+    unique_lock<mutex> lock1(mMutexModule);
+    unique_lock<mutex> lock3(mMutexMap);
+    unique_lock<mutex> lock4(mMutexPos);
+    //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+    
+    lock(lock1, /*lock2,*/ lock3, lock4);
+    
+    nObs                      = nObs_;
+    //mpHostKF                  = static_cast<KeyFrame*>(NULL);
+    mBackupHostKFId           = mBackupHostKFId_;
+    mnOriginMapId             = mnOriginMapId_;
+    //std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(),
+    mBackupObservationsId1    = mBackupObservationsId1_;
+    mBackupObservationsId2    = mBackupObservationsId2_;
+    mNormalVector             = mNormalVector_;
+    mDescriptor               = mDescriptor_.clone();
+    //mpRefKF                   = static_cast<KeyFrame*>(NULL);
+    mBackupRefKFId            = mBackupRefKFId_;
+    mnVisible                 = mnVisible_;
+    mnFound                   = mnFound_;
+    mbBad                     = mbBad_;
+    //mpReplaced                = static_cast<MapPoint*>(NULL);
+    //long long int mBackupReplacedId = -1,
+    mBackupReplacedStrId      = mBackupReplacedStrId_;
+    mfMinDistance             = mfMinDistance_;
+    mfMaxDistance             = mfMaxDistance_;
+    //mpMap                     = static_cast<Map*>(NULL);
+    mnLastModule              = mnLastModule_;
 }
 
 
@@ -327,12 +380,12 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
     
     SetWorldPos(mp.mWorldPos);
 
-    unique_lock<mutex> lock1(mMutexModule);
-    unique_lock<mutex> lock3(mMutexMap);
-    unique_lock<mutex> lock4(mMutexPos);
-    //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
-    
-    //lock(lock1, lock2, lock3, lock4);
+    //unique_lock<mutex> lock1(mMutexModule);
+    //unique_lock<mutex> lock3(mMutexMap);
+    //unique_lock<mutex> lock4(mMutexPos);
+    ////unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+    //
+    //lock(lock1, /*lock2,*/ lock3, lock4);
 
     mnFirstKFid               = mp.mnFirstKFid;
     mnFirstFrame              = mp.mnFirstFrame;
@@ -351,16 +404,16 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
     //mTrackViewCosR            = mTrackViewCosR_;
     //mnTrackReferenceForFrame  = mnTrackReferenceForFrame_;
     //mnLastFrameSeen           = mnLastFrameSeen_;
-    mnBALocalForKF            = mp.mnBALocalForKF;
-    mnFuseCandidateForKF      = mp.mnFuseCandidateForKF;
-    mnLoopPointForKF          = mp.mnLoopPointForKF;
-    mnCorrectedByKF           = mp.mnCorrectedByKF;
-    mnCorrectedReference      = mp.mnCorrectedReference;
-    mPosGBA                   = mp.mPosGBA;
-    mnBAGlobalForKF           = mp.mnBAGlobalForKF;
-    mnBALocalForMerge         = mp.mnBALocalForMerge;
-    mPosMerge                 = mp.mPosMerge;
-    mNormalVectorMerge        = mp.mNormalVectorMerge;
+    //mnBALocalForKF            = mp.mnBALocalForKF;
+    //mnFuseCandidateForKF      = mp.mnFuseCandidateForKF;
+    //mnLoopPointForKF          = mp.mnLoopPointForKF;
+    //mnCorrectedByKF           = mp.mnCorrectedByKF;
+    //mnCorrectedReference      = mp.mnCorrectedReference;
+    //mPosGBA                   = mp.mPosGBA;
+    //mnBAGlobalForKF           = mp.mnBAGlobalForKF;
+    //mnBALocalForMerge         = mp.mnBALocalForMerge;
+    //mPosMerge                 = mp.mPosMerge;
+    //mNormalVectorMerge        = mp.mNormalVectorMerge;
     mInvDepth                 = mp.mInvDepth;
     mInitU                    = mp.mInitU;
     mInitV                    = mp.mInitV;
@@ -1156,12 +1209,12 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
 void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids)
 {
     
-    unique_lock<mutex> lock1(mMutexPos,std::defer_lock);
-    unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
-    unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
-    unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
-    
-    lock(lock1, lock2, lock3, lock4);
+    //unique_lock<mutex> lock1(mMutexPos,std::defer_lock);
+    //unique_lock<mutex> lock2(mMutexFeatures,std::defer_lock);
+    //unique_lock<mutex> lock3(mMutexMap,std::defer_lock);
+    //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+    //
+    //lock(lock1, lock2, lock3, lock4);
     //if(mspUnprocKFids.find(mBackupRefKFId) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
     //{
     //  *bUnprocessed = true; 

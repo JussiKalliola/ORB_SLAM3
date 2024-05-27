@@ -144,9 +144,9 @@ public:
       distributor_ = distributor;
     } 
     
-    void notifyDistributorAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
+    void notifyDistributorAddKeyframe(KeyFrame* pKF, std::set<std::string> msNewMapPointIds) {
       if (distributor_) {
-        distributor_->onKeyframeAdded(pKF, mnTargetModule);
+        distributor_->onKeyframeAdded(pKF, msNewMapPointIds);
       }
     }
 
@@ -202,6 +202,7 @@ protected:
     KeyFrame* mpCurrentKeyFrame;
 
     std::list<MapPoint*> mlpRecentAddedMapPoints;
+    std::set<std::string> msNewMapPointIds;
 
     std::mutex mMutexNewKFs;
     

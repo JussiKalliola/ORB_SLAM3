@@ -2324,6 +2324,8 @@ void Tracking::Track()
                 notifyDistributorResetActiveMap(pCurrentMap->GetId());
                 
                 mcLastResetTimeStamp = std::chrono::system_clock::now();
+                vnTimesLostTrack.push_back(1);
+                vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
                 return;
             }
             if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -2445,7 +2447,7 @@ void Tracking::StereoInitialization()
                     Eigen::Vector3f x3D;
                     mCurrentFrame.UnprojectStereo(i, x3D);
                     MapPoint* pNewMP = new MapPoint(x3D, pKFini, mpAtlas->GetCurrentMap());
-                    notifyNewMapPointCreated(pNewMP);
+                    //notifyNewMapPointCreated(pNewMP);
                     
                     pNewMP->SetLastModule(1); // Last module 0=tracking
                     
@@ -2614,8 +2616,8 @@ void Tracking::CreateInitialMapMonocular()
     mpAtlas->AddKeyFrame(pKFcur);
 
     // Edge-SLAM: Add Keyframe to database
-    mpKeyFrameDB->add(pKFini);
-    mpKeyFrameDB->add(pKFcur);
+    //mpKeyFrameDB->add(pKFini);
+    //mpKeyFrameDB->add(pKFcur);
     
     for(size_t i=0; i<mvIniMatches.size();i++)
     {
@@ -2629,6 +2631,7 @@ void Tracking::CreateInitialMapMonocular()
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
         
         pMP->SetLastModule(1); // Last module 0=tracking
+        mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
 
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -2689,6 +2692,8 @@ void Tracking::CreateInitialMapMonocular()
             MapPoint* pMP = vpAllMapPoints[iMP];
             pMP->SetWorldPos(pMP->GetWorldPos()*invMedianDepth);
             pMP->UpdateNormalAndDepth();
+            pMP->SetLastModule(1); // Last module 0=tracking
+            mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
         }
     }
 
@@ -2702,8 +2707,10 @@ void Tracking::CreateInitialMapMonocular()
     }
 
 
-    notifyDistributorAddKeyframe(pKFini, 2); // Send KF to LM (Module 2)
-    notifyDistributorAddKeyframe(pKFcur, 2); // Send KF to LM (Module 2)
+    pKFini->mnNextTarget = 2;
+    pKFcur->mnNextTarget = 2;
+    notifyDistributorAddKeyframe(pKFini); // Send KF to LM (Module 2)
+    notifyDistributorAddKeyframe(pKFcur); // Send KF to LM (Module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKFini);
     //mpLocalMapper->InsertKeyFrame(pKFcur);
@@ -2925,8 +2932,10 @@ void Tracking::UpdateLastFrame()
             }
 
             MapPoint* pNewMP = new MapPoint(x3D,mpAtlas->GetCurrentMap(),&mLastFrame,i);
-            notifyNewMapPointCreated(pNewMP);
+            //notifyNewMapPointCreated(pNewMP);
             pNewMP->SetLastModule(1); // Last module 0=tracking
+            std::cout << "Adding MP to the list of new updates=" << pNewMP->mstrHexId << std::endl; 
+            mpAtlas->GetCurrentMap()->AddUpdatedMPId(pNewMP->mstrHexId);
             mLastFrame.mvpMapPoints[i]=pNewMP;
 
             mlpTemporalPoints.push_back(pNewMP);
@@ -3193,8 +3202,8 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     
     // Don't send update if local map is still updating
-    if(mbLocalMapIsUpdating)
-        return false;
+    //if(mbLocalMapIsUpdating)
+    //    return false;
     
 
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
@@ -3211,10 +3220,10 @@ bool Tracking::NeedNewKeyFrame()
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
     // TODO: Disabled since this is not in the edge slam
-    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
-    {
-        return false;
-    }
+    //if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
+    //{
+    //    return false;
+    //}
 
     //UpdateReference();
 
@@ -3339,9 +3348,9 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
-    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1;  
+    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
    
-    std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
+    std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2 && (c1a||c1b)) && c5)
         if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
             return true;
@@ -3362,7 +3371,7 @@ void Tracking::CreateNewKeyFrame()
     //    return;
 
     KeyFrame* pKF = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
-    pKF->ComputeBoW();
+    //pKF->ComputeBoW();
     pKF->SetLastModule(1); // Last module 0=tracking
 
 
@@ -3370,8 +3379,8 @@ void Tracking::CreateNewKeyFrame()
         pKF->bImu = true;
 
     pKF->SetNewBias(mCurrentFrame.mImuBias);
-    mpReferenceKF = pKF;
-    mCurrentFrame.mpReferenceKF = pKF;
+    //mpReferenceKF = pKF;
+    //mCurrentFrame.mpReferenceKF = pKF;
 
     if(mpLastKeyFrame)
     {
@@ -3444,6 +3453,7 @@ void Tracking::CreateNewKeyFrame()
 
                     MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap());
                     pNewMP->SetLastModule(1); // Last module 0=tracking
+                    mpAtlas->GetCurrentMap()->AddUpdatedMPId(pNewMP->mstrHexId);
                     pNewMP->AddObservation(pKF,i);
 
                     //Check if it is a stereo observation in order to not
@@ -3479,12 +3489,13 @@ void Tracking::CreateNewKeyFrame()
     mpAtlas->AddKeyFrame(pKF); 
     mapUpToDate = false;
     //pKF->UpdateConnections();
-    mpKeyFrameDB->add(pKF);
+    //mpKeyFrameDB->add(pKF);
 
     //Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
     //ProcessNewKeyFrame(pKF);
     // TODO: Here the keyframe needs to be sent to ros network!!
-    notifyDistributorAddKeyframe(pKF, 2); // Send KF to LM (module 2)
+    pKF->mnNextTarget = 2;
+    notifyDistributorAddKeyframe(pKF); // Send KF to LM (module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKF);
 
@@ -3518,11 +3529,9 @@ void Tracking::ProcessNewKeyFrame(ORB_SLAM3::KeyFrame* pKF)
                     pMP->AddObservation(pKF, i);
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
-                    //pMP->SetLastModule(1); // Last module 1=LM
-                    //if(pMP->GetMap())
-                    //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                    //else 
-                    //  mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+
+                    pMP->SetLastModule(1); // Last module 1=LM
+                    mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
   
                 }
                 //else // this can only happen for new stereo points inserted by the Tracking
@@ -3539,7 +3548,7 @@ void Tracking::ProcessNewKeyFrame(ORB_SLAM3::KeyFrame* pKF)
     // Insert Keyframe in Map
     //mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
     //mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
-    //mpCurrentKeyFrame->SetLastModule(1); // Last module 1=LM
+    pKF->SetLastModule(1); // Last module 1=LM
 }
 
 void Tracking::SearchLocalPoints()
@@ -3625,12 +3634,9 @@ bool Tracking::IsMapUpToDate()
 }
 
 
-void Tracking::UpdateReference()
+void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
-  if(mpReferenceKF->TrackedMapPoints(2)>0)
-    return;
-
-  vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
+  //vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
   
   // Initialize Reference KeyFrame and other KF variables
   //if(vpKeyFrames.size() > 0)
@@ -3652,27 +3658,44 @@ void Tracking::UpdateReference()
   //}
 
   // Iterate through keyframes and reconstruct connections
-  for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
-  {
-      KeyFrame* pKFCon = *it;
-      int nRefMatches = pKFCon->TrackedMapPoints(2);
-      // If RefKF has lower id than current KF, then set it to that KF
-      if(mpReferenceKF->mnId < pKFCon->mnId && nRefMatches>0)
-      {
-          mpReferenceKF = pKFCon;
-      }
+  //for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
+  //{
+  //    KeyFrame* pKFCon = *it;
+  //    int nRefMatches = pKFCon->TrackedMapPoints(2);
+  //    // If RefKF has lower id than current KF, then set it to that KF
+  //    if(mpReferenceKF->mnId < pKFCon->mnId && nRefMatches>0)
+  //    {
+  //        mpReferenceKF = pKFCon;
+  //    }
 
-      // Update other KF variables
-      if(mnMapUpdateLastKFId < pKFCon->mnId)
-      {
-          //mnLastKeyFrameId = pKFCon->mnFrameId;
-          //mpLastKeyFrame = pKFCon;
-          mnMapUpdateLastKFId = pKFCon->mnId;
-      }
-  }
+  //    // Update other KF variables
+  //    if(mnMapUpdateLastKFId < pKFCon->mnId)
+  //    {
+  //        //mnLastKeyFrameId = pKFCon->mnFrameId;
+  //        //mpLastKeyFrame = pKFCon;
+  //        mnMapUpdateLastKFId = pKFCon->mnId;
+  //    }
+  //}
 
   // Set current-frame RefKF
-  mCurrentFrame.mpReferenceKF = mpReferenceKF;
+  int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
+  if(mpReferenceKF)
+  {
+      int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
+
+      std::cout << " -------- Tracking::UpdateReference() - " << nDiff << ", reference ID=" << mpReferenceKF->mnId << ", last module=" << mpReferenceKF->GetLastModule() << ", #MPs=" << mpReferenceKF->GetMapPoints().size() << ". pNewKF ID=" << pNewKF->mnId << std::endl;
+
+      if(mpReferenceKF->GetLastModule() <= 1) //&& mpReferenceKF->GetMapPoints().size() == 0)
+      {
+          std::cout << " -------- Updating reference KF from=" << mpReferenceKF->mnId << " to=" << pNewKF->mnId << ", in previous reference MPs=" << mpReferenceKF->GetMapPoints().size() << std::endl;
+          mpReferenceKF = pNewKF;
+          mCurrentFrame.mpReferenceKF = pNewKF;
+          mnLastKeyFrameId = pNewKF->mnId;
+          mpLastKeyFrame = pNewKF;
+      }
+  }
+  else
+      std::cout << " -------- Tracking::UpdateReference() - NO REFERENCE FOUND." << std::endl;
 
 }
 
@@ -3892,8 +3915,8 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   for (std::vector<KeyFrame*>::iterator it=vpKeyFrames.begin(); it!=vpKeyFrames.end(); ++it)
   {
       KeyFrame* pKFCon = *it;
-      mpKeyFrameDB->erase(pKFCon);
-      mpKeyFrameDB->add(pKFCon);
+      //mpKeyFrameDB->erase(pKFCon);
+      //mpKeyFrameDB->add(pKFCon);
       //if(pKFCon)
       //  mpKeyFrameDB->add(pKFCon);
       /* ================= This is done in PostLoad =======================*/
@@ -4300,7 +4323,6 @@ bool Tracking::Relocalization()
         else
         {
             int nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
-            //std::cout << "candidate id=" << pKF->mnId << ", #matches=" << nmatches << std::endl;
             if(nmatches<15)
             {
                 vbDiscarded[i] = true;
@@ -4308,6 +4330,7 @@ bool Tracking::Relocalization()
             }
             else
             {
+                std::cout << "candidate id=" << pKF->mnId << ", #matches=" << nmatches << std::endl;
                 MLPnPsolver* pSolver = new MLPnPsolver(mCurrentFrame,vvpMapPointMatches[i]);
                 pSolver->SetRansacParameters(0.99,10,300,6,0.5,5.991);  //This solver needs at least 6 points
                 vpMLPnPsolvers[i] = pSolver;
@@ -4321,15 +4344,15 @@ bool Tracking::Relocalization()
     bool bMatch = false;
     ORBmatcher matcher2(0.9,true);
     int tries = 0; // fix
-    int maxTries=100;// fix
+    int maxTries=1000;// fix
     std::cout << "#Candidates=" << nCandidates << "#KFs=" << nKFs << std::endl;
     while(nCandidates>0 && !bMatch)
     {
-        tries+=1;
         for(int i=0; i<nKFs; i++)
         {
             if(vbDiscarded[i])
                 continue;
+            tries+=1;
 
             // Perform 5 Ransac Iterations
             vector<bool> vbInliers;

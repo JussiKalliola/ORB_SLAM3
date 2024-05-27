@@ -288,14 +288,14 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         if(!pKF || pKF->isBad())
             continue;
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
-        std::cout << "before checks" << std::endl;
+        //std::cout << "before checks" << std::endl;
         g2o::SE3Quat SE3quat = vSE3->estimate();
-        if(!nLoopKF)
-          std::cout << "!nLoopKF" << std::endl;
-        if(!pMap)
-          std::cout << "!pMap" << std::endl;
-        if(!pMap->GetOriginKF())
-          std::cout << "!pMap->GetOriginKF()" << std::endl;
+        //if(!nLoopKF)
+        //  std::cout << "!nLoopKF" << std::endl;
+        //if(!pMap)
+        //  std::cout << "!pMap" << std::endl;
+        //if(!pMap->GetOriginKF())
+        //  std::cout << "!pMap->GetOriginKF()" << std::endl;
         if(nLoopKF==pMap->GetOriginKF()->mnId)
         {
             pKF->SetPose(Sophus::SE3f(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>()));
@@ -1479,10 +1479,10 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             MapPoint* pMPi = vToErase[i].second;
             pKFi->EraseMapPointMatch(pMPi);
             pMPi->EraseObservation(pKFi);
-            pMPi->SetLastModule(1); // Last module 1=LM
-            pKFi->SetLastModule(1); // Last module 1=LM
-            pMap->AddUpdatedMPId(pMPi->mstrHexId);
-            pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
+            //pMPi->SetLastModule(2); // Last module 1=LM
+            //pKFi->SetLastModule(2); // Last module 1=LM
+            //pMap->AddUpdatedMPId(pMPi->mstrHexId);
+            //pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
         }
     }
 
@@ -1495,8 +1495,8 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::SE3Quat SE3quat = vSE3->estimate();
         Sophus::SE3f Tiw(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>());
         pKFi->SetPose(Tiw);
-        pKFi->SetLastModule(1); // Last module 1=LM
-        pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
+        pKFi->SetLastModule(2); // Last module 1=LM
+        pMap->AddUpdatedKFId(pKFi->mnId);
     }
 
     //Points
@@ -1506,9 +1506,11 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
         pMP->SetWorldPos(vPoint->estimate().cast<float>());
         pMP->UpdateNormalAndDepth();
-        pMP->SetLastModule(1); // Last module 1=LM
+        pMP->SetLastModule(2); // Last module 1=LM
         pMap->AddUpdatedMPId(pMP->mstrHexId);
     }
+    
+    std::cout << "******* LocalBundleAdjustment ********* lLocalMapPoints.size()=" << lLocalMapPoints.size() << ", lLocalKeyFrames.size()=" << lLocalKeyFrames.size() << std::endl; 
 
     pMap->IncreaseChangeIndex();
 }
@@ -1549,27 +1551,27 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     // Set KeyFrame vertices
     for(size_t i=0, iend=vpKFs.size(); i<iend;i++)
     {
-        std::cout << i << ", " << vpKFs.size() << ", ";
+        //std::cout << i << ", " << vpKFs.size() << ", ";
         KeyFrame* pKF = vpKFs[i];
-        std::cout << "Get KF, ";
+        //std::cout << "Get KF, ";
         if(pKF->isBad())
             continue;
         g2o::VertexSim3Expmap* VSim3 = new g2o::VertexSim3Expmap();
 
         const int nIDi = pKF->mnId;
-        std::cout << "adding vertex (kf) with id=" << nIDi;
+        //std::cout << "adding vertex (kf) with id=" << nIDi;
 
         LoopClosing::KeyFrameAndPose::const_iterator it = CorrectedSim3.find(pKF);
 
         if(it!=CorrectedSim3.end())
         {
-            std::cout << ", it!=CorrectedSim3.end() ";
+            //std::cout << ", it!=CorrectedSim3.end() ";
             vScw[nIDi] = it->second;
             VSim3->setEstimate(it->second);
         }
         else
         {
-            std::cout << ", it==CorrectedSim3.end() ";
+            //std::cout << ", it==CorrectedSim3.end() ";
             Sophus::SE3d Tcw = pKF->GetPose().cast<double>();
             g2o::Sim3 Siw(Tcw.unit_quaternion(),Tcw.translation(),1.0);
             vScw[nIDi] = Siw;
@@ -1578,19 +1580,19 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
         if(pKF->mnId==pMap->GetInitKFid())
         {
-            std::cout << ", mnId==MapInitKFId, ";
+            //std::cout << ", mnId==MapInitKFId, ";
             VSim3->setFixed(true);
         }  
       
         VSim3->setId(nIDi);
         VSim3->setMarginalized(false);
         VSim3->_fix_scale = bFixScale;
-        std::cout << "Before addvertex ";
+        //std::cout << "Before addvertex ";
         optimizer.addVertex(VSim3);
         vZvectors[nIDi]=vScw[nIDi].rotation()*z_vec; // For debugging
 
         vpVertices[nIDi]=VSim3;
-        std::cout << ", end." << std::endl;
+        //std::cout << ", end." << std::endl;
     }
     std::cout << "after looping KF vertices" << std::endl;
 
@@ -1613,7 +1615,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         const g2o::Sim3 Siw = vScw[nIDi];
         const g2o::Sim3 Swi = Siw.inverse();
 
-        std::cout << "pKF->mnId=" << nIDi << ", LoopConnections.size()=" << LoopConnections.size() << ", spConnections.size()=" << spConnections.size() << ", count_loop=" << count_loop << std::endl;
+        //std::cout << "pKF->mnId=" << nIDi << ", LoopConnections.size()=" << LoopConnections.size() << ", spConnections.size()=" << spConnections.size() << ", count_loop=" << count_loop << std::endl;
 
         for(set<KeyFrame*>::const_iterator sit=spConnections.begin(), send=spConnections.end(); sit!=send; sit++)
         {
@@ -1624,43 +1626,43 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             //std::cout << " nIDi=" << nIDi << ", nIDj=" << nIDj << ", ";
             if((nIDi!=pCurKF->mnId || nIDj!=pLoopKF->mnId) && pKF->GetWeight(*sit)<minFeat)
             {
-                std::cout << "false ";
+                //std::cout << "false ";
                 continue;
             } else {
                 if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
                     continue;
-                std::cout << ", passed" << std::endl;
-                std::cout << " still before sjw = vScw[nIDj]";
+                //std::cout << ", passed" << std::endl;
+                //std::cout << " still before sjw = vScw[nIDj]";
                 const g2o::Sim3 Sjw = vScw[nIDj];
-                std::cout << " after but before Sji";
+                //std::cout << " after but before Sji";
                 const g2o::Sim3 Sji = Sjw * Swi;
-                std::cout << " beffore init e";
+                //std::cout << " beffore init e";
 
                 g2o::EdgeSim3* e = new g2o::EdgeSim3();
-                std::cout << ", before set vertex";
-                if(!optimizer.vertex(nIDj))
-                {
-                  std::cout << "nIDj is not valid" << std::endl;
-                }
-                if(!optimizer.vertex(nIDi))
-                {
-                  std::cout << "nIDi is not valid" << std::endl;
-                }
-                std::cout << Sji << ", " << Swi << std::endl;
-                std::cout << matLambda << std::endl;
+                //std::cout << ", before set vertex";
+                //if(!optimizer.vertex(nIDj))
+                //{
+                //  std::cout << "nIDj is not valid" << std::endl;
+                //}
+                //if(!optimizer.vertex(nIDi))
+                //{
+                //  std::cout << "nIDi is not valid" << std::endl;
+                //}
+                //std::cout << Sji << ", " << Swi << std::endl;
+                //std::cout << matLambda << std::endl;
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDj)));
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDi)));
                 e->setMeasurement(Sji);
-                std::cout << ", setMeasurement";
+                //std::cout << ", setMeasurement";
 
                 e->information() = matLambda;
                 
-                std::cout << ", before add edge";
+                //std::cout << ", before add edge";
 
                 //optimizer.addEdge(e);
                 count_loop++;
                 sInsertedEdges.insert(make_pair(min(nIDi,nIDj),max(nIDi,nIDj)));
-                std::cout << ", j loop done." << std::endl;
+                //std::cout << ", j loop done." << std::endl;
                 //exit(1);
             }
 
@@ -1672,6 +1674,8 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     for(size_t i=0, iend=vpKFs.size(); i<iend; i++)
     {
         KeyFrame* pKF = vpKFs[i];
+        if(!pKF || pKF->isBad())
+            continue;
 
         const int nIDi = pKF->mnId;
 
@@ -1689,6 +1693,9 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         // Spanning tree edge
         if(pParentKF)
         {
+            if(pParentKF->isBad())
+                continue;
+
             int nIDj = pParentKF->mnId;
 
             if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
@@ -1713,7 +1720,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             optimizer.addEdge(e);
         }
 
-        std::cout << "before loop edges" << std::endl;
+        //std::cout << "before loop edges" << std::endl;
         // Loop edges
         const set<KeyFrame*> sLoopEdges = pKF->GetLoopEdges();
         for(set<KeyFrame*>::const_iterator sit=sLoopEdges.begin(), send=sLoopEdges.end(); sit!=send; sit++)
@@ -1740,7 +1747,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             }
         }
 
-        std::cout << "before cov graph edges" << std::endl;
+        //std::cout << "before cov graph edges" << std::endl;
         // Covisibility graph edges
         const vector<KeyFrame*> vpConnectedKFs = pKF->GetCovisiblesByWeight(minFeat);
         for(vector<KeyFrame*>::const_iterator vit=vpConnectedKFs.begin(); vit!=vpConnectedKFs.end(); vit++)

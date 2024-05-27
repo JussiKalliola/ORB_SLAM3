@@ -75,6 +75,8 @@ void Atlas::CreateNewMap()
 
     mpCurrentMap = new Map(mnLastInitKFidMap);
     mpCurrentMap->SetCurrentMap();
+
+    notifyNewMapAdded(mpCurrentMap);
     
     mspMaps.insert(mpCurrentMap);
 }

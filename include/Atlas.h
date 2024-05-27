@@ -145,6 +145,14 @@ public:
 
     long unsigned int GetNumLivedMP();
 
+    void notifyNewMapAdded(ORB_SLAM3::Map* pM)
+    {
+      if (distributor_) {
+        distributor_->onNewMap(pM);
+      }
+
+    }
+
 
     void attachDistributor(std::shared_ptr<Distributor> distributor) {
       distributor_ = distributor;

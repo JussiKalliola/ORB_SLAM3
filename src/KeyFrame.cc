@@ -37,7 +37,7 @@ KeyFrame::KeyFrame():
         mfLogScaleFactor(0), mvScaleFactors(0), mvLevelSigma2(0), mvInvLevelSigma2(0), mnMinX(0), mnMinY(0), mnMaxX(0),
         mnMaxY(0), mPrevKF(static_cast<KeyFrame*>(NULL)), mNextKF(static_cast<KeyFrame*>(NULL)), mbFirstConnection(true), mpParent(static_cast<KeyFrame*>(NULL)), mbNotErase(false),
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
-        NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false)
+        NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0)
 {
     //notifyObserverKeyframeAdded(this);
 }
@@ -59,7 +59,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap), mbCurrentPlaceRecognition(false), mNameFile(F.mNameFile), mnMergeCorrectedForKF(0),
     mpCamera(F.mpCamera), mpCamera2(F.mpCamera2),
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
-    mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false)
+    mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0)
 {
     mnId=nNextId++;
     
@@ -125,7 +125,7 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
     mHalfBaseline(kf.mHalfBaseline), mpMap(kf.mpMap), mBackupPrevKFId(kf.mBackupPrevKFId), mBackupNextKFId(kf.mBackupNextKFId),
     /*mBackupImuPreintegrated(kf.mBackupImuPreintegrated),*/ mnBackupIdCamera(kf.mnBackupIdCamera), mnBackupIdCamera2(kf.mnBackupIdCamera2), mK_(kf.mK_), 
     mnLastModule(kf.mnLastModule), mpCamera(kf.mpCamera), mpCamera2(kf.mpCamera2), mvLeftToRightMatch(kf.mvLeftToRightMatch), mvRightToLeftMatch(kf.mvRightToLeftMatch), 
-    mvKeysRight(kf.mvKeysRight), NLeft(kf.NLeft), NRight(kf.NRight)/*, mGridRight(kf.mGridRight)*/
+    mvKeysRight(kf.mvKeysRight), NLeft(kf.NLeft), NRight(kf.NRight)/*, mGridRight(kf.mGridRight)*/, mnNextTarget(kf.mnNextTarget)
 {
     unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
@@ -233,7 +233,7 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
 
 
 // Constructor for ROS message
-KeyFrame::KeyFrame(bool bImu, long unsigned int nNextId, long unsigned int mnId, const long unsigned int mnFrameId, 
+KeyFrame::KeyFrame(bool bImu, long unsigned int nNextId, unsigned int mnNextTarget, long unsigned int mnId, const long unsigned int mnFrameId, 
     const double mTimeStamp, const int mnGridCols, const int mnGridRows, const float mfGridElementWidthInv, 
     const float mfGridElementHeightInv, long unsigned int mnTrackReferenceForFrame, long unsigned int mnFuseTargetForKF, 
     long unsigned int mnBALocalForKF, long unsigned int mnBAFixedForKF, long unsigned int mnNumberOfOpt, 
@@ -246,34 +246,34 @@ KeyFrame::KeyFrame(bool bImu, long unsigned int nNextId, long unsigned int mnId,
     /*IMU::Bias mBiasMerge,*/ long unsigned int mnMergeCorrectedForKF, long unsigned int mnMergeForKF, float mfScaleMerge, 
     long unsigned int mnBALocalForMerge, float mfScale, const float fx, const float fy, const float cx, const float cy, 
     const float invfx, const float invfy, const float mbf, const float mb, const float mThDepth, cv::Mat mDistCoef, 
-    const int N, const std::vector<cv::KeyPoint> mvKeys, const std::vector<cv::KeyPoint> mvKeysUn, 
-    const std::vector<float> mvuRight, const std::vector<float> mvDepth, const cv::Mat mDescriptors, 
+    const int N, const std::vector<cv::KeyPoint>& mvKeys, const std::vector<cv::KeyPoint>& mvKeysUn, 
+    const std::vector<float>& mvuRight, const std::vector<float>& mvDepth, const cv::Mat mDescriptors, 
     DBoW2::BowVector mBowVec, DBoW2::FeatureVector mFeatVec, Sophus::SE3f mTcp, const int mnScaleLevels, 
-    const float mfScaleFactor, const float mfLogScaleFactor, const std::vector<float> mvScaleFactors, 
-    const std::vector<float> mvLevelSigma2, const std::vector<float> mvInvLevelSigma2, const int mnMinX, const int mnMinY, 
+    const float mfScaleFactor, const float mfLogScaleFactor, const std::vector<float>& mvScaleFactors, 
+    const std::vector<float>& mvLevelSigma2, const std::vector<float>& mvInvLevelSigma2, const int mnMinX, const int mnMinY, 
     const int mnMaxX, const int mnMaxY, /*KeyFrame* mPrevKF = nullptr,*/ /*KeyFrame* mNextKF = nullptr,*/ 
     /*IMU::Preintegrated* mpImuPreintegrated = nullptr,*/ IMU::Calib mImuCalib, unsigned int mnOriginMapId, 
     string mNameFile, int mnDataset, /*std::vector <KeyFrame*> mvpLoopCandKFs = std::vector <KeyFrame*>(),*/ 
-    /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */std::vector <unsigned long int> mvLoopCandKFIds, 
-    std::vector <unsigned long int> mvMergeCandKFIds,Sophus::SE3<float> mTcw, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), */
+    /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */std::vector <unsigned long int>& mvLoopCandKFIds, 
+    std::vector <unsigned long int>& mvMergeCandKFIds,Sophus::SE3<float> mTcw, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), */
     /*Sophus::SE3<float> mTwc = Sophus::SE3<float>(), */ /*Eigen::Matrix3f mRwc = Eigen::Matrix3f(), */
     /*Eigen::Vector3f mOwb = Eigen::Vector3f(), *//*Eigen::Vector3f mVw = Eigen::Vector3f(), */bool mbHasVelocity, 
     Sophus::SE3<float> mTlr, Sophus::SE3<float> mTrl, /*IMU::Bias mImuBias,*/ 
-    /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(),*/ std::vector<std::string> mvBackupMapPointsId, 
+    /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(),*/ std::vector<std::string>& mvBackupMapPointsId, 
     /*KeyFrameDatabase* mpKeyFrameDB = nullptr, */ /*ORBVocabulary* mpORBvocabulary = nullptr, */
-    std::vector< std::vector <std::vector<size_t> > > mGrid, /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(),*/ 
-    /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int> mvOrderedWeights, 
-    std::map<long unsigned int, int> mBackupConnectedKeyFrameIdWeights, bool mbFirstConnection, /*KeyFrame* mpParent = nullptr,*/ 
+    std::vector< std::vector <std::vector<size_t> > >& mGrid, /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(),*/ 
+    /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int>& mvOrderedWeights, 
+    std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights, bool mbFirstConnection, /*KeyFrame* mpParent = nullptr,*/ 
     /*std::set<KeyFrame*> mspChildrens = std::set<KeyFrame*>(),*/ /*std::set<KeyFrame*> mspLoopEdges = std::set<KeyFrame*>(), */
     /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(),*/ long long int mBackupParentId, 
-    std::vector<long unsigned int> mvBackupChildrensId, std::vector<long unsigned int> mvBackupLoopEdgesId, 
-    std::vector<long unsigned int> mvBackupMergeEdgesId, bool mbNotErase, bool mbToBeErased, bool mbBad, float mHalfBaseline, 
+    std::vector<long unsigned int>& mvBackupChildrensId, std::vector<long unsigned int>& mvBackupLoopEdgesId, 
+    std::vector<long unsigned int>& mvBackupMergeEdgesId, bool mbNotErase, bool mbToBeErased, bool mbBad, float mHalfBaseline, 
     /*Map* mpMap = nullptr,*/ long long int mBackupPrevKFId, long long int mBackupNextKFId, 
     /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */unsigned int mnBackupIdCamera, unsigned int mnBackupIdCamera2, 
     Eigen::Matrix3f mK_, unsigned int mnLastModule,/*GeometricCamera* mpCamera = nullptr, *//*GeometricCamera* mpCamera2 = nullptr, */
-    std::vector<int> mvLeftToRightMatch, std::vector<int> mvRightToLeftMatch, const std::vector<cv::KeyPoint> mvKeysRight, 
-    const int NLeft, const int NRight, std::vector< std::vector <std::vector<size_t> > > mGridRight):
-bImu(bImu), mnId(mnId), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols(mnGridCols), mnGridRows(mnGridRows), mfGridElementWidthInv(mfGridElementWidthInv), 
+    std::vector<int>& mvLeftToRightMatch, std::vector<int>& mvRightToLeftMatch, const std::vector<cv::KeyPoint>& mvKeysRight, 
+    const int NLeft, const int NRight, std::vector< std::vector <std::vector<size_t> > >& mGridRight):
+bImu(bImu), mnNextTarget(mnNextTarget), mnId(mnId), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols(mnGridCols), mnGridRows(mnGridRows), mfGridElementWidthInv(mfGridElementWidthInv), 
   mfGridElementHeightInv(mfGridElementHeightInv), mnTrackReferenceForFrame(mnTrackReferenceForFrame), mnFuseTargetForKF(mnFuseTargetForKF), 
   mnBALocalForKF(mnBALocalForKF), mnBAFixedForKF(mnBAFixedForKF), mnNumberOfOpt(mnNumberOfOpt), mnLoopQuery(mnLoopQuery), mnLoopWords(mnLoopWords), 
   mLoopScore(mLoopScore), mnRelocQuery(mnRelocQuery), mnRelocWords(mnRelocWords), mRelocScore(mRelocScore), mnMergeQuery(mnMergeQuery), 
@@ -301,8 +301,8 @@ bImu(bImu), mnId(mnId), mnFrameId(mnFrameId), mTimeStamp(mTimeStamp), mnGridCols
   mvRightToLeftMatch(mvRightToLeftMatch), mvKeysRight(mvKeysRight), NLeft(NLeft), NRight(NRight), mGridRight(mGridRight)
 {
 
-    mBowVec = DBoW2::BowVector();
-    mFeatVec = DBoW2::FeatureVector(); 
+    //mBowVec = DBoW2::BowVector();
+    //mFeatVec = DBoW2::FeatureVector(); 
     //mnId=nNextId++;
     
     //if(!F.HasVelocity()) {
@@ -477,14 +477,54 @@ void KeyFrame::UpdateKeyFrame(const KeyFrame &kf, const int nFromModule)
     //NLeft                             = NLeft_;
     //NRight                            = NRight_; 
     //mGridRight                        = mGridRight_;
+    mnNextTarget=kf.mnNextTarget;
     SetPose(kf.mTcw);
 }
 
 
 
-void KeyFrame::UpdateKeyFrame( bool bImu_, /*const long unsigned int mnFrameId_,*/ /*const double mTimeStamp_,*//*const int mnGridCols_, *//*const int mnGridRows_, *//*const float mfGridElementWidthInv_, *//*const float mfGridElementHeightInv_,*/ /*long unsigned int mnTrackReferenceForFrame_,long unsigned int mnFuseTargetForKF_,*/ long unsigned int mnBALocalForKF_, long unsigned int mnBAFixedForKF_, long unsigned int mnNumberOfOpt_, long unsigned int mnLoopQuery_, int mnLoopWords_, float mLoopScore_, long unsigned int mnRelocQuery_, int mnRelocWords_, float mRelocScore_, long unsigned int mnMergeQuery_, int mnMergeWords_, float mMergeScore_, long unsigned int mnPlaceRecognitionQuery_, int mnPlaceRecognitionWords_, float mPlaceRecognitionScore_, bool mbCurrentPlaceRecognition_, Sophus::SE3f mTcwGBA_, Sophus::SE3f mTcwBefGBA_, Eigen::Vector3f mVwbGBA_, Eigen::Vector3f mVwbBefGBA_, /*IMU::Bias mBiasGBA_,*/ long unsigned int mnBAGlobalForKF_, Sophus::SE3f mTcwMerge_, Sophus::SE3f mTcwBefMerge_, Sophus::SE3f mTwcBefMerge_, Eigen::Vector3f mVwbMerge_, Eigen::Vector3f mVwbBefMerge_, /*IMU::Bias mBiasMerge_,*/ long unsigned int mnMergeCorrectedForKF_, long unsigned int mnMergeForKF_, float mfScaleMerge_, long unsigned int mnBALocalForMerge_, float mfScale_,  
-    /*const float fx_, *//*const float fy_, *//*const float cx_, *//*const float cy_, *//*const float invfx_, *//*const float invfy_, *//*const float mbf_, *//*const float mb_, *//*const float mThDepth_,*/ /*cv::Mat mDistCoef_,*/ /*const int N_, *//*const std::vector<cv::KeyPoint> mvKeys_, *//*const std::vector<cv::KeyPoint> mvKeysUn_, *//*const std::vector<float> mvuRight_, *//*const std::vector<float> mvDepth_, *//*const cv::Mat mDescriptors_, *//*DBoW2::BowVector mBowVec_, DBoW2::FeatureVector mFeatVec_, */Sophus::SE3f mTcp_, /*const int mnScaleLevels_, *//*const float mfScaleFactor_, *//*const float mfLogScaleFactor_, *//*const std::vector<float> mvScaleFactors_, *//*const std::vector<float> mvLevelSigma2_, *//*const std::vector<float> mvInvLevelSigma2_, *//*const int mnMinX_, *//*const int mnMinY_, *//*const int mnMaxX_, *//*const int mnMaxY_, *//*KeyFrame* mPrevKF = nullptr, *//*KeyFrame* mNextKF = nullptr, *//*IMU::Preintegrated* mpImuPreintegrated = nullptr, */ /*IMU::Calib mImuCalib_, unsigned int mnOriginMapId_, string mNameFile_, int mnDataset_,*/ /*std::vector <KeyFrame*> mvpLoopCandKFs = std::vector <KeyFrame*>(), */ /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */ std::vector <unsigned long int> mvLoopCandKFIds_, std::vector <unsigned long int> mvMergeCandKFIds_, Sophus::SE3<float> mTcw_, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), *//*Sophus::SE3<float> mTwc = Sophus::SE3<float>(),*/ /*Eigen::Matrix3f mRwc = Eigen::Matrix3f(), *//*Eigen::Vector3f mOwb = Eigen::Vector3f(), *//*Eigen::Vector3f mVw = Eigen::Vector3f(), */bool mbHasVelocity_, Sophus::SE3<float> mTlr_, Sophus::SE3<float> mTrl_, /*IMU::Bias mImuBias_,*/ /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(), */std::vector<std::string> mvBackupMapPointsId_, /*KeyFrameDatabase* mpKeyFrameDB = nullptr, */ /*ORBVocabulary* mpORBvocabulary = nullptr, */ /*std::vector< std::vector <std::vector<size_t> > > mGrid_,*/ 
-    /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(), */ /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int> mvOrderedWeights_, std::map<long unsigned int, int> mBackupConnectedKeyFrameIdWeights_, bool mbFirstConnection_,  /*KeyFrame* mpParent = nullptr, */ /*std::set<KeyFrame*> mspChildrens = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspLoopEdges = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(), */long long int mBackupParentId_, std::vector<long unsigned int> mvBackupChildrensId_, std::vector<long unsigned int> mvBackupLoopEdgesId_, std::vector<long unsigned int> mvBackupMergeEdgesId_, bool mbNotErase_, bool mbToBeErased_, bool mbBad_, float mHalfBaseline_, /*Map* mpMap = nullptr,*/ long long int mBackupPrevKFId_, long long int mBackupNextKFId_, /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */unsigned int mnBackupIdCamera_, unsigned int mnBackupIdCamera2_, /*Eigen::Matrix3f mK__,*/ unsigned int mnLastModule_/*GeometricCamera* mpCamera = nullptr, */ /*GeometricCamera* mpCamera2 = nullptr, *//*std::vector<int> mvLeftToRightMatch_, std::vector<int> mvRightToLeftMatch_,*/ /*const std::vector<cv::KeyPoint> mvKeysRight_,*/ /*const int NLeft_,*/ /*const int NRight_,*/ /*std::vector< std::vector <std::vector<size_t> > > mGridRight_*/)
+void KeyFrame::UpdateKeyFrame( bool bImu_, unsigned int mnNextTarget_, /*const long unsigned int mnFrameId_,*/ /*const double mTimeStamp_,*/
+    /*const int mnGridCols_, *//*const int mnGridRows_, *//*const float mfGridElementWidthInv_, *//*const float mfGridElementHeightInv_,*/ 
+    /*long unsigned int mnTrackReferenceForFrame_,long unsigned int mnFuseTargetForKF_,*/ long unsigned int mnBALocalForKF_, 
+    long unsigned int mnBAFixedForKF_, long unsigned int mnNumberOfOpt_, long unsigned int mnLoopQuery_, int mnLoopWords_, 
+    float mLoopScore_, long unsigned int mnRelocQuery_, int mnRelocWords_, float mRelocScore_, long unsigned int mnMergeQuery_, 
+    int mnMergeWords_, float mMergeScore_, long unsigned int mnPlaceRecognitionQuery_, int mnPlaceRecognitionWords_, float mPlaceRecognitionScore_, 
+    bool mbCurrentPlaceRecognition_, Sophus::SE3f mTcwGBA_, Sophus::SE3f mTcwBefGBA_, Eigen::Vector3f mVwbGBA_, Eigen::Vector3f mVwbBefGBA_, 
+    /*IMU::Bias mBiasGBA_,*/ long unsigned int mnBAGlobalForKF_, Sophus::SE3f mTcwMerge_, Sophus::SE3f mTcwBefMerge_, 
+    Sophus::SE3f mTwcBefMerge_, Eigen::Vector3f mVwbMerge_, Eigen::Vector3f mVwbBefMerge_, /*IMU::Bias mBiasMerge_,*/ 
+    long unsigned int mnMergeCorrectedForKF_, long unsigned int mnMergeForKF_, float mfScaleMerge_, long unsigned int mnBALocalForMerge_, float mfScale_,  
+    /*const float fx_, *//*const float fy_, *//*const float cx_, *//*const float cy_, *//*const float invfx_, *//*const float invfy_, */
+    /*const float mbf_, *//*const float mb_, *//*const float mThDepth_,*/ /*cv::Mat mDistCoef_,*/ /*const int N_, */
+    /*const std::vector<cv::KeyPoint> mvKeys_, *//*const std::vector<cv::KeyPoint> mvKeysUn_, */
+    /*const std::vector<float> mvuRight_, *//*const std::vector<float> mvDepth_, *//*const cv::Mat mDescriptors_, */
+    /*DBoW2::BowVector mBowVec_, DBoW2::FeatureVector mFeatVec_, */Sophus::SE3f mTcp_, /*const int mnScaleLevels_, */
+    /*const float mfScaleFactor_, *//*const float mfLogScaleFactor_, *//*const std::vector<float> mvScaleFactors_, */
+    /*const std::vector<float> mvLevelSigma2_, *//*const std::vector<float> mvInvLevelSigma2_, */
+    /*const int mnMinX_, *//*const int mnMinY_, *//*const int mnMaxX_, *//*const int mnMaxY_, *//*KeyFrame* mPrevKF = nullptr, */
+    /*KeyFrame* mNextKF = nullptr, *//*IMU::Preintegrated* mpImuPreintegrated = nullptr, */ 
+    /*IMU::Calib mImuCalib_, unsigned int mnOriginMapId_, string mNameFile_, int mnDataset_,*/ 
+    /*std::vector <KeyFrame*> mvpLoopCandKFs = std::vector <KeyFrame*>(), */ 
+    /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */ std::vector <unsigned long int>& mvLoopCandKFIds_, 
+    std::vector <unsigned long int>& mvMergeCandKFIds_, Sophus::SE3<float> mTcw_, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), */
+    /*Sophus::SE3<float> mTwc = Sophus::SE3<float>(),*/ /*Eigen::Matrix3f mRwc = Eigen::Matrix3f(), */
+    /*Eigen::Vector3f mOwb = Eigen::Vector3f(), *//*Eigen::Vector3f mVw = Eigen::Vector3f(), */
+    bool mbHasVelocity_, Sophus::SE3<float> mTlr_, Sophus::SE3<float> mTrl_, /*IMU::Bias mImuBias_,*/ 
+    /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(), */std::vector<std::string>& mvBackupMapPointsId_, 
+    /*KeyFrameDatabase* mpKeyFrameDB = nullptr, */ /*ORBVocabulary* mpORBvocabulary = nullptr, */ 
+    /*std::vector< std::vector <std::vector<size_t> > > mGrid_,*/ 
+    /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(), */ 
+    /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int>& mvOrderedWeights_, 
+    std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_, bool mbFirstConnection_,  
+    /*KeyFrame* mpParent = nullptr, */ /*std::set<KeyFrame*> mspChildrens = std::set<KeyFrame*>(), */ 
+    /*std::set<KeyFrame*> mspLoopEdges = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(), */
+    long long int mBackupParentId_, std::vector<long unsigned int>& mvBackupChildrensId_, std::vector<long unsigned int>& mvBackupLoopEdgesId_, 
+    std::vector<long unsigned int>& mvBackupMergeEdgesId_, bool mbNotErase_, bool mbToBeErased_, bool mbBad_, float mHalfBaseline_, 
+    /*Map* mpMap = nullptr,*/ long long int mBackupPrevKFId_, long long int mBackupNextKFId_, /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */
+    unsigned int mnBackupIdCamera_, unsigned int mnBackupIdCamera2_, /*Eigen::Matrix3f mK__,*/ unsigned int mnLastModule_
+    /*GeometricCamera* mpCamera = nullptr, */ /*GeometricCamera* mpCamera2 = nullptr, */
+    /*std::vector<int> mvLeftToRightMatch_, std::vector<int> mvRightToLeftMatch_,*/ 
+    /*const std::vector<cv::KeyPoint> mvKeysRight_,*/ /*const int NLeft_,*/ /*const int NRight_,*/ 
+    /*std::vector< std::vector <std::vector<size_t> > > mGridRight_*/)
 {
     unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
@@ -628,9 +668,48 @@ void KeyFrame::UpdateKeyFrame( bool bImu_, /*const long unsigned int mnFrameId_,
     //NLeft                             = NLeft_;
     //NRight                            = NRight_; 
     //mGridRight                        = mGridRight_;
+    mnNextTarget=mnNextTarget_;
     SetPose(mTcw_);
 }
 
+
+void KeyFrame::UpdateKeyFrame(long unsigned int mnRelocQuery_, int mnRelocWords_, float mRelocScore_,  long unsigned int mnPlaceRecognitionQuery_, 
+    int mnPlaceRecognitionWords_, float mPlaceRecognitionScore_, bool mbCurrentPlaceRecognition_, /*mfScale,*/ Sophus::SE3f mTcp_, 
+    /*mPrevKF,*/ /*mNextKF,*/ Sophus::SE3<float> mTcw_, /*mvpMapPoints,*/ std::vector<std::string>& mvBackupMapPointsId_, 
+    /*mConnectedKeyFrameWeights,*/ /*mvpOrderedConnectedKeyFrames,*/ std::vector<int>& mvOrderedWeights_, 
+    std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_,  /*mpParent,*/ /*mspChildrens,*/ long long int mBackupParentId_, 
+    std::vector<long unsigned int>& mvBackupChildrensId_, bool mbNotErase_, bool mbToBeErased_, bool mbBad_,  /*mpMap,*/ 
+    long long int mBackupPrevKFId_, long long int mBackupNextKFId_, unsigned int mnLastModule_, unsigned int mnNextTarget_)
+{
+  unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
+  //unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
+  unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
+  unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
+  lock(lock1, /*lock2,*/ lock3, lock4);
+  mnRelocQuery = mnRelocQuery_;
+  mnRelocWords = mnRelocWords_;
+  mRelocScore = mRelocScore_;
+  //mnPlaceRecognitionQuery = mnPlaceRecognitionQuery_;
+  //mnPlaceRecognitionWords = mnPlaceRecognitionWords_;
+  //mPlaceRecognitionScore = mPlaceRecognitionScore_;
+  //mbCurrentPlaceRecognition = mbCurrentPlaceRecognition_; 
+  mTcp = mTcp_; 
+  mBackupParentId = mBackupParentId_;
+  mbNotErase = mbNotErase_; 
+  mbToBeErased = mbToBeErased_;
+  mbBad = mbBad_;
+  mBackupPrevKFId = mBackupPrevKFId_;
+  mBackupNextKFId = mBackupNextKFId_; 
+  mnLastModule = mnLastModule_;
+  mvBackupMapPointsId = mvBackupMapPointsId_;
+  mvBackupMapPointsId = mvBackupMapPointsId_; 
+  mvOrderedWeights = mvOrderedWeights_; 
+  mBackupConnectedKeyFrameIdWeights = mBackupConnectedKeyFrameIdWeights_; 
+  mvBackupChildrensId = mvBackupChildrensId_;
+  mnNextTarget=mnNextTarget_;
+
+  SetPose(mTcw_);
+}
 
 void KeyFrame::ComputeBoW()
 {
@@ -882,6 +961,26 @@ set<MapPoint*> KeyFrame::GetMapPoints()
             s.insert(pMP);
     }
     return s;
+}
+
+pair<set<MapPoint*>, vector<unsigned long int>> KeyFrame::GetMapPointsAndIndices()
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    set<MapPoint*> s;
+    vector<unsigned long int> idx;
+
+    for(size_t i=0, iend=mvpMapPoints.size(); i<iend; i++)
+    {
+        if(!mvpMapPoints[i])
+            continue;
+        MapPoint* pMP = mvpMapPoints[i];
+        if(!pMP->isBad())
+        {
+            idx.push_back(i);
+            s.insert(pMP);
+        }
+    }
+    return std::make_pair(s, idx);
 }
 
 int KeyFrame::TrackedMapPoints(const int &minObs)
@@ -1198,7 +1297,7 @@ void KeyFrame::SetBadFlag()
                         if(vpConnected[i]->mnId == (*spcit)->mnId)
                         {
                             int w = pKF->GetWeight(vpConnected[i]);
-                            if(w>max)
+                            if(w>max && pKF->mnId != vpConnected[i]->mnId)
                             {
                                 pC = pKF;
                                 pP = vpConnected[i];
@@ -1846,7 +1945,6 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     // TODO: Here we need to check the local mapping id and tracking id
     if(N == mvBackupMapPointsId.size())
     {
-      //std::cout << "N=" << N <<", mvBackupMapPointsId.size()=" << mvBackupMapPointsId.size() << std::endl;
       for(int i=0; i<N; ++i)  
       {
           if(!mvBackupMapPointsId[i].empty() && mvBackupMapPointsId[i].length() == 6)
@@ -1865,6 +1963,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
             mvpMapPoints[i] = static_cast<MapPoint*>(NULL);
           }
       }
+    } else 
+    {
+
+      std::cout << "N=" << N <<" != mvBackupMapPointsId.size()=" << mvBackupMapPointsId.size() << std::endl;
     }
 
     //std::cout << "after mvp map point stuff" << std::endl;
@@ -1913,8 +2015,13 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         mBackupParentId = -1;
         mpParent = static_cast<KeyFrame*>(NULL);
       } else {
-        mpParent = mpKFid[mBackupParentId];
-
+        if(mBackupParentId != mnId)
+            mpParent = mpKFid[mBackupParentId];
+        else if(mBackupParentId == mnId)
+        {
+            mBackupParentId = -1;
+            mpParent = static_cast<KeyFrame*>(NULL);
+        }
       }
 
     } else {
@@ -2035,73 +2142,60 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
 
     //std::cout << "after backups" << std::endl;
     //Inertial data
-    if(mBackupPrevKFId >= 0 && mBackupPrevKFId <= 10000)
+    if(!mPrevKF || (mPrevKF && mPrevKF->mnId != mBackupPrevKFId && mBackupPrevKFId >= 0 && mBackupPrevKFId <= 10000))
     {
-        //if(mspUnprocKFids.find(mBackupPrevKFId) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
-        //{
-        //  *bUnprocessed = true; 
-        //  std::cout << "Required KF=" << mBackupPrevKFId << " is not processed yet (mBackupPrevKFId)" << std::endl;
-        //  return;
-        //}
-        
         if(mpKFid.find(mBackupPrevKFId) == mpKFid.end()) {
           
-          //unsigned long int nLargestId;
-          //// Correct reverse iteration
-          //for (auto it = mpKFid.rbegin(); it != mpKFid.rend(); ++it) {
-          //    if(it->second)
-          //    {
-          //      nLargestId=it->second->mnId;
-          //      break;
-          //    }
-          //}
-
-          //if(mBackupPrevKFId < nLargestId)
-          //{
             for (int i = mBackupPrevKFId-1; i >= 0; --i) {
                 if(mpKFid[i] && mpKFid.find(i) != mpKFid.end() && i != this->mnId)
                 {
-                    std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i << std::endl;
+                    std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
                     mBackupPrevKFId=i;
                     mPrevKF = mpKFid[mBackupPrevKFId];
                     mPrevKF->mNextKF = this;
+                    mPrevKF->mBackupNextKFId = mnId;
                     break;
-                } else {
+                } 
+                else {
                     if(mpMap)
                         mpMap->EraseKeyFrame(i);
                 }
             }
-          //} else {
-          //  *bUnprocessed = true; 
-          //  std::cout << "ERROR: prevKF=" << mBackupPrevKFId << " not found. This ID=" << mnId  << ", biggest id in map=" << nLargestId<< std::endl;
-          //  return;
-          //}
         } else {
           mPrevKF = mpKFid[mBackupPrevKFId];
         }
 
-    } else {
-      mPrevKF = static_cast<KeyFrame*>(NULL);
     }
+
+
     //std::cout << "after mPrevKF" << std::endl;
-    if(mBackupNextKFId >= 0 && mBackupNextKFId <= 10000)
+    //
+    if(!mNextKF || (mNextKF && mNextKF->mnId != mBackupNextKFId && mBackupNextKFId >= 0 && mBackupNextKFId <= 10000))
     {
-        //if(mspUnprocKFids.find(mBackupNextKFId) != mspUnprocKFids.end() && !mspUnprocKFids.empty())
-        //{
-        //  *bUnprocessed = true; 
-        //  std::cout << "Required KF=" << mBackupNextKFId << " is not processed yet (mBackupNextKFId)" << std::endl;
-        //  return;
-        //}
-        
         if(mpKFid.find(mBackupNextKFId) == mpKFid.end()) {
-          //*bUnprocessed = true; 
-          std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
-          mNextKF = static_cast<KeyFrame*>(NULL);
+            for (int i = this->mnId+1; i <= mpKFid.rbegin()->first; ++i) {
+                if(mpKFid[i] && mpKFid.find(i) != mpKFid.end() && i != this->mnId)
+                {
+                    std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
+                    mBackupNextKFId=i;
+                    mNextKF = mpKFid[mBackupNextKFId];
+                    mNextKF->mPrevKF = this;
+                    mNextKF->mBackupPrevKFId = mnId;
+                    break;
+                } 
+                else {
+                    if(mpMap)
+                        mpMap->EraseKeyFrame(i);
+                }
+            }
+            //std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
+            //mNextKF = static_cast<KeyFrame*>(NULL);
         } else {
-          mNextKF = mpKFid[mBackupNextKFId];
+            mNextKF = mpKFid[mBackupNextKFId];
         }
-    } else {
-      mNextKF = static_cast<KeyFrame*>(NULL);
+        if(!mNextKF)
+          mNextKF = static_cast<KeyFrame*>(NULL);
+
     }
     //std::cout << "after mNextKF" << std::endl;
     mpImuPreintegrated = &mBackupImuPreintegrated;

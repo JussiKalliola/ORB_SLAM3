@@ -2,6 +2,7 @@
 
 #ifndef DISTRIBUTOR_H
 #define DISTRIBUTOR_H
+#include <set>
 
 #include "Thirdparty/Sophus/sophus/geometry.hpp"
 #include "Thirdparty/Sophus/sophus/sim3.hpp"
@@ -22,8 +23,10 @@ class Map;
 
 class Distributor {
   public:
-        virtual void onKeyframeAdded(KeyFrame* pKF, unsigned int mnTargetModule) = 0;
+        virtual void onKeyframeAdded(KeyFrame* pKF) = 0;
+        virtual void onKeyframeAdded(KeyFrame* pKF, std::set<std::string> msNewMapPointIds) = 0;
         //virtual void onMapAdded(Map* pM) = 0;
+        virtual void onNewMap(ORB_SLAM3::Map* pM) = 0;
         virtual void onNewKeyFrame(ORB_SLAM3::KeyFrame* pKF) = 0;
         virtual void onNewMapPoint(ORB_SLAM3::MapPoint* pMP) = 0;
         virtual void onLocalMapUpdated(Map* pM) = 0;

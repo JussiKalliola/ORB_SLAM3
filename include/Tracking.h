@@ -107,7 +107,7 @@ public:
     
     void SetLocalMappingIsInIdle(bool flag);
     
-    void UpdateReference();
+    void UpdateReference(ORB_SLAM3::KeyFrame* pNewKF);
     void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string,MapPoint*> mpOrbMapPoints);
     bool IsMapUpToDate();
     void MUReset();
@@ -124,9 +124,9 @@ public:
 
     }
 
-    void notifyDistributorAddKeyframe(KeyFrame* pKF, unsigned int mnTargetModule) {
+    void notifyDistributorAddKeyframe(KeyFrame* pKF) {
       if (distributor_) {
-        distributor_->onKeyframeAdded(pKF, mnTargetModule);
+        distributor_->onKeyframeAdded(pKF);
       }
     }
     

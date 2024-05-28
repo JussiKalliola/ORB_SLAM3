@@ -336,7 +336,7 @@ void LocalMapping::Run()
         {
 
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
+          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1))
           {
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
@@ -917,7 +917,7 @@ void LocalMapping::CreateNewMapPoints()
             pKF2->AddMapPoint(pMP,idx2);
             pKF2->SetLastModule(2); // Last module 1=LM
 
-            mpAtlas->GetCurrentMap()->AddUpdatedKFId(pKF2->mnId);
+            //mpAtlas->GetCurrentMap()->AddUpdatedKFId(pKF2->mnId);
             pMP->ComputeDistinctiveDescriptors();
 
             pMP->UpdateNormalAndDepth();

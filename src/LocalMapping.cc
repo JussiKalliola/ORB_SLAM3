@@ -336,7 +336,7 @@ void LocalMapping::Run()
         {
 
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1))
+          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
           {
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;

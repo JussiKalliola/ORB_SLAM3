@@ -3348,7 +3348,7 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
-    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05; // do not publish kf's more frequently than every 10ms  
    
     std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2 && (c1a||c1b)) && c5)

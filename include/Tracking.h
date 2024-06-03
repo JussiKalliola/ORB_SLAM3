@@ -234,6 +234,7 @@ public:
     vector<double> vdLMTrack_ms;
     vector<double> vdNewKF_ms;
     vector<double> vdTrackTotal_ms;
+    vector<std::chrono::steady_clock::time_point> vtStartTimeTR_ms;
 
     vector<std::chrono::steady_clock::time_point> vtStartTime_ms;
 

@@ -286,7 +286,7 @@ void LocalMapping::Run()
             }
 
 #ifdef REGISTER_TIMES
-            vdLBASync_ms.push_back(timeKFCulling_ms);
+            vdLBASync_ms.push_back(timeLBA_ms);
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
 

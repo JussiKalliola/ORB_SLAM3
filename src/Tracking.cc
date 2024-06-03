@@ -1959,6 +1959,9 @@ void Tracking::Track()
 
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_StartPosePred = std::chrono::steady_clock::now();
+        double timeNewKF=0;
+        double timeLMTrack=0;
+        double timePosePred=0;
 #endif
 
         // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
@@ -2062,8 +2065,17 @@ void Tracking::Track()
                     if(mpLastKeyFrame)
                         mpLastKeyFrame = static_cast<KeyFrame*>(NULL);
                     
+#ifdef REGISTER_TIMES
                     vnTimesLostTrack.push_back(1);
                     vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
+                    double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+                    vdTrackTotal_ms.push_back(timeTotal);
+                    vdNewKF_ms.push_back(timeNewKF);
+                    vdLMTrack_ms.push_back(timeLMTrack);
+                    vdPosePred_ms.push_back(timePosePred);
+                    // Save the starting time at the same time as end duration for visualization
+                    vtStartTimeTR_ms.push_back(time_StartPosePred);
+#endif
                     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
                     return;
@@ -2149,8 +2161,7 @@ void Tracking::Track()
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_EndPosePred = std::chrono::steady_clock::now();
 
-        double timePosePred = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPosePred - time_StartPosePred).count();
-        vdPosePred_ms.push_back(timePosePred);
+        timePosePred = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndPosePred - time_StartPosePred).count();
 #endif
 
 
@@ -2231,8 +2242,7 @@ void Tracking::Track()
 #ifdef REGISTER_TIMES
         std::chrono::steady_clock::time_point time_EndLMTrack = std::chrono::steady_clock::now();
 
-        double timeLMTrack = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLMTrack - time_StartLMTrack).count();
-        vdLMTrack_ms.push_back(timeLMTrack);
+        timeLMTrack = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLMTrack - time_StartLMTrack).count();
 #endif
 
         // Update drawer
@@ -2294,8 +2304,7 @@ void Tracking::Track()
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndNewKF = std::chrono::steady_clock::now();
 
-            double timeNewKF = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndNewKF - time_StartNewKF).count();
-            vdNewKF_ms.push_back(timeNewKF);
+            timeNewKF = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndNewKF - time_StartNewKF).count();
 #endif
 
             // We allow points with high innovation (considererd outliers by the Huber Function)
@@ -2324,8 +2333,17 @@ void Tracking::Track()
                 notifyDistributorResetActiveMap(pCurrentMap->GetId());
                 
                 mcLastResetTimeStamp = std::chrono::system_clock::now();
+#ifdef REGISTER_TIMES
                 vnTimesLostTrack.push_back(1);
                 vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
+                double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+                vdTrackTotal_ms.push_back(timeTotal);
+                vdNewKF_ms.push_back(timeNewKF);
+                vdLMTrack_ms.push_back(timeLMTrack);
+                vdPosePred_ms.push_back(timePosePred);
+                // Save the starting time at the same time as end duration for visualization
+                vtStartTimeTR_ms.push_back(time_StartPosePred);
+#endif
                 return;
             }
             if (mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD)
@@ -2338,6 +2356,15 @@ void Tracking::Track()
 
             CreateMapInAtlas();
 
+#ifdef REGISTER_TIMES
+            double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+            vdTrackTotal_ms.push_back(timeTotal);
+            vdNewKF_ms.push_back(timeNewKF);
+            vdLMTrack_ms.push_back(timeLMTrack);
+            vdPosePred_ms.push_back(timePosePred);
+            // Save the starting time at the same time as end duration for visualization
+            vtStartTimeTR_ms.push_back(time_StartPosePred);
+#endif
             return;
         }
 
@@ -2351,6 +2378,16 @@ void Tracking::Track()
         
         
         //std::cout << "Current Map ID=" << mpAtlas->GetCurrentMap()->GetId() << ", number of maps=" << mpAtlas->GetAllMaps().size() << std::endl;
+#ifdef REGISTER_TIMES
+        double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+        vdNewKF_ms.push_back(timeNewKF);
+        vdLMTrack_ms.push_back(timeLMTrack);
+        vdTrackTotal_ms.push_back(timeTotal);
+        vdPosePred_ms.push_back(timePosePred);
+
+        // Save the starting time at the same time as end duration for visualization
+        vtStartTimeTR_ms.push_back(time_StartPosePred);
+#endif
     }
 
 
@@ -2377,6 +2414,7 @@ void Tracking::Track()
         }
 
     }
+
 
     //std::cout << "last mState=" << mState << std::endl;
 

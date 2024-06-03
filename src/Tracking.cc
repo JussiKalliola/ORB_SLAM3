@@ -2330,7 +2330,7 @@ void Tracking::Track()
                 Verbose::PrintMess("Thread1=Tracking::Track : less than 10 KFs in map -> reset active map.", Verbose::VERBOSITY_NORMAL);
                 std::cout << "mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", pCurrentMap->KeyFramesInMap()=" << pCurrentMap->KeyFramesInMap() << std::endl;
                 mpSystem->ResetActiveMap();
-                notifyDistributorResetActiveMap(pCurrentMap->GetId());
+                //notifyDistributorResetActiveMap(pCurrentMap->GetId());
                 
                 mcLastResetTimeStamp = std::chrono::system_clock::now();
 #ifdef REGISTER_TIMES
@@ -2645,18 +2645,10 @@ void Tracking::CreateInitialMapMonocular()
     pKFini->ComputeBoW();
     pKFcur->ComputeBoW();
 
-
-    pKFini->SetLastModule(1); // Last module 0=tracking
-    pKFcur->SetLastModule(1); // Last module 0=tracking
-
     // Insert KFs in the map
     mpAtlas->AddKeyFrame(pKFini);
     mpAtlas->AddKeyFrame(pKFcur);
 
-    // Edge-SLAM: Add Keyframe to database
-    //mpKeyFrameDB->add(pKFini);
-    //mpKeyFrameDB->add(pKFcur);
-    
     for(size_t i=0; i<mvIniMatches.size();i++)
     {
         if(mvIniMatches[i]<0)
@@ -2665,11 +2657,7 @@ void Tracking::CreateInitialMapMonocular()
         //Create MapPoint.
         Eigen::Vector3f worldPos;
         worldPos << mvIniP3D[i].x, mvIniP3D[i].y, mvIniP3D[i].z;
-        
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpAtlas->GetCurrentMap());
-        
-        pMP->SetLastModule(1); // Last module 0=tracking
-        mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
 
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -2689,8 +2677,6 @@ void Tracking::CreateInitialMapMonocular()
     }
 
 
-    mapUpToDate = false;
-    
     // Update Connections
     pKFini->UpdateConnections();
     pKFcur->UpdateConnections();
@@ -2699,7 +2685,7 @@ void Tracking::CreateInitialMapMonocular()
     sMPs = pKFini->GetMapPoints();
 
     // Bundle Adjustment
-    Verbose::PrintMess("New Map created with " + to_string(mpAtlas->MapPointsInMap()) + " points, map id=" + to_string(mpAtlas->GetCurrentMap()->GetId()), Verbose::VERBOSITY_QUIET);
+    Verbose::PrintMess("New Map created with " + to_string(mpAtlas->MapPointsInMap()) + " points", Verbose::VERBOSITY_QUIET);
     Optimizer::GlobalBundleAdjustemnt(mpAtlas->GetCurrentMap(),20);
 
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
@@ -2730,8 +2716,6 @@ void Tracking::CreateInitialMapMonocular()
             MapPoint* pMP = vpAllMapPoints[iMP];
             pMP->SetWorldPos(pMP->GetWorldPos()*invMedianDepth);
             pMP->UpdateNormalAndDepth();
-            pMP->SetLastModule(1); // Last module 0=tracking
-            mpAtlas->GetCurrentMap()->AddUpdatedMPId(pMP->mstrHexId);
         }
     }
 
@@ -2745,14 +2729,9 @@ void Tracking::CreateInitialMapMonocular()
     }
 
 
-    pKFini->mnNextTarget = 2;
-    pKFcur->mnNextTarget = 2;
-    notifyDistributorAddKeyframe(pKFini); // Send KF to LM (Module 2)
-    notifyDistributorAddKeyframe(pKFcur); // Send KF to LM (Module 2)
-    
-    //mpLocalMapper->InsertKeyFrame(pKFini);
-    //mpLocalMapper->InsertKeyFrame(pKFcur);
-    //mpLocalMapper->mFirstTs=pKFcur->mTimeStamp;
+    mpLocalMapper->InsertKeyFrame(pKFini);
+    mpLocalMapper->InsertKeyFrame(pKFcur);
+    mpLocalMapper->mFirstTs=pKFcur->mTimeStamp;
 
     mCurrentFrame.SetPose(pKFcur->GetPose());
     mnLastKeyFrameId=mCurrentFrame.mnId;
@@ -3225,7 +3204,6 @@ void Tracking::SetLocalMappingIsInIdle(bool flag)
 
 bool Tracking::NeedNewKeyFrame()
 {
-    //Verbose::PrintMess("Thread1=Tracking::NeedNewKeyFrame : based on the time between frames, check if new KF is needed.", Verbose::VERBOSITY_NORMAL);
     if((mSensor == System::IMU_MONOCULAR || mSensor == System::IMU_STEREO || mSensor == System::IMU_RGBD) && !mpAtlas->GetCurrentMap()->isImuInitialized())
     {
         if (mSensor == System::IMU_MONOCULAR && (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.25)
@@ -3238,32 +3216,23 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mbOnlyTracking)
         return false;
-    
-    // Don't send update if local map is still updating
-    //if(mbLocalMapIsUpdating)
-    //    return false;
-    
 
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
-    //if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested()) {
-    //    Verbose::PrintMess("Thread1=Tracking::NeedNewKeyFrame : mplLocalMapper is stopped.", Verbose::VERBOSITY_NORMAL);
-    //    /*if(mSensor == System::MONOCULAR)
-    //    {
-    //        std::cout << "NeedNewKeyFrame: localmap stopped" << std::endl;
-    //    }*/
-    //    return false;
-    //}
+    if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested()) {
+        /*if(mSensor == System::MONOCULAR)
+        {
+            std::cout << "NeedNewKeyFrame: localmap stopped" << std::endl;
+        }*/
+        return false;
+    }
 
     const int nKFs = mpAtlas->KeyFramesInMap();
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
-    // TODO: Disabled since this is not in the edge slam
-    //if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
-    //{
-    //    return false;
-    //}
-
-    //UpdateReference();
+    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
+    {
+        return false;
+    }
 
     // Tracked MapPoints in the reference keyframe
     int nMinObs = 3;
@@ -3271,9 +3240,8 @@ bool Tracking::NeedNewKeyFrame()
         nMinObs=2;
     int nRefMatches = mpReferenceKF->TrackedMapPoints(nMinObs);
 
-
     // Local Mapping accept keyframes?
-    //bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
+    bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
 
     // Check how many "close" points are being tracked and how many could be potentially created.
     int nNonTrackedClose = 0;
@@ -3303,7 +3271,6 @@ bool Tracking::NeedNewKeyFrame()
     float thRefRatio = 0.75f;
     if(nKFs<2)
         thRefRatio = 0.4f;
-    
 
     /*int nClosedPoints = nTrackedClose + nNonTrackedClose;
     const int thStereoClosedPoints = 15;
@@ -3326,11 +3293,10 @@ bool Tracking::NeedNewKeyFrame()
             thRefRatio = 0.90f;
     }
 
-    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << std::endl;
     // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
     const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
-    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames)); //mpLocalMapper->KeyframesInQueue() < 2);
+    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames) && bLocalMappingIdle); //mpLocalMapper->KeyframesInQueue() < 2);
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
@@ -3359,66 +3325,52 @@ bool Tracking::NeedNewKeyFrame()
     else
         c4=false;
 
-   // if(((c1a||c1b||c1c) && c2)||c3 ||c4)
-   // {
-   //     // If the mapping accepts keyframes, insert keyframe.
-   //     // Otherwise send a signal to interrupt BA
-   //     if(mbLocalMappingIdle || mpLocalMapper->IsInitializing())
-   //     {
-   //         return true;
-   //     }
-   //     else
-   //     {
-   //         mpLocalMapper->InterruptBA();
-   //         if(mSensor!=System::MONOCULAR  && mSensor!=System::IMU_MONOCULAR)
-   //         {
-   //             if(mpLocalMapper->KeyframesInQueue()<3)
-   //                 return true;
-   //             else
-   //                 return false;
-   //         }
-   //         else
-   //         {
-   //             //std::cout << "NeedNewKeyFrame: localmap is busy" << std::endl;
-   //             return false;
-   //         }
-   //     }
-   // }
-   // else
-   //     return false;
-    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05; // do not publish kf's more frequently than every 10ms  
-   
-    std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
-    if((c2 && (c1a||c1b)) && c5)
-        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
+    if(((c1a||c1b||c1c) && c2)||c3 ||c4)
+    {
+        // If the mapping accepts keyframes, insert keyframe.
+        // Otherwise send a signal to interrupt BA
+        if(bLocalMappingIdle || mpLocalMapper->IsInitializing())
+        {
             return true;
+        }
         else
-            return false;
+        {
+            mpLocalMapper->InterruptBA();
+            if(mSensor!=System::MONOCULAR  && mSensor!=System::IMU_MONOCULAR)
+            {
+                if(mpLocalMapper->KeyframesInQueue()<3)
+                    return true;
+                else
+                    return false;
+            }
+            else
+            {
+                //std::cout << "NeedNewKeyFrame: localmap is busy" << std::endl;
+                return false;
+            }
+        }
+    }
     else
         return false;
 }
 
 void Tracking::CreateNewKeyFrame()
 {
-    // TODO:: Here, notify Distributor and broadcast KF 
-    //Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : create new KF if mpLocalMapper and IMU are initialized.", Verbose::VERBOSITY_NORMAL);
     if(mpLocalMapper->IsInitializing() && !mpAtlas->isImuInitialized())
         return;
 
-    //if(!mpLocalMapper->SetNotStop(true))
-    //    return;
+    if(!mpLocalMapper->SetNotStop(true))
+        return;
 
     KeyFrame* pKF = new KeyFrame(mCurrentFrame,mpAtlas->GetCurrentMap(),mpKeyFrameDB);
-    //pKF->ComputeBoW();
-    pKF->SetLastModule(1); // Last module 0=tracking
-
 
     if(mpAtlas->isImuInitialized()) //  || mpLocalMapper->IsInitializing())
         pKF->bImu = true;
 
     pKF->SetNewBias(mCurrentFrame.mImuBias);
-    //mpReferenceKF = pKF;
-    //mCurrentFrame.mpReferenceKF = pKF;
+    mpReferenceKF = pKF;
+    mCurrentFrame.mpReferenceKF = pKF;
 
     if(mpLastKeyFrame)
     {
@@ -3436,7 +3388,6 @@ void Tracking::CreateNewKeyFrame()
 
     if(mSensor!=System::MONOCULAR && mSensor != System::IMU_MONOCULAR) // TODO check if incluide imu_stereo
     {
-        Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : This part should be only not in monocular.", Verbose::VERBOSITY_NORMAL);
         mCurrentFrame.UpdatePoseMatrices();
         // cout << "create new MPs" << endl;
         // We sort points by the measured depth by the stereo/RGBD sensor.
@@ -3490,8 +3441,6 @@ void Tracking::CreateNewKeyFrame()
                     }
 
                     MapPoint* pNewMP = new MapPoint(x3D,pKF,mpAtlas->GetCurrentMap());
-                    pNewMP->SetLastModule(1); // Last module 0=tracking
-                    mpAtlas->GetCurrentMap()->AddUpdatedMPId(pNewMP->mstrHexId);
                     pNewMP->AddObservation(pKF,i);
 
                     //Check if it is a stereo observation in order to not
@@ -3523,23 +3472,13 @@ void Tracking::CreateNewKeyFrame()
             //Verbose::PrintMess("new mps for stereo KF: " + to_string(nPoints), Verbose::VERBOSITY_NORMAL);
         }
     }
-    //notifyDistributorAddKeyframe(pKF);
-    mpAtlas->AddKeyFrame(pKF); 
-    mapUpToDate = false;
-    //pKF->UpdateConnections();
-    //mpKeyFrameDB->add(pKF);
 
-    //Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
-    //ProcessNewKeyFrame(pKF);
-    // TODO: Here the keyframe needs to be sent to ros network!!
-    pKF->mnNextTarget = 2;
-    notifyDistributorAddKeyframe(pKF); // Send KF to LM (module 2)
-    
-    //mpLocalMapper->InsertKeyFrame(pKF);
+
+    Verbose::PrintMess("Thread1=Tracking::CreateNewKeyFrame : Insert KF to LM.", Verbose::VERBOSITY_NORMAL);
+    mpLocalMapper->InsertKeyFrame(pKF);
 
     mpLocalMapper->SetNotStop(false);
-    
-    //std::cout << "before assigning keyframe as lastkeyframe" << std::endl;
+
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
 }
@@ -4516,7 +4455,7 @@ void Tracking::Reset(bool bLocMap)
     {
         Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_NORMAL);
         mpLocalMapper->RequestReset();
-        notifyDistributorLMResetRequested();
+        //notifyDistributorLMResetRequested();
         Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
     }
 

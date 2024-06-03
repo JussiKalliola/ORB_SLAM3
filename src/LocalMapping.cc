@@ -293,8 +293,8 @@ void LocalMapping::Run()
             //std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
-            //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
-            mpCurrentKeyFrame->mnNextTarget = 3;
+            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            //mpCurrentKeyFrame->mnNextTarget = 3;
             //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
             //msNewMapPointIds.clear();
 
@@ -325,41 +325,41 @@ void LocalMapping::Run()
 
 
         // TODO: HERE SEND THE UPDATED MAP
-        msLastMUStop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
-        auto dCount = duration.count();
-        //if (mbLocalMappingDone)
+        //msLastMUStop = std::chrono::high_resolution_clock::now();
+        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
+        //auto dCount = duration.count();
+        ////if (mbLocalMappingDone)
+        ////{
+        //
+        //
+        //if(mpCurrentKeyFrame)
         //{
-        
-        
-        if(mpCurrentKeyFrame)
-        {
 
-          //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
-          {
+        //  //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
+        //  if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
+        //  {
 
-            //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
-            //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
-            //std::cout << "this is before notify map" << std::endl;
-            notifyDistributorLocalMapUpdated(mpCurrentKeyFrame->GetMap());
-            //std::cout << "This is after notify map" << std::endl;
-            
-            //mpCurrentKeyFrame->GetMap()->ClearErasedData();
-            //mpCurrentKeyFrame->GetMap()->ClearUpdatedKFIds();
-            //mpCurrentKeyFrame->GetMap()->ClearUpdatedMPIds();
-           
-            mbLocalMappingDone=false;
-            mbKFsAfterMapUpdate=false;
-            //mbAllowLM=false;
-            msLastMUStart = std::chrono::high_resolution_clock::now();
-            //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
-            //  MAP_FREQ = 2000;
-            //} else {
-            //  MAP_FREQ = 0;
-            //} 
-          }
-        }
+        //    //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
+        //    //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
+        //    //std::cout << "this is before notify map" << std::endl;
+        //    notifyDistributorLocalMapUpdated(mpCurrentKeyFrame->GetMap());
+        //    //std::cout << "This is after notify map" << std::endl;
+        //    
+        //    //mpCurrentKeyFrame->GetMap()->ClearErasedData();
+        //    //mpCurrentKeyFrame->GetMap()->ClearUpdatedKFIds();
+        //    //mpCurrentKeyFrame->GetMap()->ClearUpdatedMPIds();
+        //   
+        //    mbLocalMappingDone=false;
+        //    mbKFsAfterMapUpdate=false;
+        //    //mbAllowLM=false;
+        //    msLastMUStart = std::chrono::high_resolution_clock::now();
+        //    //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
+        //    //  MAP_FREQ = 2000;
+        //    //} else {
+        //    //  MAP_FREQ = 0;
+        //    //} 
+        //  }
+        //}
         //}
         
         ResetIfRequested();
@@ -478,24 +478,19 @@ bool LocalMapping::CheckNewKeyFrames()
 
 void LocalMapping::ProcessNewKeyFrame()
 {
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
     {
         unique_lock<mutex> lock(mMutexNewKFs);
-        mbKFsAfterMapUpdate = true;
         mpCurrentKeyFrame = mlNewKeyFrames.front();
         mlNewKeyFrames.pop_front();
-        //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : after pop, size of new kfs=" << mlNewKeyFrames.size() << ", kf id=" << mpCurrentKeyFrame->mnId << std::endl; 
     }
 
+    std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW, get map points, update normal and depth, update covisibility graph, add KF to atlas;" << std::endl; 
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : compute BoW " << mpCurrentKeyFrame->GetMapPointMatches().size() << std::endl;
-
     // Associate MapPoints to the new keyframe and update normal and descriptor
     const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
-    
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : # of match points " << vpMapPointMatches.size() << std::endl;
+
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
         MapPoint* pMP = vpMapPointMatches[i];
@@ -503,20 +498,11 @@ void LocalMapping::ProcessNewKeyFrame()
         {
             if(!pMP->isBad())
             {
-                if(pMP->GetMap())
-                  mpAtlas->AddMapPoint(pMP);
-                
                 if(!pMP->IsInKeyFrame(mpCurrentKeyFrame))
                 {
                     pMP->AddObservation(mpCurrentKeyFrame, i);
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
-                    pMP->SetLastModule(2); // Last module 1=LM
-                    //if(pMP->GetMap())
-                    //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                    //else 
-                    //mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-  
                 }
                 else // this can only happen for new stereo points inserted by the Tracking
                 {
@@ -526,16 +512,11 @@ void LocalMapping::ProcessNewKeyFrame()
         }
     }
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Observations added to map points." << std::endl; 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections();
 
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Update links in the covisibility graph" << std::endl; 
     // Insert Keyframe in Map
     mpAtlas->AddKeyFrame(mpCurrentKeyFrame);
-    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
-    mpCurrentKeyFrame->SetLastModule(2); // Last module 1=LM
-    //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : Insert kf in map, end of ProcessNewKeyFrame" << std::endl; 
 }
 
 void LocalMapping::EmptyQueue()
@@ -936,11 +917,8 @@ void LocalMapping::CreateNewMapPoints()
 
 void LocalMapping::SearchInNeighbors()
 {
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
+    std::cout << "  Thread2=LocalMapping::SearchInNeighbors : Search spatial and temporal neighbors. Same pipeline as with the current KF;" << std::endl; 
     // Retrieve neighbor keyframes
-      
-    unique_lock<mutex> lock(mMutexProcessKFs);
-
     int nn = 10;
     if(mbMonocular)
         nn=30;
@@ -953,10 +931,8 @@ void LocalMapping::SearchInNeighbors()
             continue;
         vpTargetKFs.push_back(pKFi);
         pKFi->mnFuseTargetForKF = mpCurrentKeyFrame->mnId;
-        //pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before covisible" << std::endl; 
     // Add some covisible of covisible
     // Extend to some second neighbors if abort is not requested
     for(int i=0, imax=vpTargetKFs.size(); i<imax; i++)
@@ -969,13 +945,11 @@ void LocalMapping::SearchInNeighbors()
                 continue;
             vpTargetKFs.push_back(pKFi2);
             pKFi2->mnFuseTargetForKF=mpCurrentKeyFrame->mnId;
-            //pKFi2->GetMap()->AddUpdatedKFId(pKFi2->mnId);
         }
         if (mbAbortBA)
             break;
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : before inertial" << std::endl; 
     // Extend to temporal neighbors
     if(mbInertial)
     {
@@ -989,31 +963,21 @@ void LocalMapping::SearchInNeighbors()
             }
             vpTargetKFs.push_back(pKFi);
             pKFi->mnFuseTargetForKF=mpCurrentKeyFrame->mnId;
-            //pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
             pKFi = pKFi->mPrevKF;
         }
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after inertial" << std::endl; 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
     vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     for(vector<KeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
-        //std::cout << "start of the for loop" << std::endl;
-        //std::cout << "*vit" << std::endl;
         KeyFrame* pKFi = *vit;
 
-        //std::cout << "pKFi " << vpMapPointMatches.size() << std::endl;
-        //if(pKFi != nullptr) std::cout << "pkfi is not nullptr" << std::endl;  
         matcher.Fuse(pKFi,vpMapPointMatches);
-        //std::cout << "after fuse" << std::endl;
         if(pKFi->NLeft != -1) matcher.Fuse(pKFi,vpMapPointMatches,true);
-        //std::cout << "end of the loop" << std::endl;
     }
 
-
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after map point matches" << std::endl; 
 
     if (mbAbortBA)
         return;
@@ -1022,7 +986,6 @@ void LocalMapping::SearchInNeighbors()
     vector<MapPoint*> vpFuseCandidates;
     vpFuseCandidates.reserve(vpTargetKFs.size()*vpMapPointMatches.size());
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : search matches by projection from target KFs to current KF" << std::endl; 
     for(vector<KeyFrame*>::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
     {
         KeyFrame* pKFi = *vitKF;
@@ -1037,22 +1000,16 @@ void LocalMapping::SearchInNeighbors()
             if(pMP->isBad() || pMP->mnFuseCandidateForKF == mpCurrentKeyFrame->mnId)
                 continue;
             pMP->mnFuseCandidateForKF = mpCurrentKeyFrame->mnId;
-            //pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
             vpFuseCandidates.push_back(pMP);
         }
     }
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : end of projection" << std::endl; 
-
     matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates);
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after fuse" << std::endl; 
     if(mpCurrentKeyFrame->NLeft != -1) matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates,true);
 
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : after fusing" << std::endl; 
 
     // Update points
     vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
-    //std::cout << "before mappoint matches" << std::endl;
     for(size_t i=0, iend=vpMapPointMatches.size(); i<iend; i++)
     {
         MapPoint* pMP=vpMapPointMatches[i];
@@ -1062,22 +1019,12 @@ void LocalMapping::SearchInNeighbors()
             {
                 pMP->ComputeDistinctiveDescriptors();
                 pMP->UpdateNormalAndDepth();
-                pMP->SetLastModule(2); // Last module 1=LM
-                //if(pMP->GetMap())
-                //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                //else 
-                //mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
             }
         }
     }
 
-
-    //std::cout << "  Thread2=LocalMapping::SearchInNeighbors : update points" << std::endl; 
-
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections();
-    mpCurrentKeyFrame->GetMap()->AddUpdatedKFId(mpCurrentKeyFrame->mnId);
-    mpCurrentKeyFrame->SetLastModule(2); // Last module 1=LM
 }
 
 void LocalMapping::RequestStop()
@@ -1170,12 +1117,10 @@ void LocalMapping::InterruptBA()
 
 void LocalMapping::KeyFrameCulling()
 {
-    //std::cout << "  Thread2=LocalMapping::KeyFrameCulling : Check redundancy in local KFs -> redundant if 90% map points are seen also in other 3 KFs;" << std::endl; 
     // Check redundant keyframes (only local keyframes)
     // A keyframe is considered redundant if the 90% of the MapPoints it sees, are seen
     // in at least other 3 keyframes (in the same or finer scale)
     // We only consider close stereo points
-    //std::cout << "  Thread2::KeyFrameCulling()" << std::endl;
     const int Nd = 21;
     mpCurrentKeyFrame->UpdateBestCovisibles();
     vector<KeyFrame*> vpLocalKeyFrames = mpCurrentKeyFrame->GetVectorCovisibleKeyFrames();
@@ -1239,7 +1184,7 @@ void LocalMapping::KeyFrameCulling()
                         const int &scaleLevel = (pKF -> NLeft == -1) ? pKF->mvKeysUn[i].octave
                                                                      : (i < pKF -> NLeft) ? pKF -> mvKeys[i].octave
                                                                                           : pKF -> mvKeysRight[i].octave;
-                        const map<KeyFrame*, tuple<int,int>> observations(pMP->GetObservations());
+                        const map<KeyFrame*, tuple<int,int>> observations = pMP->GetObservations();
                         int nObs=0;
                         for(map<KeyFrame*, tuple<int,int>>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {

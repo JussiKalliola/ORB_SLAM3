@@ -332,20 +332,20 @@ void LoopClosing::Run()
             }
             mpLastCurrentKF = mpCurrentKF;
             
-            if ((tempMapMerged))
-            {
-                std::cout << "this is before notify map" << std::endl;
-                if(!mvMergedIds.empty())
-                    std::cout << "merge, id1=" << mvMergedIds[0] << ", id2=" << mvMergedIds[1] << std::endl;
-                //mpCurrentKF->GetMap()->ClearErasedData();
-                //mpCurrentKF->GetMap()->ClearUpdatedKFIds();
-                notifyDistributorMapUpdated(tempMapMerged, tempLoopClosure, mvMergedIds);
-                mvMergedIds.clear();
-                std::cout << "This is after notify map" << std::endl;
-                
-                msLastMUStart = std::chrono::high_resolution_clock::now();
+            //if ((tempMapMerged))
+            //{
+            //    std::cout << "this is before notify map" << std::endl;
+            //    if(!mvMergedIds.empty())
+            //        std::cout << "merge, id1=" << mvMergedIds[0] << ", id2=" << mvMergedIds[1] << std::endl;
+            //    //mpCurrentKF->GetMap()->ClearErasedData();
+            //    //mpCurrentKF->GetMap()->ClearUpdatedKFIds();
+            //    notifyDistributorMapUpdated(tempMapMerged, tempLoopClosure, mvMergedIds);
+            //    mvMergedIds.clear();
+            //    std::cout << "This is after notify map" << std::endl;
+            //    
+            //    msLastMUStart = std::chrono::high_resolution_clock::now();
 
-            }
+            //}
             
             //msLastMUStop = std::chrono::high_resolution_clock::now();
             //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
@@ -2631,7 +2631,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             vdFGBATotal_ms.push_back(timeFGBA);
             vtStartTimeFGBA_ms.push_back(time_StartFGBA);
 #endif
-            notifyDistributorMapUpdated(false, true, mvMergedIds);
+            //notifyDistributorMapUpdated(false, true, mvMergedIds);
             msLastMUStart = std::chrono::high_resolution_clock::now();
             SetRunning(false);
             Verbose::PrintMess("Map updated!", Verbose::VERBOSITY_NORMAL);

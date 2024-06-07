@@ -1324,7 +1324,7 @@ void KeyFrame::SetBadFlag()
         {
             for(set<KeyFrame*>::iterator sit=mspChildrens.begin(); sit!=mspChildrens.end(); sit++)
             {
-                if(mpParent)
+                if(mpParent && (*sit)->mnId != mpParent->mnId)
                     (*sit)->ChangeParent(mpParent);
             }
         }

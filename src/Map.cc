@@ -854,20 +854,25 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
       mnBackupKFinitialID = mpKeyFrameId.begin()->first;
     }
 
-    if(mnBackupKFlowerID != -1)
-    {
-        if(mpKeyFrameId.find(mnBackupKFlowerID) != mpKeyFrameId.end())
-        {
-          if(mpKeyFrameId[mnBackupKFlowerID])
-              mpKFlowerID = mpKeyFrameId[mnBackupKFlowerID];
-        } else {
-          mpKFlowerID = mpKeyFrameId.begin()->second;
-          mnBackupKFlowerID = mpKeyFrameId.begin()->first;
-        }
-    } else {
-      mpKFlowerID = mpKeyFrameId.begin()->second;
-      mnBackupKFlowerID = mpKeyFrameId.begin()->first;
-    }
+    vector<KeyFrame*> vpKFs = vector<KeyFrame*>(mspKeyFrames.begin(),mspKeyFrames.end());
+    sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
+    mpKFlowerID = vpKFs[0];
+    mnBackupKFlowerID = mpKFlowerID->mnId;
+
+    //if(mnBackupKFlowerID != -1)
+    //{
+    //    if(mpKeyFrameId.find(mnBackupKFlowerID) != mpKeyFrameId.end())
+    //    {
+    //      if(mpKeyFrameId[mnBackupKFlowerID])
+    //          mpKFlowerID = mpKeyFrameId[mnBackupKFlowerID];
+    //    } else {
+    //      mpKFlowerID = mpKeyFrameId.begin()->second;
+    //      mnBackupKFlowerID = mpKeyFrameId.begin()->first;
+    //    }
+    //} else {
+    //  mpKFlowerID = mpKeyFrameId.begin()->second;
+    //  mnBackupKFlowerID = mpKeyFrameId.begin()->first;
+    //}
 
     mvpKeyFrameOrigins.clear();
     mvpKeyFrameOrigins.reserve(mvBackupKeyFrameOriginsId.size());
@@ -1015,20 +1020,34 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
       mnBackupKFinitialID = mpKeyFrameId.begin()->first;
     }
 
-    if(mnBackupKFlowerID != -1)
+    vector<KeyFrame*> vpKFs = vector<KeyFrame*>(mspKeyFrames.begin(),mspKeyFrames.end());
+    sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
+
+    if(vpKFs.size() > 0)
     {
-        if(mpKeyFrameId.find(mnBackupKFlowerID) != mpKeyFrameId.end())
-        {
-          if(mpKeyFrameId[mnBackupKFlowerID])
-              mpKFlowerID = mpKeyFrameId[mnBackupKFlowerID];
-        } else {
-          mpKFlowerID = mpKeyFrameId.begin()->second;
-          mnBackupKFlowerID = mpKeyFrameId.begin()->first;
-        }
-    } else {
-      mpKFlowerID = mpKeyFrameId.begin()->second;
-      mnBackupKFlowerID = mpKeyFrameId.begin()->first;
+        mpKFinitial = vpKFs[0];
+        mnBackupKFinitialID = mpKFinitial->mnId;
+        mpKFlowerID = vpKFs[0];
+        mnBackupKFlowerID = mpKFlowerID->mnId;
     }
+    else {
+        mpKFlowerID = static_cast<KeyFrame*>(NULL); 
+
+    }
+    //if(mnBackupKFlowerID != -1)
+    //{
+    //    if(mpKeyFrameId.find(mnBackupKFlowerID) != mpKeyFrameId.end())
+    //    {
+    //      if(mpKeyFrameId[mnBackupKFlowerID])
+    //          mpKFlowerID = mpKeyFrameId[mnBackupKFlowerID];
+    //    } else {
+    //      mpKFlowerID = mpKeyFrameId.begin()->second;
+    //      mnBackupKFlowerID = mpKeyFrameId.begin()->first;
+    //    }
+    //} else {
+    //  mpKFlowerID = mpKeyFrameId.begin()->second;
+    //  mnBackupKFlowerID = mpKeyFrameId.begin()->first;
+    //}
 
     mvpKeyFrameOrigins.clear();
     mvpKeyFrameOrigins.reserve(mvBackupKeyFrameOriginsId.size());

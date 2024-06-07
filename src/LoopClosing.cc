@@ -134,115 +134,124 @@ void LoopClosing::Run()
                 SetRunning(true);
                 if(mbMergeDetected)
                 {
-                    
-                    if ((mpTracker->mSensor==System::IMU_MONOCULAR || mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD) &&
-                        (!mpCurrentKF->GetMap()->isImuInitialized()))
+
+                    long unsigned int mnCurId = mpCurrentKF->GetMap()->GetId();
+                    long unsigned int mnMergeId = mpMergeMatchedKF->GetMap()->GetId();
+
+                    if(mnCurId != mnMergeId)
                     {
-                        cout << "IMU is not initilized, merge is aborted" << endl;
-                    }
-                    else
-                    {
-                        Verbose::PrintMess("      Thread3=LoopClosing::Run : bFindedRegion and mbMergeDetected=true;", Verbose::VERBOSITY_NORMAL);
-                        //exit(1);
-                        Sophus::SE3d mTmw = mpMergeMatchedKF->GetPose().cast<double>();
-                        g2o::Sim3 gSmw2(mTmw.unit_quaternion(), mTmw.translation(), 1.0);
-                        Sophus::SE3d mTcw = mpCurrentKF->GetPose().cast<double>();
-                        g2o::Sim3 gScw1(mTcw.unit_quaternion(), mTcw.translation(), 1.0);
-                        g2o::Sim3 gSw2c = mg2oMergeSlw.inverse();
-                        g2o::Sim3 gSw1m = mg2oMergeSlw;
-
-                        mSold_new = (gSw2c * gScw1);
-
-
-                        if(mpCurrentKF->GetMap()->IsInertial() && mpMergeMatchedKF->GetMap()->IsInertial())
+                        
+                        if ((mpTracker->mSensor==System::IMU_MONOCULAR || mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD) &&
+                            (!mpCurrentKF->GetMap()->isImuInitialized()))
                         {
-                            cout << "Merge check transformation with IMU" << endl;
-                            if(mSold_new.scale()<0.90||mSold_new.scale()>1.1){
-                                mpMergeLastCurrentKF->SetErase();
-                                mpMergeMatchedKF->SetErase();
-                                mnMergeNumCoincidences = 0;
-                                mvpMergeMatchedMPs.clear();
-                                mvpMergeMPs.clear();
-                                mnMergeNumNotFound = 0;
-                                mbMergeDetected = false;
-                                Verbose::PrintMess("scale bad estimated. Abort merging", Verbose::VERBOSITY_NORMAL);
-                                continue;
-                            }
-                            // If inertial, force only yaw
-                            if ((mpTracker->mSensor==System::IMU_MONOCULAR || mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD) &&
-                                   mpCurrentKF->GetMap()->GetIniertialBA1())
+                            cout << "IMU is not initilized, merge is aborted" << endl;
+                        }
+                        else
+                        {
+                            Verbose::PrintMess("      Thread3=LoopClosing::Run : bFindedRegion and mbMergeDetected=true;", Verbose::VERBOSITY_NORMAL);
+                            //exit(1);
+                            Sophus::SE3d mTmw = mpMergeMatchedKF->GetPose().cast<double>();
+                            g2o::Sim3 gSmw2(mTmw.unit_quaternion(), mTmw.translation(), 1.0);
+                            Sophus::SE3d mTcw = mpCurrentKF->GetPose().cast<double>();
+                            g2o::Sim3 gScw1(mTcw.unit_quaternion(), mTcw.translation(), 1.0);
+                            g2o::Sim3 gSw2c = mg2oMergeSlw.inverse();
+                            g2o::Sim3 gSw1m = mg2oMergeSlw;
+
+                            mSold_new = (gSw2c * gScw1);
+
+
+                            if(mpCurrentKF->GetMap()->IsInertial() && mpMergeMatchedKF->GetMap()->IsInertial())
                             {
-                                Eigen::Vector3d phi = LogSO3(mSold_new.rotation().toRotationMatrix());
-                                phi(0)=0;
-                                phi(1)=0;
-                                mSold_new = g2o::Sim3(ExpSO3(phi),mSold_new.translation(),1.0);
+                                cout << "Merge check transformation with IMU" << endl;
+                                if(mSold_new.scale()<0.90||mSold_new.scale()>1.1){
+                                    mpMergeLastCurrentKF->SetErase();
+                                    mpMergeMatchedKF->SetErase();
+                                    mnMergeNumCoincidences = 0;
+                                    mvpMergeMatchedMPs.clear();
+                                    mvpMergeMPs.clear();
+                                    mnMergeNumNotFound = 0;
+                                    mbMergeDetected = false;
+                                    Verbose::PrintMess("scale bad estimated. Abort merging", Verbose::VERBOSITY_NORMAL);
+                                    continue;
+                                }
+                                // If inertial, force only yaw
+                                if ((mpTracker->mSensor==System::IMU_MONOCULAR || mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD) &&
+                                       mpCurrentKF->GetMap()->GetIniertialBA1())
+                                {
+                                    Eigen::Vector3d phi = LogSO3(mSold_new.rotation().toRotationMatrix());
+                                    phi(0)=0;
+                                    phi(1)=0;
+                                    mSold_new = g2o::Sim3(ExpSO3(phi),mSold_new.translation(),1.0);
+                                }
                             }
+
+                            mg2oMergeSmw = gSmw2 * gSw2c * gScw1;
+
+                            mg2oMergeScw = mg2oMergeSlw;
+
+                            //mpTracker->SetStepByStep(true);
+
+                            Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge detected;", Verbose::VERBOSITY_NORMAL);
+                            Verbose::PrintMess("*Merge detected", Verbose::VERBOSITY_QUIET);
+
+#ifdef REGISTER_TIMES
+                            std::chrono::steady_clock::time_point time_StartMerge = std::chrono::steady_clock::now();
+
+                            nMerges += 1;
+#endif
+                            // TODO UNCOMMENT
+                            if (mpTracker->mSensor==System::IMU_MONOCULAR ||mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD)
+                                MergeLocal2();
+                            else
+                                MergeLocal();
+
+#ifdef REGISTER_TIMES
+                            std::chrono::steady_clock::time_point time_EndMerge = std::chrono::steady_clock::now();
+
+                            double timeMergeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMerge - time_StartMerge).count();
+                            vdMergeTotal_ms.push_back(timeMergeTotal);
+                            vtStartTimeMerge_ms.push_back(time_StartMerge);
+#endif
+
+                            Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge finished;", Verbose::VERBOSITY_NORMAL);
+                            Verbose::PrintMess("Merge finished!", Verbose::VERBOSITY_QUIET);
                         }
 
-                        mg2oMergeSmw = gSmw2 * gSw2c * gScw1;
+                        vdPR_CurrentTime.push_back(mpCurrentKF->mTimeStamp);
+                        vdPR_MatchedTime.push_back(mpMergeMatchedKF->mTimeStamp);
+                        vnPR_TypeRecogn.push_back(1);
 
-                        mg2oMergeScw = mg2oMergeSlw;
+                        Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
+                        std::cout << "Number of maps=" << mpAtlas->GetAllMaps().size() << ", #KFs=" << mpAtlas->GetCurrentMap()->KeyFramesInMap() << ", #MPs=" << mpAtlas->GetCurrentMap()->MapPointsInMap() << ", map ID=" << mpAtlas->GetCurrentMap()->GetId()<< std::endl;
+                        
+                        tempMapMerged=true;
+                        //Map* pCurrentMap = mpCurrentKF->GetMap();
+                        //Map* pMergeMap = mpMergeMatchedKF->GetMap();
+                        
+                        //exit(1);
+                        // Reset all variables
+                        mpMergeLastCurrentKF->SetErase();
+                        mpMergeMatchedKF->SetErase();
+                        mnMergeNumCoincidences = 0;
+                        mvpMergeMatchedMPs.clear();
+                        mvpMergeMPs.clear();
+                        mnMergeNumNotFound = 0;
+                        mbMergeDetected = false;
 
-                        //mpTracker->SetStepByStep(true);
+                        if(mbLoopDetected)
+                        {
+                            // Reset Loop variables
+                            mpLoopLastCurrentKF->SetErase();
+                            mpLoopMatchedKF->SetErase();
+                            mnLoopNumCoincidences = 0;
+                            mvpLoopMatchedMPs.clear();
+                            mvpLoopMPs.clear();
+                            mnLoopNumNotFound = 0;
+                            mbLoopDetected = false;
+                        }
 
-                        Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge detected;", Verbose::VERBOSITY_NORMAL);
-                        Verbose::PrintMess("*Merge detected", Verbose::VERBOSITY_QUIET);
-
-#ifdef REGISTER_TIMES
-                        std::chrono::steady_clock::time_point time_StartMerge = std::chrono::steady_clock::now();
-
-                        nMerges += 1;
-#endif
-                        // TODO UNCOMMENT
-                        if (mpTracker->mSensor==System::IMU_MONOCULAR ||mpTracker->mSensor==System::IMU_STEREO || mpTracker->mSensor==System::IMU_RGBD)
-                            MergeLocal2();
-                        else
-                            MergeLocal();
-
-#ifdef REGISTER_TIMES
-                        std::chrono::steady_clock::time_point time_EndMerge = std::chrono::steady_clock::now();
-
-                        double timeMergeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMerge - time_StartMerge).count();
-                        vdMergeTotal_ms.push_back(timeMergeTotal);
-                        vtStartTimeMerge_ms.push_back(time_StartMerge);
-#endif
-
-                        Verbose::PrintMess("      Thread3=LoopClosing::Run : Merge finished;", Verbose::VERBOSITY_NORMAL);
-                        Verbose::PrintMess("Merge finished!", Verbose::VERBOSITY_QUIET);
                     }
-
-                    vdPR_CurrentTime.push_back(mpCurrentKF->mTimeStamp);
-                    vdPR_MatchedTime.push_back(mpMergeMatchedKF->mTimeStamp);
-                    vnPR_TypeRecogn.push_back(1);
-
-                    Verbose::PrintMess("      Thread3=LoopClosing::Run : Reset all vars;", Verbose::VERBOSITY_NORMAL);
-                    std::cout << "Number of maps=" << mpAtlas->GetAllMaps().size() << ", #KFs=" << mpAtlas->GetCurrentMap()->KeyFramesInMap() << ", #MPs=" << mpAtlas->GetCurrentMap()->MapPointsInMap() << ", map ID=" << mpAtlas->GetCurrentMap()->GetId()<< std::endl;
-                    
-                    tempMapMerged=true;
-                    //Map* pCurrentMap = mpCurrentKF->GetMap();
-                    //Map* pMergeMap = mpMergeMatchedKF->GetMap();
-                    
-                    //exit(1);
-                    // Reset all variables
-                    mpMergeLastCurrentKF->SetErase();
-                    mpMergeMatchedKF->SetErase();
-                    mnMergeNumCoincidences = 0;
-                    mvpMergeMatchedMPs.clear();
-                    mvpMergeMPs.clear();
-                    mnMergeNumNotFound = 0;
-                    mbMergeDetected = false;
-
-                    if(mbLoopDetected)
-                    {
-                        // Reset Loop variables
-                        mpLoopLastCurrentKF->SetErase();
-                        mpLoopMatchedKF->SetErase();
-                        mnLoopNumCoincidences = 0;
-                        mvpLoopMatchedMPs.clear();
-                        mvpLoopMPs.clear();
-                        mnLoopNumNotFound = 0;
-                        mbLoopDetected = false;
-                    }
+                        
 
                 }
 
@@ -1677,7 +1686,8 @@ void LoopClosing::MergeLocal()
 
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Rebuild the essential graph in the local window;", Verbose::VERBOSITY_NORMAL);
     //Rebuild the essential graph in the local window
-    pCurrentMap->GetOriginKF()->SetFirstConnection(false);
+    if(pCurrentMap->GetOriginKF())
+        pCurrentMap->GetOriginKF()->SetFirstConnection(false);
     pNewChild = mpCurrentKF->GetParent(); // Old parent, it will be the new child of this KF
     pNewParent = mpCurrentKF; // Old child, now it will be the parent of its own parent(we need eliminate this KF from children list in its old parent)
     mpCurrentKF->ChangeParent(mpMergeMatchedKF);

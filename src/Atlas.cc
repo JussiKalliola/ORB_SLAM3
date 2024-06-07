@@ -162,7 +162,8 @@ void Atlas::SetViewer(Viewer* pViewer)
 void Atlas::AddKeyFrame(KeyFrame* pKF)
 {
     Map* pMapKF = pKF->GetMap();
-    pMapKF->AddKeyFrame(pKF);
+    if(pMapKF)
+        pMapKF->AddKeyFrame(pKF);
 }
 
 void Atlas::AddMapPoint(MapPoint* pMP)

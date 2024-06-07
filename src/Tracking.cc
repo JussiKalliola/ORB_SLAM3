@@ -3417,8 +3417,11 @@ void Tracking::CreateNewKeyFrame()
         pKF->bImu = true;
 
     pKF->SetNewBias(mCurrentFrame.mImuBias);
-    //mpReferenceKF = pKF;
-    //mCurrentFrame.mpReferenceKF = pKF;
+    if(pKF->GetMap()->KeyFramesInMap() < 5)
+    {
+        mpReferenceKF = pKF;
+        mCurrentFrame.mpReferenceKF = pKF;
+    }
 
     if(mpLastKeyFrame)
     {
@@ -4592,9 +4595,9 @@ void Tracking::ResetActiveMap(bool bLocMap, long int mapId)
 
     if (!bLocMap)
     {
-        Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_VERY_VERBOSE);
+        Verbose::PrintMess("Reseting Local Mapper...", Verbose::VERBOSITY_NORMAL);
         mpLocalMapper->RequestResetActiveMap(pMap);
-        Verbose::PrintMess("done", Verbose::VERBOSITY_VERY_VERBOSE);
+        Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
     }
 
     // Reset Loop Closing

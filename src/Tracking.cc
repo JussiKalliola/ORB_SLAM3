@@ -3258,11 +3258,13 @@ bool Tracking::NeedNewKeyFrame()
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
     // TODO: Disabled since this is not in the edge slam
-    //if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
-    //{
-    //    return false;
-    //}
+    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
+    {
+        return false;
+    }
 
+    if(mpReferenceKF && mpReferenceKF->GetLastModule() < 2)
+      return false;
     //UpdateReference();
 
     // Tracked MapPoints in the reference keyframe
@@ -3312,9 +3314,49 @@ bool Tracking::NeedNewKeyFrame()
         //Pseudo-monocular, there are not enough close points to be confident about the stereo observations.
         thRefRatio = 0.9f;
     }*/
+    // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
+    bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
+    bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05; // do not publish kf's more frequently than every 10ms  
 
     if(mSensor==System::MONOCULAR)
+    {
         thRefRatio = 0.9f;
+        if(mnMatchesInliers <= 70)
+        {
+          thRefRatio = 1.0f;
+          mMinFrames=2;
+          //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+          //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
+
+        }
+        else if(mnMatchesInliers > 70 && mnMatchesInliers <= 100)
+        {
+          thRefRatio = 0.9f;
+          mMinFrames=4;
+          //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+          //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
+
+        }
+        else if(mnMatchesInliers > 100 && mnMatchesInliers <= 150)
+        {
+          thRefRatio = 0.9f;
+          if(mMinFrames>4)
+            mMinFrames--;
+
+        }
+        else
+        {
+          thRefRatio = 0.75f;
+          if(mMinFrames<10)
+            mMinFrames++;
+
+        }
+        //thRefRatio = 0.9f;
+
+    }
+    
+    // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
+    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames));//+mMinFrames)); //mpLocalMapper->KeyframesInQueue() < 2);
 
     if(mpCamera2) thRefRatio = 0.75f;
 
@@ -3326,15 +3368,12 @@ bool Tracking::NeedNewKeyFrame()
             thRefRatio = 0.90f;
     }
 
-    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << std::endl;
-    // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
-    const bool c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+mMaxFrames;
-    // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
-    const bool c1b = ((mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames)); //mpLocalMapper->KeyframesInQueue() < 2);
+    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << ", mnLastKeyFrameId=" << mnLastKeyFrameId << ", mMinFrames=" << mMinFrames << ", mMaxFrames=" << mMaxFrames << std::endl;
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
-    const bool c2 = (((mnMatchesInliers<nRefMatches*thRefRatio || bNeedToInsertClose)) && mnMatchesInliers>15);
+    const bool c2a = (((mnMatchesInliers<nRefMatches*thRefRatio || bNeedToInsertClose)) && mnMatchesInliers>15);
+
 
     //std::cout << "NeedNewKF: c1a=" << c1a << "; c1b=" << c1b << "; c1c=" << c1c << "; c2=" << c2 << std::endl;
     // Temporal condition for Inertial cases
@@ -3386,10 +3425,9 @@ bool Tracking::NeedNewKeyFrame()
    // }
    // else
    //     return false;
-    const bool c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.05; // do not publish kf's more frequently than every 10ms  
    
-    std::cout << "c2=" << c2 << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
-    if((c2 && (c1a||c1b)) && c5)
+    std::cout << "c2a=" << c2a << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
+    if((c2a && (c1a||c1b)))
         if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
             return true;
         else
@@ -3417,11 +3455,11 @@ void Tracking::CreateNewKeyFrame()
         pKF->bImu = true;
 
     pKF->SetNewBias(mCurrentFrame.mImuBias);
-    if(pKF->GetMap()->KeyFramesInMap() < 5)
-    {
-        mpReferenceKF = pKF;
-        mCurrentFrame.mpReferenceKF = pKF;
-    }
+    //if(pKF->GetMap()->KeyFramesInMap() < 5)
+    //{
+    //    mpReferenceKF = pKF;
+    //    mCurrentFrame.mpReferenceKF = pKF;
+    //}
 
     if(mpLastKeyFrame)
     {
@@ -3677,6 +3715,7 @@ bool Tracking::IsMapUpToDate()
 
 void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
+  UpdateLocalMap();
   //vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
   
   // Initialize Reference KeyFrame and other KF variables
@@ -3719,24 +3758,24 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
   //}
 
   // Set current-frame RefKF
-  int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
-  if(mpReferenceKF)
-  {
-      int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
+  //int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
+  //if(mpReferenceKF)
+  //{
+  //    int nDiff = (int)pNewKF->mnId - (int)mpReferenceKF->mnId; 
 
-      std::cout << " -------- Tracking::UpdateReference() - " << nDiff << ", reference ID=" << mpReferenceKF->mnId << ", last module=" << mpReferenceKF->GetLastModule() << ", #MPs=" << mpReferenceKF->GetMapPoints().size() << ". pNewKF ID=" << pNewKF->mnId << std::endl;
+  //    std::cout << " -------- Tracking::UpdateReference() - " << nDiff << ", reference ID=" << mpReferenceKF->mnId << ", last module=" << mpReferenceKF->GetLastModule() << ", #MPs=" << mpReferenceKF->GetMapPoints().size() << ". pNewKF ID=" << pNewKF->mnId << std::endl;
 
-      if(mpReferenceKF->GetLastModule() <= 1) //&& mpReferenceKF->GetMapPoints().size() == 0)
-      {
-          std::cout << " -------- Updating reference KF from=" << mpReferenceKF->mnId << " to=" << pNewKF->mnId << ", in previous reference MPs=" << mpReferenceKF->GetMapPoints().size() << std::endl;
-          mpReferenceKF = pNewKF;
-          mCurrentFrame.mpReferenceKF = pNewKF;
-          mnLastKeyFrameId = pNewKF->mnId;
-          mpLastKeyFrame = pNewKF;
-      }
-  }
-  else
-      std::cout << " -------- Tracking::UpdateReference() - NO REFERENCE FOUND." << std::endl;
+  //    if(mpReferenceKF->GetLastModule() <= 1) //&& mpReferenceKF->GetMapPoints().size() == 0)
+  //    {
+  //        std::cout << " -------- Updating reference KF from=" << mpReferenceKF->mnId << " to=" << pNewKF->mnId << ", in previous reference MPs=" << mpReferenceKF->GetMapPoints().size() << std::endl;
+  //        mpReferenceKF = pNewKF;
+  //        mCurrentFrame.mpReferenceKF = pNewKF;
+  //        mnLastKeyFrameId = pNewKF->mnId;
+  //        mpLastKeyFrame = pNewKF;
+  //    }
+  //}
+  //else
+  //    std::cout << " -------- Tracking::UpdateReference() - NO REFERENCE FOUND." << std::endl;
 
 }
 
@@ -4235,7 +4274,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max)
+        if(it->second>max && pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;

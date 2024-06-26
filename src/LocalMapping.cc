@@ -354,7 +354,7 @@ void LocalMapping::Run()
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
             //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
-            //  MAP_FREQ = 2000;
+            //  MAP_FREQ = 50;
             //} else {
             //  MAP_FREQ = 0;
             //} 

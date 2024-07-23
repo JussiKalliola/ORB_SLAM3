@@ -201,99 +201,99 @@ public:
     KeyFrame(const KeyFrame &kf);
     
     // Constructor for ROS message
-    KeyFrame(bool bImu, long unsigned int nNextId, unsigned int mnNextTarget, long unsigned int mnId, 
-        const long unsigned int mnFrameId, const double mTimeStamp, const int mnGridCols, const int mnGridRows, 
-        const float mfGridElementWidthInv, const float mfGridElementHeightInv, long unsigned int mnTrackReferenceForFrame, 
-        long unsigned int mnFuseTargetForKF, long unsigned int mnBALocalForKF, long unsigned int mnBAFixedForKF, 
-        long unsigned int mnNumberOfOpt, long unsigned int mnLoopQuery, int mnLoopWords, float mLoopScore, 
-        long unsigned int mnRelocQuery, int mnRelocWords, float mRelocScore, long unsigned int mnMergeQuery, 
-        int mnMergeWords, float mMergeScore, long unsigned int mnPlaceRecognitionQuery, int mnPlaceRecognitionWords, 
-        float mPlaceRecognitionScore, bool mbCurrentPlaceRecognition, Sophus::SE3f mTcwGBA, Sophus::SE3f mTcwBefGBA, 
-        Eigen::Vector3f mVwbGBA, Eigen::Vector3f mVwbBefGBA, /*IMU::Bias mBiasGBA,*/ long unsigned int mnBAGlobalForKF, 
-        Sophus::SE3f mTcwMerge, Sophus::SE3f mTcwBefMerge, Sophus::SE3f mTwcBefMerge, Eigen::Vector3f mVwbMerge, 
-        Eigen::Vector3f mVwbBefMerge, /*IMU::Bias mBiasMerge,*/ long unsigned int mnMergeCorrectedForKF, long unsigned int mnMergeForKF, 
-        float mfScaleMerge, long unsigned int mnBALocalForMerge, float mfScale, const float fx, const float fy, const float cx, 
+    KeyFrame(const bool bImu, const long unsigned int nNextId, const unsigned int mnNextTarget, const long unsigned int mnId, 
+        const long unsigned int mnFrameId, const double mTimeStamp, const int mnGridCols_, const int mnGridRows_, 
+        const float mfGridElementWidthInv, const float mfGridElementHeightInv, const long unsigned int mnTrackReferenceForFrame, 
+        const long unsigned int mnFuseTargetForKF, const long unsigned int mnBALocalForKF, const long unsigned int mnBAFixedForKF, 
+        const long unsigned int mnNumberOfOpt, const long unsigned int mnLoopQuery, const int mnLoopWords, const float mLoopScore, 
+        const long unsigned int mnRelocQuery, const int mnRelocWords, const float mRelocScore, const long unsigned int mnMergeQuery, 
+        const int mnMergeWords, const float mMergeScore, const long unsigned int mnPlaceRecognitionQuery, const int mnPlaceRecognitionWords, 
+        const float mPlaceRecognitionScore, const bool mbCurrentPlaceRecognition, const Sophus::SE3f mTcwGBA, const Sophus::SE3f mTcwBefGBA, 
+        const Eigen::Vector3f mVwbGBA, const Eigen::Vector3f mVwbBefGBA, /*IMU::Bias mBiasGBA,*/ const long unsigned int mnBAGlobalForKF, 
+        const Sophus::SE3f mTcwMerge, const Sophus::SE3f mTcwBefMerge, const Sophus::SE3f mTwcBefMerge, const Eigen::Vector3f mVwbMerge, 
+        const Eigen::Vector3f mVwbBefMerge, /*IMU::Bias mBiasMerge,*/ const long unsigned int mnMergeCorrectedForKF, const long unsigned int mnMergeForKF, 
+        const float mfScaleMerge, const long unsigned int mnBALocalForMerge, const float mfScale, const float fx, const float fy, const float cx, 
         const float cy, const float invfx, const float invfy, const float mbf, const float mb, const float mThDepth, 
-        cv::Mat mDistCoef, const int N, const std::vector<cv::KeyPoint>& mvKeys, const std::vector<cv::KeyPoint>& mvKeysUn, 
-        const std::vector<float>& mvuRight, const std::vector<float>& mvDepth, const cv::Mat mDescriptors, 
-        DBoW2::BowVector mBowVec, DBoW2::FeatureVector mFeatVec, Sophus::SE3f mTcp, const int mnScaleLevels, 
+        const cv::Mat& mDistCoef, const int N, const std::vector<cv::KeyPoint>& mvKeys, const std::vector<cv::KeyPoint>& mvKeysUn, 
+        const std::vector<float>& mvuRight, const std::vector<float>& mvDepth, const cv::Mat& mDescriptors, 
+        const DBoW2::BowVector mBowVec, const DBoW2::FeatureVector mFeatVec, const Sophus::SE3f mTcp, const int mnScaleLevels, 
         const float mfScaleFactor, const float mfLogScaleFactor, const std::vector<float>& mvScaleFactors, 
         const std::vector<float>& mvLevelSigma2, const std::vector<float>& mvInvLevelSigma2, const int mnMinX, 
         const int mnMinY, const int mnMaxX, const int mnMaxY, /*KeyFrame* mPrevKF, KeyFrame* mNextKF,*/ 
         //IMU::Preintegrated* mpImuPreintegrated, 
-        IMU::Calib mImuCalib, unsigned int mnOriginMapId, string mNameFile, int mnDataset, 
+        const IMU::Calib mImuCalib, const unsigned int mnOriginMapId, const string mNameFile, const int mnDataset, 
         /*std::vector <KeyFrame*> mvpLoopCandKFs, std::vector <KeyFrame*> mvpMergeCandKFs,*/ 
-        std::vector <unsigned long int>& mvLoopCandKFIds, std::vector <unsigned long int>& mvMergeCandKFIds ,
-        Sophus::SE3<float> mTcw, /*Eigen::Matrix3f mRcw, Sophus::SE3<float> mTwc, Eigen::Matrix3f mRwc, Eigen::Vector3f mOwb, Eigen::Vector3f mVw,*/ 
-        bool mbHasVelocity, Sophus::SE3<float> mTlr, Sophus::SE3<float> mTrl, /*IMU::Bias mImuBias,*/ /*std::vector<MapPoint*> mvpMapPoints,*/ 
-        std::vector<std::string>& mvBackupMapPointsId, /*KeyFrameDatabase* mpKeyFrameDB, ORBVocabulary* mpORBvocabulary,*/ 
-        std::vector< std::vector <std::vector<size_t> > >& mGrid, 
+        const std::vector <unsigned long int>& mvLoopCandKFIds, const std::vector <unsigned long int>& mvMergeCandKFIds ,
+        const Sophus::SE3<float> mTcw, /*Eigen::Matrix3f mRcw, Sophus::SE3<float> mTwc, Eigen::Matrix3f mRwc, Eigen::Vector3f mOwb, Eigen::Vector3f mVw,*/ 
+        const bool mbHasVelocity, const Sophus::SE3<float> mTlr, const Sophus::SE3<float> mTrl, /*IMU::Bias mImuBias,*/ /*std::vector<MapPoint*> mvpMapPoints,*/ 
+        const std::vector<std::string>& mvBackupMapPointsId, /*KeyFrameDatabase* mpKeyFrameDB, ORBVocabulary* mpORBvocabulary,*/ 
+        const std::vector< std::vector <std::vector<size_t> > >& mGrid_, 
         /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights, std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames,*/ 
-        std::vector<int>& mvOrderedWeights, std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights, bool mbFirstConnection, 
+        const std::vector<int>& mvOrderedWeights, const std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights, const bool mbFirstConnection, 
         /*KeyFrame* mpParent, std::set<KeyFrame*> mspChildrens, std::set<KeyFrame*> mspLoopEdges, std::set<KeyFrame*> mspMergeEdges,*/ 
-        long long int mBackupParentId, std::vector<long unsigned int>& mvBackupChildrensId, std::vector<long unsigned int>& mvBackupLoopEdgesId, 
-        std::vector<long unsigned int>& mvBackupMergeEdgesId, bool mbNotErase, bool mbToBeErased, bool mbBad, float mHalfBaseline, 
-        /*Map* mpMap,*/ long long int mBackupPrevKFId, long long int mBackupNextKFId, 
+        const long long int mBackupParentId, const std::vector<long unsigned int>& mvBackupChildrensId, const std::vector<long unsigned int>& mvBackupLoopEdgesId, 
+        const std::vector<long unsigned int>& mvBackupMergeEdgesId, const bool mbNotErase, const bool mbToBeErased, const bool mbBad, const float mHalfBaseline, 
+        /*Map* mpMap,*/ const long long int mBackupPrevKFId, const long long int mBackupNextKFId, 
         //IMU::Preintegrated* mBackupImuPreintegrated, 
-        unsigned int mnBackupIdCamera, unsigned int mnBackupIdCamera2, Eigen::Matrix3f mK_, unsigned int mnLastModule, 
-        /*GeometricCamera* mpCamera, GeometricCamera* mpCamera2,*/ std::vector<int>& mvLeftToRightMatch, std::vector<int>& mvRightToLeftMatch, 
-        const std::vector<cv::KeyPoint>& mvKeysRight, const int NLeft, const int NRight, std::vector< std::vector <std::vector<size_t> > >& mGridRight);
+        const unsigned int mnBackupIdCamera, const unsigned int mnBackupIdCamera2, const Eigen::Matrix3f mK_, const unsigned int mnLastModule, const bool mbLCDone, 
+        /*GeometricCamera* mpCamera, GeometricCamera* mpCamera2,*/ const std::vector<int>& mvLeftToRightMatch, const std::vector<int>& mvRightToLeftMatch, 
+        const std::vector<cv::KeyPoint>& mvKeysRight, const int NLeft_, const int NRight_, const std::vector< std::vector <std::vector<size_t> > >& mGridRight_);
     
 
-    void UpdateKeyFrame( bool bImu_, unsigned int mnNextTarget_, /*const long unsigned int mnFrameId_,*/ 
+    void UpdateKeyFrame( const bool bImu_, const unsigned int mnNextTarget_, /*const long unsigned int mnFrameId_,*/ 
         /*const double mTimeStamp_,*//*const int mnGridCols_, *//*const int mnGridRows_, */
         /*const float mfGridElementWidthInv_, *//*const float mfGridElementHeightInv_,*/ 
         /*long unsigned int mnTrackReferenceForFrame_,long unsigned int mnFuseTargetForKF_,*/ 
-        long unsigned int mnBALocalForKF_, long unsigned int mnBAFixedForKF_, long unsigned int mnNumberOfOpt_, 
-        long unsigned int mnLoopQuery_, int mnLoopWords_, float mLoopScore_, long unsigned int mnRelocQuery_, 
-        int mnRelocWords_, float mRelocScore_, long unsigned int mnMergeQuery_, int mnMergeWords_, float mMergeScore_, 
-        long unsigned int mnPlaceRecognitionQuery_, int mnPlaceRecognitionWords_, float mPlaceRecognitionScore_, 
-        bool mbCurrentPlaceRecognition_, Sophus::SE3f mTcwGBA_, Sophus::SE3f mTcwBefGBA_, Eigen::Vector3f mVwbGBA_, 
-        Eigen::Vector3f mVwbBefGBA_, /*IMU::Bias mBiasGBA_,*/ long unsigned int mnBAGlobalForKF_, Sophus::SE3f mTcwMerge_, 
-        Sophus::SE3f mTcwBefMerge_, Sophus::SE3f mTwcBefMerge_, Eigen::Vector3f mVwbMerge_, Eigen::Vector3f mVwbBefMerge_, 
-        /*IMU::Bias mBiasMerge_,*/ long unsigned int mnMergeCorrectedForKF_, long unsigned int mnMergeForKF_, float mfScaleMerge_, 
-        long unsigned int mnBALocalForMerge_, float mfScale_, 
+        const long unsigned int mnBALocalForKF_, const long unsigned int mnBAFixedForKF_, const long unsigned int mnNumberOfOpt_, 
+        const long unsigned int mnLoopQuery_, const int mnLoopWords_, const float mLoopScore_, const long unsigned int mnRelocQuery_, 
+        const int mnRelocWords_, const float mRelocScore_, const long unsigned int mnMergeQuery_, const int mnMergeWords_, const float mMergeScore_, 
+        const long unsigned int mnPlaceRecognitionQuery_, const int mnPlaceRecognitionWords_, const float mPlaceRecognitionScore_, 
+        const bool mbCurrentPlaceRecognition_, const Sophus::SE3f mTcwGBA_, const Sophus::SE3f mTcwBefGBA_, const Eigen::Vector3f mVwbGBA_, 
+        const Eigen::Vector3f mVwbBefGBA_, /*IMU::Bias mBiasGBA_,*/ const long unsigned int mnBAGlobalForKF_, const Sophus::SE3f mTcwMerge_, 
+        const Sophus::SE3f mTcwBefMerge_, const Sophus::SE3f mTwcBefMerge_, const Eigen::Vector3f mVwbMerge_, const Eigen::Vector3f mVwbBefMerge_, 
+        /*IMU::Bias mBiasMerge_,*/ const long unsigned int mnMergeCorrectedForKF_, const long unsigned int mnMergeForKF_, const float mfScaleMerge_, 
+        const long unsigned int mnBALocalForMerge_, const float mfScale_, 
         /*const float fx_, *//*const float fy_, *//*const float cx_, *//*const float cy_, *//*const float invfx_, */
         /*const float invfy_, *//*const float mbf_, *//*const float mb_, *//*const float mThDepth_,*/ /*cv::Mat mDistCoef_,*/ 
         /*const int N_, *//*const std::vector<cv::KeyPoint> mvKeys_, *//*const std::vector<cv::KeyPoint> mvKeysUn_, */
         /*const std::vector<float> mvuRight_, *//*const std::vector<float> mvDepth_, *//*const cv::Mat mDescriptors_, */
-        /*DBoW2::BowVector mBowVec_, DBoW2::FeatureVector mFeatVec_,*/ Sophus::SE3f mTcp_, /*const int mnScaleLevels_, */
+        /*DBoW2::BowVector mBowVec_, DBoW2::FeatureVector mFeatVec_,*/ const Sophus::SE3f mTcp_, /*const int mnScaleLevels_, */
         /*const float mfScaleFactor_, *//*const float mfLogScaleFactor_, *//*const std::vector<float> mvScaleFactors_, */
         /*const std::vector<float> mvLevelSigma2_, *//*const std::vector<float> mvInvLevelSigma2_, */
         /*const int mnMinX_, *//*const int mnMinY_, *//*const int mnMaxX_, *//*const int mnMaxY_, */
         /*KeyFrame* mPrevKF = nullptr, *//*KeyFrame* mNextKF = nullptr, *//*IMU::Preintegrated* mpImuPreintegrated = nullptr, */ 
         /*IMU::Calib mImuCalib_, unsigned int mnOriginMapId_, string mNameFile_, int mnDataset_,*/ 
         /*std::vector <KeyFrame*> mvpLoopCandKFs = std::vector <KeyFrame*>(), */ 
-        /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */ std::vector <unsigned long int>& mvLoopCandKFIds_, 
-        std::vector <unsigned long int>& mvMergeCandKFIds_, Sophus::SE3<float> mTcw_, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), */
+        /*std::vector <KeyFrame*> mvpMergeCandKFs = std::vector <KeyFrame*>(), */ const std::vector <unsigned long int>& mvLoopCandKFIds_, 
+        const std::vector <unsigned long int>& mvMergeCandKFIds_, const Sophus::SE3<float> mTcw_, /*Eigen::Matrix3f mRcw = Eigen::Matrix3f(), */
         /*Sophus::SE3<float> mTwc = Sophus::SE3<float>(),*/ /*Eigen::Matrix3f mRwc = Eigen::Matrix3f(), */
-        /*Eigen::Vector3f mOwb = Eigen::Vector3f(), *//*Eigen::Vector3f mVw = Eigen::Vector3f(), */bool mbHasVelocity_, 
-        Sophus::SE3<float> mTlr_, Sophus::SE3<float> mTrl_, /*IMU::Bias mImuBias_,*/ 
-        /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(), */std::vector<std::string>& mvBackupMapPointsId_, 
+        /*Eigen::Vector3f mOwb = Eigen::Vector3f(), *//*Eigen::Vector3f mVw = Eigen::Vector3f(), */const bool mbHasVelocity_, 
+        const Sophus::SE3<float> mTlr_, const Sophus::SE3<float> mTrl_, /*IMU::Bias mImuBias_,*/ 
+        /*std::vector<MapPoint*> mvpMapPoints = std::vector<MapPoint*>(), */const std::vector<std::string>& mvBackupMapPointsId_, 
         /*KeyFrameDatabase* mpKeyFrameDB = nullptr, */ /*ORBVocabulary* mpORBvocabulary = nullptr, */ 
         /*std::vector< std::vector <std::vector<size_t> > > mGrid_, */ /*std::map<KeyFrame*,int> mConnectedKeyFrameWeights = std::map<KeyFrame*,int>(), */ 
-        /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */std::vector<int>& mvOrderedWeights_, 
-        std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_, bool mbFirstConnection_,  /*KeyFrame* mpParent = nullptr, */ 
+        /*std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>(), */const std::vector<int>& mvOrderedWeights_, 
+        const std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_, const bool mbFirstConnection_,  /*KeyFrame* mpParent = nullptr, */ 
         /*std::set<KeyFrame*> mspChildrens = std::set<KeyFrame*>(), */ /*std::set<KeyFrame*> mspLoopEdges = std::set<KeyFrame*>(), */ 
-        /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(), */long long int mBackupParentId_, 
-        std::vector<long unsigned int>& mvBackupChildrensId_, std::vector<long unsigned int>& mvBackupLoopEdgesId_, 
-        std::vector<long unsigned int>& mvBackupMergeEdgesId_, bool mbNotErase_, bool mbToBeErased_, bool mbBad_, 
-        float mHalfBaseline_, /*Map* mpMap = nullptr,*/ long long int mBackupPrevKFId_, long long int mBackupNextKFId_, 
-        /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */unsigned int mnBackupIdCamera_, unsigned int mnBackupIdCamera2_, 
-        /*Eigen::Matrix3f mK__,*/ unsigned int mnLastModule_ /*GeometricCamera* mpCamera = nullptr, */ 
+        /*std::set<KeyFrame*> mspMergeEdges = std::set<KeyFrame*>(), */const long long int mBackupParentId_, 
+        const std::vector<long unsigned int>& mvBackupChildrensId_, const std::vector<long unsigned int>& mvBackupLoopEdgesId_, 
+        const std::vector<long unsigned int>& mvBackupMergeEdgesId_, const bool mbNotErase_, const bool mbToBeErased_, const bool mbBad_, 
+        const float mHalfBaseline_, /*Map* mpMap = nullptr,*/ const long long int mBackupPrevKFId_, const long long int mBackupNextKFId_, 
+        /*IMU::Preintegrated* mBackupImuPreintegrated = nullptr, */const unsigned int mnBackupIdCamera_, const unsigned int mnBackupIdCamera2_, 
+        /*Eigen::Matrix3f mK__,*/ const unsigned int mnLastModule_, const bool mbLCDone_ /*GeometricCamera* mpCamera = nullptr, */ 
           /*GeometricCamera* mpCamera2 = nullptr, *//*std::vector<int> mvLeftToRightMatch_, std::vector<int> mvRightToLeftMatch_,*/ 
           /*const std::vector<cv::KeyPoint> mvKeysRight_,*/ /*const int NLeft_,*/ /*const int NRight_,*/ 
           /*std::vector< std::vector <std::vector<size_t> > > mGridRight_*/);
 
-    void UpdateKeyFrame(long unsigned int mnRelocQuery_, int mnRelocWords_, float mRelocScore_,  
-        long unsigned int mnPlaceRecognitionQuery_, int mnPlaceRecognitionWords_, float mPlaceRecognitionScore_, 
-        bool mbCurrentPlaceRecognition_, /*mfScale,*/ Sophus::SE3f mTcp_, /*mPrevKF,*/ /*mNextKF,*/ 
-        Sophus::SE3<float> mTcw_, /*mvpMapPoints,*/ std::vector<std::string>& mvBackupMapPointsId_, 
-        /*mConnectedKeyFrameWeights,*/ /*mvpOrderedConnectedKeyFrames,*/ std::vector<int>& mvOrderedWeights_, 
-        std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_,  /*mpParent,*/ /*mspChildrens,*/ 
-        long long int mBackupParentId_, std::vector<long unsigned int>& mvBackupChildrensId_, bool mbNotErase_, 
-        bool mbToBeErased_, bool mbBad_,  /*mpMap,*/ long long int mBackupPrevKFId_, 
-        long long int mBackupNextKFId_, unsigned int mnLastModule_, unsigned int mnNextTarget_);
+    void UpdateKeyFrame(const long unsigned int mnRelocQuery_, const int mnRelocWords_, const float mRelocScore_,  
+        const long unsigned int mnPlaceRecognitionQuery_, const int mnPlaceRecognitionWords_, const float mPlaceRecognitionScore_, 
+        const bool mbCurrentPlaceRecognition_, /*mfScale,*/ const Sophus::SE3f mTcp_, /*mPrevKF,*/ /*mNextKF,*/ 
+        const Sophus::SE3<float> mTcw_, /*mvpMapPoints,*/ const std::vector<std::string>& mvBackupMapPointsId_, 
+        /*mConnectedKeyFrameWeights,*/ /*mvpOrderedConnectedKeyFrames,*/ const std::vector<int>& mvOrderedWeights_, 
+        const std::map<long unsigned int, int>& mBackupConnectedKeyFrameIdWeights_,  /*mpParent,*/ /*mspChildrens,*/ 
+        const long long int mBackupParentId_, const std::vector<long unsigned int>& mvBackupChildrensId_, const bool mbNotErase_, 
+        const bool mbToBeErased_, const bool mbBad_,  /*mpMap,*/ const long long int mBackupPrevKFId_, 
+        const long long int mBackupNextKFId_, const unsigned int mnLastModule_, const bool mbLCDone_, const unsigned int mnNextTarget_);
 
     void UpdateKeyFrame(const KeyFrame &kf, const int nFromModule=0);
     
@@ -473,6 +473,7 @@ public:
 
     bool mbCurrentPlaceRecognition;
 
+    bool mbLCDone;
 
     // Variables used by loop closing
     Sophus::SE3f mTcwGBA;

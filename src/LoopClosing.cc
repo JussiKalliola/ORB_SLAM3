@@ -1811,6 +1811,7 @@ void LoopClosing::MergeLocal()
                 pKFi->mTwcBefMerge = pKFi->GetPoseInverse();
 
                 pKFi->SetPose(correctedTiw.cast<float>());
+                pKFi->mbLCDone=true;
 
                 if(pCurrentMap->isImuInitialized())
                 {
@@ -1867,6 +1868,7 @@ void LoopClosing::MergeLocal()
 
                 // Make sure connections are updated
                 pKFi->UpdateMap(pMergeMap);
+                pKFi->mbLCDone=true;
                 pMergeMap->AddKeyFrame(pKFi);
                 pCurrentMap->EraseKeyFrame(pKFi);
             }
@@ -2516,6 +2518,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 pKF->mTcwBefGBA = pKF->GetPose();
                 //cout << "pKF->mTcwBefGBA: " << pKF->mTcwBefGBA << endl;
                 pKF->SetPose(pKF->mTcwGBA);
+                pKF->mbLCDone = true;
                 /*cv::Mat Tco_cn = pKF->mTcwBefGBA * pKF->mTcwGBA.inv();
                 cv::Vec3d trasl = Tco_cn.rowRange(0,3).col(3);
                 double dist = cv::norm(trasl);

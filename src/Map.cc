@@ -44,12 +44,13 @@ Map::Map(int initKFid):mnInitKFid(initKFid), mnMaxKFid(initKFid),/*mnLastLoopKFi
 }
 
 
-Map::Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs,
-    long unsigned int mnId, std::vector<std::string> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId,
-    std::vector<unsigned long int> mvBackupKeyFrameOriginsId, unsigned long int mnBackupKFinitialID,
-    unsigned long int mnBackupKFlowerID, std::vector<std::string> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange,
-    int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail,
-    bool mbBad, bool mbIsInertial, bool mbIMU_BA1,bool mbIMU_BA2, std::set<unsigned long int> msErasedKFIds, std::set<std::string> mspErasedMPIds):
+Map::Map(const bool mbFail, const std::set<long unsigned int>& msOptKFs, const std::set<long unsigned int>& msFixedKFs, const long unsigned int mnId, 
+    const std::vector<std::string>& mvpBackupMapPointsId, const std::vector<unsigned long int>& mvpBackupKeyFramesId, 
+    const std::vector<unsigned long int>& mvBackupKeyFrameOriginsId, const unsigned long int mnBackupKFinitialID, const unsigned long int mnBackupKFlowerID, 
+    const std::vector<std::string>& mvpBackupReferenceMapPointsId, const bool mbImuInitialized, const int mnMapChange, 
+    const int mnMapChangeNotified, const long unsigned int mnInitKFid, const long unsigned int mnMaxKFid, const int mnBigChangeIdx, 
+    const bool mIsInUse, const bool mHasTumbnail, const bool mbBad, const bool mbIsInertial, const bool mbIMU_BA1, const bool mbIMU_BA2, 
+    const std::set<unsigned long int>& msErasedKFIds, const std::set<std::string>& mspErasedMPIds):
     mbFail(mbFail), msOptKFs(msOptKFs), msFixedKFs(msFixedKFs), mnId(mnId), mvpBackupMapPointsId(mvpBackupMapPointsId), 
     mvpBackupKeyFramesId(mvpBackupKeyFramesId), mvBackupKeyFrameOriginsId(mvBackupKeyFrameOriginsId), 
     mnBackupKFinitialID(mnBackupKFinitialID), mnBackupKFlowerID(mnBackupKFlowerID), 
@@ -89,39 +90,32 @@ Map::~Map()
 }
 
 
-void Map::UpdateMap(Map &tempMap)
+void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 {
     unique_lock<mutex> lock(mMutexMap);
     mbFail = tempMap.mbFail; 
     msOptKFs = tempMap.msOptKFs; 
     msFixedKFs = tempMap.msFixedKFs;
-    mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
-    mpKFinitial = tempMap.mpKFinitial;
-    mpKFlowerID = tempMap.mpKFlowerID;
-    mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
-    mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
 
-    mvpReferenceMapPoints.clear();
-    for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
-    {
-      mvpReferenceMapPoints.push_back(tempMP);
-    }
+    //mvpReferenceMapPoints.clear();
+    //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
+    //{
+    //  mvpReferenceMapPoints.push_back(tempMP);
+    //}
 
     //mvpReferenceMapPoints = tempMap.mvpReferenceMapPoints;
 
     //mvpBackupReferenceMapPointsId = tempMap.mvpBackupReferenceMapPointsId;
-    mvpBackupReferenceMapPointsId.clear();
-    for(std::string tempMPid : tempMap.mvpBackupReferenceMapPointsId)
-    {
-      mvpBackupReferenceMapPointsId.push_back(tempMPid);
-    }
+    //mvpBackupReferenceMapPointsId.clear();
+    //for(std::string tempMPid : tempMap.mvpBackupReferenceMapPointsId)
+    //{
+    //  mvpBackupReferenceMapPointsId.push_back(tempMPid);
+    //}
 
     mbImuInitialized = tempMap.mbImuInitialized; 
     mnMapChange = tempMap.mnMapChange; 
     mnMapChangeNotified = tempMap.mnMapChangeNotified; 
-    mnInitKFid = tempMap.mnInitKFid; 
-    mnMaxKFid = tempMap.mnMaxKFid; 
-    //mnBigChangeIdx = tempMap.mnBigChangeIdx;
+    mnBigChangeIdx = tempMap.mnBigChangeIdx;
     mIsInUse = tempMap.mIsInUse; 
     mHasTumbnail = tempMap.mHasTumbnail; 
     mbBad = tempMap.mbBad; 
@@ -129,20 +123,33 @@ void Map::UpdateMap(Map &tempMap)
     mbIMU_BA1 = tempMap.mbIMU_BA1;
     mbIMU_BA2 = tempMap.mbIMU_BA2;
 
-    mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
-    mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
+    if(nFromModule != 3)
+    {
+        mnInitKFid = tempMap.mnInitKFid; 
+        mnMaxKFid = tempMap.mnMaxKFid; 
+        mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
+        mpKFinitial = tempMap.mpKFinitial;
+        mpKFlowerID = tempMap.mpKFlowerID;
+        mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
+        mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
+        mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
+        mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
 
-    mspMapPoints = tempMap.mspMapPoints;
-    mspKeyFrames = tempMap.mspKeyFrames;
+        mspMapPoints = tempMap.mspMapPoints;
+        mspKeyFrames = tempMap.mspKeyFrames;
+
+    }
 }
 
 
-void Map::UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, 
-    long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, 
-    std::set<unsigned long int> msUpdatedKFIds, std::set<std::string> msUpdatedMPIds, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, 
-    unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, 
-    bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, 
-    int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_, /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/ std::set<unsigned long int> msErasedKFIds, std::set<std::string> mspErasedMPIds)
+void Map::UpdateMap(const bool mbFail_, const std::set<long unsigned int>& msOptKFs_, const std::set<long unsigned int>& msFixedKFs_, 
+    const long unsigned int mnId_, const std::vector<std::string>& mvpBackupMapPointsId_, const std::vector<unsigned long int>& mvpBackupKeyFramesId_, 
+    const std::set<unsigned long int>& msUpdatedKFIds, const std::set<std::string>& msUpdatedMPIds, const std::vector<unsigned long int>& mvBackupKeyFrameOriginsId_, 
+    const unsigned long int mnBackupKFinitialID_, const unsigned long int mnBackupKFlowerID_, const std::vector<std::string>& mvpBackupReferenceMapPointsId_, 
+    const bool mbImuInitialized_, const int mnMapChange_, const int mnMapChangeNotified_, const long unsigned int mnInitKFid_, 
+    const long unsigned int mnMaxKFid_, const int mnBigChangeIdx_, const bool mIsInUse_, /*const bool mHasTumbnail,*/ 
+    const bool mbBad_ /*, const bool mbIsInertial, const bool mbIMU_BA1, const bool mbIMU_BA2*/, const std::set<unsigned long int>& msErasedKFIds, 
+    const std::set<std::string>& mspErasedMPIds)
 {
     unique_lock<mutex> lock(mMutexMap);
     mbFail                        =  mbFail_;                        
@@ -153,32 +160,33 @@ void Map::UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::se
     mspUpdatedMapPointIds = msUpdatedMPIds;
     mspUpdatedKeyFrameIds = msUpdatedKFIds;
     
-    for(const auto& mpId : mvpBackupMapPointsId_)
-    {
-      auto it = std::find(mvpBackupMapPointsId.begin(), mvpBackupMapPointsId.end(), mpId);
-      if(it == mvpBackupMapPointsId.end())
-        mvpBackupMapPointsId.push_back(mpId);
-      
-    }
-    //mvpBackupMapPointsId          =  mvpBackupMapPointsId_;          
+    //for(const auto& mpId : mvpBackupMapPointsId_)
+    //{
+    //  auto it = std::find(mvpBackupMapPointsId.begin(), mvpBackupMapPointsId.end(), mpId);
+    //  if(it == mvpBackupMapPointsId.end())
+    //    mvpBackupMapPointsId.push_back(mpId);
+    //  
+    //}
+    mvpBackupMapPointsId          =  mvpBackupMapPointsId_;          
     
-    for(const auto& kfId : mvpBackupKeyFramesId_)
-    {
-      auto it = std::find(mvpBackupKeyFramesId.begin(), mvpBackupKeyFramesId.end(), kfId);
-      if(it == mvpBackupKeyFramesId.end())
-        mvpBackupKeyFramesId.push_back(kfId); 
-    }
+    //for(const auto& kfId : mvpBackupKeyFramesId_)
+    //{
+    //  auto it = std::find(mvpBackupKeyFramesId.begin(), mvpBackupKeyFramesId.end(), kfId);
+    //  if(it == mvpBackupKeyFramesId.end())
+    //    mvpBackupKeyFramesId.push_back(kfId); 
+    //}
 
-    //mvpBackupKeyFramesId          =  mvpBackupKeyFramesId_;          
+    mvpBackupKeyFramesId          =  mvpBackupKeyFramesId_;          
     //mnBackupKFinitialID           =  mnBackupKFinitialID_;           
     //mnBackupKFlowerID             =  mnBackupKFlowerID_;             
-    for(const auto& mpId : mvpBackupReferenceMapPointsId_)
-    {
-      auto it = std::find(mvpBackupReferenceMapPointsId.begin(), mvpBackupReferenceMapPointsId.end(), mpId);
-      if(it == mvpBackupReferenceMapPointsId.end())
-        mvpBackupReferenceMapPointsId.push_back(mpId); 
-    }
-    
+    //for(const auto& mpId : mvpBackupReferenceMapPointsId_)
+    //{
+    //  auto it = std::find(mvpBackupReferenceMapPointsId.begin(), mvpBackupReferenceMapPointsId.end(), mpId);
+    //  if(it == mvpBackupReferenceMapPointsId.end())
+    //    mvpBackupReferenceMapPointsId.push_back(mpId); 
+    //}
+    mvpBackupReferenceMapPointsId = mvpBackupReferenceMapPointsId_;
+
     mvBackupKeyFrameOriginsId = mvBackupKeyFrameOriginsId_;
     //mvpBackupReferenceMapPointsId =  mvpBackupReferenceMapPointsId_; 
     //mbImuInitialized              =  mbImuInitialized_;              
@@ -398,6 +406,8 @@ void Map::EraseKeyFrame(KeyFrame *pKF)
     {
         mpKFlowerID = 0;
     }
+
+    pKF = static_cast<KeyFrame*>(NULL);
 
     // TODO: This only erase the pointer.
     // Delete the MapPoint

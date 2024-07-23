@@ -77,11 +77,24 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     Map();
     Map(int initKFid);
-    Map(bool mbFail, std::set<long unsigned int> msOptKFs, std::set<long unsigned int> msFixedKFs, long unsigned int mnId, std::vector<std::string> mvpBackupMapPointsId, std::vector<unsigned long int> mvpBackupKeyFramesId, std::vector<unsigned long int> mvBackupKeyFrameOriginsId, unsigned long int mnBackupKFinitialID, unsigned long int mnBackupKFlowerID, std::vector<std::string> mvpBackupReferenceMapPointsId, bool mbImuInitialized, int mnMapChange, int mnMapChangeNotified, long unsigned int mnInitKFid, long unsigned int mnMaxKFid, int mnBigChangeIdx, bool mIsInUse, bool mHasTumbnail, bool mbBad, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2, std::set<unsigned long int> msErasedKFIds, std::set<std::string> mspErasedMPIds);
+    Map(const bool mbFail, const std::set<long unsigned int>& msOptKFs, const std::set<long unsigned int>& msFixedKFs, const long unsigned int mnId, 
+        const std::vector<std::string>& mvpBackupMapPointsId, const std::vector<unsigned long int>& mvpBackupKeyFramesId, 
+        const std::vector<unsigned long int>& mvBackupKeyFrameOriginsId, const unsigned long int mnBackupKFinitialID, const unsigned long int mnBackupKFlowerID, 
+        const std::vector<std::string>& mvpBackupReferenceMapPointsId, const bool mbImuInitialized, const int mnMapChange, 
+        const int mnMapChangeNotified, const long unsigned int mnInitKFid, const long unsigned int mnMaxKFid, const int mnBigChangeIdx, 
+        const bool mIsInUse, const bool mHasTumbnail, const bool mbBad, const bool mbIsInertial, const bool mbIMU_BA1, const bool mbIMU_BA2, 
+        const std::set<unsigned long int>& msErasedKFIds, const std::set<std::string>& mspErasedMPIds);
     ~Map();
 
-    void UpdateMap(Map &tempMap);
-    void UpdateMap(bool mbFail_, std::set<long unsigned int> msOptKFs_, std::set<long unsigned int> msFixedKFs_, long unsigned int mnId_, std::vector<std::string> mvpBackupMapPointsId_, std::vector<unsigned long int> mvpBackupKeyFramesId_, std::set<unsigned long int> msUpdatedKFIds, std::set<std::string> msUpdatedMPIds, std::vector<unsigned long int> mvBackupKeyFrameOriginsId_, unsigned long int mnBackupKFinitialID_, unsigned long int mnBackupKFlowerID_, std::vector<std::string> mvpBackupReferenceMapPointsId_, bool mbImuInitialized_, int mnMapChange_, int mnMapChangeNotified_, long unsigned int mnInitKFid_, long unsigned int mnMaxKFid_, int mnBigChangeIdx_, bool mIsInUse_, /*bool mHasTumbnail,*/ bool mbBad_ /*, bool mbIsInertial, bool mbIMU_BA1, bool mbIMU_BA2*/, std::set<unsigned long int> msErasedKFIds, std::set<std::string> mspErasedMPIds);
+    void UpdateMap(const Map &tempMap, const int nFromModule);
+    void UpdateMap(const bool mbFail_, const std::set<long unsigned int>& msOptKFs_, const std::set<long unsigned int>& msFixedKFs_, 
+        const long unsigned int mnId_, const std::vector<std::string>& mvpBackupMapPointsId_, const std::vector<unsigned long int>& mvpBackupKeyFramesId_, 
+        const std::set<unsigned long int>& msUpdatedKFIds, const std::set<std::string>& msUpdatedMPIds, const std::vector<unsigned long int>& mvBackupKeyFrameOriginsId_, 
+        const unsigned long int mnBackupKFinitialID_, const unsigned long int mnBackupKFlowerID_, const std::vector<std::string>& mvpBackupReferenceMapPointsId_, 
+        const bool mbImuInitialized_, const int mnMapChange_, const int mnMapChangeNotified_, const long unsigned int mnInitKFid_, 
+        const long unsigned int mnMaxKFid_, const int mnBigChangeIdx_, const bool mIsInUse_, /*const bool mHasTumbnail,*/ 
+        const bool mbBad_ /*, const bool mbIsInertial, const bool mbIMU_BA1, const bool mbIMU_BA2*/, const std::set<unsigned long int>& msErasedKFIds, 
+        const std::set<std::string>& mspErasedMPIds);
     void AddKeyFrame(KeyFrame* pKF);
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);

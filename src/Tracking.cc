@@ -3263,8 +3263,8 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     }
 
-    if(mpReferenceKF && mpReferenceKF->GetLastModule() < 2)
-      return false;
+    //if(mpReferenceKF && mpReferenceKF->GetLastModule() < 2)
+    //  return false;
     //UpdateReference();
 
     // Tracked MapPoints in the reference keyframe
@@ -3321,36 +3321,44 @@ bool Tracking::NeedNewKeyFrame()
     if(mSensor==System::MONOCULAR)
     {
         thRefRatio = 0.9f;
-        if(mnMatchesInliers <= 70)
+        if(mnMatchesInliers <= 100)
         {
-          thRefRatio = 1.0f;
+          thRefRatio = 0.9f;
           mMinFrames=2;
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
         }
-        else if(mnMatchesInliers > 70 && mnMatchesInliers <= 100)
-        {
-          thRefRatio = 0.9f;
-          mMinFrames=4;
-          //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
-          //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
+        //else if(mnMatchesInliers > 60 && mnMatchesInliers <= 100)
+        //{
+        //  thRefRatio = 0.85f;
+        //  mMinFrames=3;
+        //  //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+        //  //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        }
-        else if(mnMatchesInliers > 100 && mnMatchesInliers <= 150)
+        //}
+        else if(mnMatchesInliers > 100 && mnMatchesInliers <= 200)
         {
-          thRefRatio = 0.9f;
-          if(mMinFrames>4)
-            mMinFrames--;
+          thRefRatio = 0.85f;
+          mMinFrames=3;
+          //if(mMinFrames>3)
+          //  mMinFrames--;
 
         }
         else
         {
-          thRefRatio = 0.75f;
-          if(mMinFrames<10)
-            mMinFrames++;
+          thRefRatio = 0.85f;
+          mMinFrames=4;
+          //if(mMinFrames<4)
+          //  mMinFrames++;
 
         }
+
+        //if(mpLocalMapper->mbGBARunning)
+        //{
+        //    mMinFrames=10;
+        //    thRefRatio=0.9f;
+        //}
         //thRefRatio = 0.9f;
 
     }
@@ -3428,7 +3436,7 @@ bool Tracking::NeedNewKeyFrame()
    
     std::cout << "c2a=" << c2a << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2a && (c1a||c1b)))
-        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
+        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<5)
             return true;
         else
             return false;
@@ -4424,7 +4432,7 @@ bool Tracking::Relocalization()
     bool bMatch = false;
     ORBmatcher matcher2(0.9,true);
     int tries = 0; // fix
-    int maxTries=1000;// fix
+    int maxTries=50;// fix
     std::cout << "#Candidates=" << nCandidates << "#KFs=" << nKFs << std::endl;
     while(nCandidates>0 && !bMatch)
     {

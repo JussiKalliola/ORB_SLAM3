@@ -33,7 +33,8 @@ namespace ORB_SLAM3
 LocalMapping::LocalMapping(System* pSys, Atlas *pAtlas, const float bMonocular, bool bInertial, const string &_strSeqName):
     mpSystem(pSys), mbMonocular(bMonocular), mbInertial(bInertial), mbResetRequested(false), mbResetRequestedActiveMap(false), mbFinishRequested(false), mbFinished(true), mpAtlas(pAtlas), bInitializing(false),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true), mbAllowLM(true),
-    mIdxInit(0), mScale(1.0), mInitSect(0), mbNotBA1(true), mbNotBA2(true), mIdxIteration(0), infoInertial(Eigen::MatrixXd::Zero(9,9)), mbIsRunning(false)
+    mIdxInit(0), mScale(1.0), mInitSect(0), mbNotBA1(true), mbNotBA2(true), mIdxIteration(0), infoInertial(Eigen::MatrixXd::Zero(9,9)), mbIsRunning(false),
+    mbGBARunning(false)
 {
     mnMatchesInliers = 0;
 
@@ -187,9 +188,12 @@ void LocalMapping::Run()
                     }
                     else
                     {
-                        //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
-                        Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
-                        b_doneLBA = true;
+                       //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
+                        if(!mbGBARunning)
+                        {
+                            Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
+                            b_doneLBA = true;
+                        }
                     }
 
                 }
@@ -336,7 +340,7 @@ void LocalMapping::Run()
         {
 
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
+          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone) && !stopRequested())
           {
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
@@ -1086,6 +1090,8 @@ void LocalMapping::RequestStop()
     mbStopRequested = true;
     unique_lock<mutex> lock2(mMutexNewKFs);
     mbAbortBA = true;
+
+    notifyStopRequest();
 }
 
 bool LocalMapping::Stop()

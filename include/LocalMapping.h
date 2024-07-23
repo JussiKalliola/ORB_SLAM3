@@ -115,6 +115,8 @@ public:
     bool mbFarPoints;
     float mThFarPoints;
 
+    bool mbGBARunning;
+
 #ifdef REGISTER_TIMES
     vector<double> vdKFInsert_ms;
     vector<double> vdMPCulling_ms;
@@ -147,6 +149,12 @@ public:
     void notifyDistributorAddKeyframe(KeyFrame* pKF, std::set<std::string> msNewMapPointIds) {
       if (distributor_) {
         distributor_->onKeyframeAdded(pKF, msNewMapPointIds);
+      }
+    }
+
+    void notifyStopRequest() {
+      if (distributor_) {
+        distributor_->onLMStopRequest();
       }
     }
 

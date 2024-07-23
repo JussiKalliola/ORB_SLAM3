@@ -74,7 +74,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
     g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
     optimizer.setAlgorithm(solver);
-    optimizer.setVerbose(false);
+    optimizer.setVerbose(true);
 
     if(pbStopFlag)
         optimizer.setForceStopFlag(pbStopFlag);
@@ -116,7 +116,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     for(size_t i=0; i<vpKFs.size(); i++)
     {
         KeyFrame* pKF = vpKFs[i];
-        if(!pKF || pKF->isBad())
+        if(pKF->isBad())
             continue;
         g2o::VertexSE3Expmap * vSE3 = new g2o::VertexSE3Expmap();
         Sophus::SE3<float> Tcw = pKF->GetPose();
@@ -135,7 +135,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     for(size_t i=0; i<vpMP.size(); i++)
     {
         MapPoint* pMP = vpMP[i];
-        if(!pMP || pMP->isBad())
+        if(pMP->isBad())
             continue;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMP->GetWorldPos().cast<double>());
@@ -151,7 +151,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         for(map<KeyFrame*,tuple<int,int>>::const_iterator mit=observations.begin(); mit!=observations.end(); mit++)
         {
             KeyFrame* pKF = mit->first;
-            if(!pKF || pKF->isBad() || pKF->mnId>maxKFid)
+            if(pKF->isBad() || pKF->mnId>maxKFid)
                 continue;
             if(optimizer.vertex(id) == NULL || optimizer.vertex(pKF->mnId) == NULL)
                 continue;
@@ -285,17 +285,11 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     for(size_t i=0; i<vpKFs.size(); i++)
     {
         KeyFrame* pKF = vpKFs[i];
-        if(!pKF || pKF->isBad())
+        if(pKF->isBad())
             continue;
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
-        //std::cout << "before checks" << std::endl;
+
         g2o::SE3Quat SE3quat = vSE3->estimate();
-        //if(!nLoopKF)
-        //  std::cout << "!nLoopKF" << std::endl;
-        //if(!pMap)
-        //  std::cout << "!pMap" << std::endl;
-        //if(!pMap->GetOriginKF())
-        //  std::cout << "!pMap->GetOriginKF()" << std::endl;
         if(nLoopKF==pMap->GetOriginKF()->mnId)
         {
             pKF->SetPose(Sophus::SE3f(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>()));
@@ -326,7 +320,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
                         continue;
                     }
 
-                    if(!pMP || pMP->isBad())
+                    if(pMP->isBad())
                         continue;
 
                     if(e->chi2()>5.991 || !e->isDepthPositive())
@@ -353,7 +347,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
                         continue;
                     }
 
-                    if(!pMP || pMP->isBad())
+                    if(pMP->isBad())
                         continue;
 
                     if(e->chi2()>7.815 || !e->isDepthPositive())
@@ -378,7 +372,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
         MapPoint* pMP = vpMP[i];
 
-        if(!pMP || pMP->isBad())
+        if(pMP->isBad())
             continue;
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
 

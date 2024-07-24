@@ -3324,7 +3324,8 @@ bool Tracking::NeedNewKeyFrame()
         if(mnMatchesInliers <= 100)
         {
           thRefRatio = 0.9f;
-          mMinFrames=2;
+          //mMinFrames=2; // Mac docker
+          mMinFrames=3;
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
@@ -3339,16 +3340,20 @@ bool Tracking::NeedNewKeyFrame()
         //}
         else if(mnMatchesInliers > 100 && mnMatchesInliers <= 200)
         {
-          thRefRatio = 0.85f;
-          mMinFrames=3;
+          //thRefRatio = 0.85f; Mac docker
+          thRefRatio = 0.75f;
+          //mMinFrames=3; Mac docker
+          mMinFrames=5;
           //if(mMinFrames>3)
           //  mMinFrames--;
 
         }
         else
         {
-          thRefRatio = 0.85f;
-          mMinFrames=4;
+          //thRefRatio = 0.85f; Mac Docker
+          //mMinFrames=4; Mac docker
+          thRefRatio = 0.6f;
+          mMinFrames=7;
           //if(mMinFrames<4)
           //  mMinFrames++;
 

@@ -3341,7 +3341,7 @@ bool Tracking::NeedNewKeyFrame()
         else if(mnMatchesInliers > 100 && mnMatchesInliers <= 200)
         {
           //thRefRatio = 0.85f; Mac docker
-          thRefRatio = 0.75f;
+          thRefRatio = 0.85f;
           //mMinFrames=3; Mac docker
           mMinFrames=5;
           //if(mMinFrames>3)
@@ -3352,7 +3352,7 @@ bool Tracking::NeedNewKeyFrame()
         {
           //thRefRatio = 0.85f; Mac Docker
           //mMinFrames=4; Mac docker
-          thRefRatio = 0.6f;
+          thRefRatio = 0.8f;
           mMinFrames=7;
           //if(mMinFrames<4)
           //  mMinFrames++;

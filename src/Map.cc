@@ -132,8 +132,8 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
         mpKFlowerID = tempMap.mpKFlowerID;
         mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
         mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
-        //mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
-        //mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
+        mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
+        mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
 
         mspMapPoints = tempMap.mspMapPoints;
         mspKeyFrames = tempMap.mspKeyFrames;

@@ -109,7 +109,7 @@ public:
     std::vector<MapPoint*> GetReferenceMapPoints();
     
     std::set<unsigned long int> GetErasedKFIds();
-    std::set<std::string> GetErasedMPIds();
+    std::set<std::string>& GetErasedMPIds();
     
     void ClearErasedData();
 

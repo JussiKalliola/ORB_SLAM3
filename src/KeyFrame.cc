@@ -355,9 +355,9 @@ void KeyFrame::UpdateKeyFrame(const KeyFrame &kf, const int nFromModule)
     // Used by tracking, so do not change
     //mnTrackReferenceForFrame          =mnTrackReferenceForFrame_;          
     //mnFuseTargetForKF                 =mnFuseTargetForKF_;                 
-    mnBALocalForKF                    =kf.mnBALocalForKF;                    
-    mnBAFixedForKF                    =kf.mnBAFixedForKF;                    
-    mnNumberOfOpt                     =kf.mnNumberOfOpt;                     
+    //mnBALocalForKF                    =kf.mnBALocalForKF;                    
+    //mnBAFixedForKF                    =kf.mnBAFixedForKF;                    
+    //mnNumberOfOpt                     =kf.mnNumberOfOpt;                     
     
     if(nFromModule==3)
     {

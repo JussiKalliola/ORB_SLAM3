@@ -94,9 +94,10 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 {
     unique_lock<mutex> lock(mMutexMap);
     mbFail = tempMap.mbFail; 
-    msOptKFs = tempMap.msOptKFs; 
-    msFixedKFs = tempMap.msFixedKFs;
+    //msOptKFs = tempMap.msOptKFs; 
+    //msFixedKFs = tempMap.msFixedKFs;
 
+    mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
     //mvpReferenceMapPoints.clear();
     //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
     //{
@@ -110,6 +111,17 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
     //for(std::string tempMPid : tempMap.mvpBackupReferenceMapPointsId)
     //{
     //  mvpBackupReferenceMapPointsId.push_back(tempMPid);
+    //}
+
+    mspErasedMapPointIds = tempMap.mspErasedMapPointIds;
+    for(const auto id : tempMap.mspErasedKeyFrameIds)
+    {
+        mspErasedKeyFrameIds.insert(id);
+    }
+
+    //for(const auto id : tempMap.mspErasedMapPointIds)
+    //{
+    //    mspErasedMapPointIds.insert(id);
     //}
 
     mbImuInitialized = tempMap.mbImuInitialized; 
@@ -207,7 +219,7 @@ void Map::UpdateMap(const bool mbFail_, const std::set<long unsigned int>& msOpt
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
-    //cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << mnInitKFid << endl;
+    cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << endl;
     unique_lock<mutex> lock(mMutexMap);
     if(mspKeyFrames.empty()){
         //cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
@@ -217,6 +229,7 @@ void Map::AddKeyFrame(KeyFrame *pKF)
     }
     notifyNewKeyFrameAdded(pKF);
     mspKeyFrames.insert(pKF);
+
     if(pKF->mnId>mnMaxKFid)
     {
         mnMaxKFid=pKF->mnId;
@@ -269,7 +282,7 @@ std::set<unsigned long int> Map::GetErasedKFIds()
 }
 
 
-std::set<std::string> Map::GetErasedMPIds()
+std::set<std::string>& Map::GetErasedMPIds()
 { 
     unique_lock<mutex> lock(mMutexMap);
     return mspErasedMapPointIds;

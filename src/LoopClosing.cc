@@ -1363,6 +1363,8 @@ void LoopClosing::MergeLocal()
 
     //Verbose::PrintMess("MERGE-VISUAL: Request Stop Local Mapping", Verbose::VERBOSITY_DEBUG);
     //cout << "Request Stop Local Mapping" << endl;
+    //TODO: These are commented only on distributed version
+    //Figure out a way to stop LM in other cases except in merge
     mpLocalMapper->RequestStop();
     // Wait until Local Mapping has effectively stopped
     while(!mpLocalMapper->isStopped())

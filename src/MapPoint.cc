@@ -333,6 +333,8 @@ void MapPoint::UpdateMapPoint(const long int mnFirstKFid_, const long int mnFirs
         mpMap                     = static_cast<Map*>(NULL);
     mnLastModule              = mnLastModule_;
 
+
+
 }
 
 void MapPoint::UpdateMapPoint(const int nObs_, /*KeyFrame* mpHostKF = nullptr, */const long long int mBackupHostKFId_, 
@@ -1054,7 +1056,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     //std::cout << "after observations" << std::endl;
     // Save the id of the reference KF
     mBackupRefKFId = -1;
-    if(spKF.find(mpRefKF) != spKF.end())
+    if(mpRefKF && spKF.find(mpRefKF) != spKF.end())
     {
         mBackupRefKFId = mpRefKF->mnId;
     } else {
@@ -1064,7 +1066,7 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
 
     // Save the id of the reference KF
     mBackupHostKFId = -1;
-    if(spKF.find(mpHostKF) != spKF.end())
+    if(mpHostKF && spKF.find(mpHostKF) != spKF.end())
     {
         mBackupHostKFId = mpHostKF->mnId;
     } else {

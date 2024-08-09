@@ -3321,43 +3321,47 @@ bool Tracking::NeedNewKeyFrame()
     if(mSensor==System::MONOCULAR)
     {
         thRefRatio = 0.9f;
-        if(mnMatchesInliers <= 100)
-        {
-          thRefRatio = 0.9f;
-          //mMinFrames=2; // Mac docker
-          mMinFrames=3;
-          //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
-          //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
-
-        }
-        //else if(mnMatchesInliers > 60 && mnMatchesInliers <= 100)
+        mMinFrames=3;
+        //if(mnMatchesInliers <= 100)
         //{
-        //  thRefRatio = 0.85f;
-        //  mMinFrames=3;
+        //  thRefRatio = 0.9f;
+        //  //mMinFrames=2; // Mac docker
+        //  mMinFrames=2;
+        //  //mMinFrames=5; // full run w/ this one
         //  //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
         //  //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
         //}
-        else if(mnMatchesInliers > 100 && mnMatchesInliers <= 200)
-        {
-          //thRefRatio = 0.85f; Mac docker
-          thRefRatio = 0.85f;
-          //mMinFrames=3; Mac docker
-          mMinFrames=5;
-          //if(mMinFrames>3)
-          //  mMinFrames--;
+        ////else if(mnMatchesInliers > 60 && mnMatchesInliers <= 100)
+        ////{
+        ////  thRefRatio = 0.85f;
+        ////  mMinFrames=3;
+        ////  //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+        ////  //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        }
-        else
-        {
-          //thRefRatio = 0.85f; Mac Docker
-          //mMinFrames=4; Mac docker
-          thRefRatio = 0.8f;
-          mMinFrames=7;
-          //if(mMinFrames<4)
-          //  mMinFrames++;
+        ////}
+        //else if(mnMatchesInliers > 100 && mnMatchesInliers <= 200)
+        //{
+        //  //thRefRatio = 0.85f; Mac docker
+        //  thRefRatio = 0.8;
+        //  //mMinFrames=3; Mac docker
+        //  mMinFrames=3;
+        //  //mMinFrames=7; // full run w/ this one
+        //  //if(mMinFrames>3)
+        //  //  mMinFrames--;
 
-        }
+        //}
+        //else
+        //{
+        //  //thRefRatio = 0.85f; Mac Docker
+        //  //mMinFrames=4; Mac docker
+        //  thRefRatio = 0.7f;
+        //  mMinFrames=4;
+        //  //mMinFrames=9; // full run w/ this one
+        //  //if(mMinFrames<4)
+        //  //  mMinFrames++;
+
+        //}
 
         //if(mpLocalMapper->mbGBARunning)
         //{
@@ -3385,7 +3389,7 @@ bool Tracking::NeedNewKeyFrame()
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
-    const bool c2a = (((mnMatchesInliers<nRefMatches*thRefRatio || bNeedToInsertClose)) && mnMatchesInliers>15);
+    const bool c2a = ((((mnMatchesInliers<nRefMatches*thRefRatio || bNeedToInsertClose)) && mnMatchesInliers>15) || nRefMatches < 70);
 
 
     //std::cout << "NeedNewKF: c1a=" << c1a << "; c1b=" << c1b << "; c1c=" << c1c << "; c2=" << c2 << std::endl;

@@ -33,7 +33,7 @@ class Distributor {
         virtual void onGlobalMapUpdated(bool mbMerged, bool mbLoopClosure, std::vector<unsigned long int> mvMergeIds) = 0;
         //virtual void onChangeLMActive(bool bActive) = 0;
         virtual void onLMResetRequested() = 0;
-        virtual void onLMStopRequest() = 0;
+        virtual void onLMStopRequest(const bool bStopLM) = 0;
         virtual void onActiveMapReset(unsigned long int mnMapId) = 0;
         
         virtual int KeyFramesInQueue() = 0;

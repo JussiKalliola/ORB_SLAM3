@@ -152,9 +152,9 @@ public:
       }
     }
 
-    void notifyStopRequest() {
+    void notifyStopRequest(const bool bStopLM) {
       if (distributor_) {
-        distributor_->onLMStopRequest();
+        distributor_->onLMStopRequest(bStopLM);
       }
     }
 
@@ -165,6 +165,7 @@ public:
       }
     }
 
+    std::set<std::string> msNewMapPointIds;
     //void notifyDistributorLMActive(bool bActive) {
     //  //unique_lock<std::mutex> lock(mMutexNewKFs);
     //  if (distributor_) { 
@@ -210,7 +211,6 @@ protected:
     KeyFrame* mpCurrentKeyFrame;
 
     std::list<MapPoint*> mlpRecentAddedMapPoints;
-    std::set<std::string> msNewMapPointIds;
 
     std::mutex mMutexNewKFs;
     

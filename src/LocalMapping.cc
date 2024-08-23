@@ -109,51 +109,51 @@ void LocalMapping::Run()
             // BoW conversion and insertion in Map
             ProcessNewKeyFrame();
 
+
+#ifdef REGISTER_TIMES
+            std::chrono::steady_clock::time_point time_EndProcessKF = std::chrono::steady_clock::now();
+
+            double timeProcessKF = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndProcessKF - time_StartProcessKF).count();
+            vdKFInsert_ms.push_back(timeProcessKF);
+#endif
+
+            //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
+            // Check recent MapPoints
+            MapPointCulling();
+#ifdef REGISTER_TIMES
+            std::chrono::steady_clock::time_point time_EndMPCulling = std::chrono::steady_clock::now();
+
+            double timeMPCulling = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMPCulling - time_EndProcessKF).count();
+            vdMPCulling_ms.push_back(timeMPCulling);
+#endif
+
+            //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
+            // Triangulate new MapPoints
+            CreateNewMapPoints();
+
+            std::cout << "  Thread2=LocalMapping::Run : GBA is not running, performing whole pipeline." << std::endl; 
+            mbAbortBA = false;
+
+            if(!CheckNewKeyFrames())
+            {
+                // Find more matches in neighbor keyframes and fuse point duplications
+                SearchInNeighbors();
+                //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
+            }
+
+            //mpCurrentKeyFrame->mnNextTarget = 3;
+            //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+            //msNewMapPointIds.clear();
+
+#ifdef REGISTER_TIMES
+            std::chrono::steady_clock::time_point time_EndMPCreation = std::chrono::steady_clock::now();
+
+            double timeMPCreation = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMPCreation - time_EndMPCulling).count();
+            vdMPCreation_ms.push_back(timeMPCreation);
+#endif
+
             if(!mbGBARunning)
             {
-
-#ifdef REGISTER_TIMES
-                std::chrono::steady_clock::time_point time_EndProcessKF = std::chrono::steady_clock::now();
-
-                double timeProcessKF = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndProcessKF - time_StartProcessKF).count();
-                vdKFInsert_ms.push_back(timeProcessKF);
-#endif
-
-                //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
-                // Check recent MapPoints
-                MapPointCulling();
-#ifdef REGISTER_TIMES
-                std::chrono::steady_clock::time_point time_EndMPCulling = std::chrono::steady_clock::now();
-
-                double timeMPCulling = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMPCulling - time_EndProcessKF).count();
-                vdMPCulling_ms.push_back(timeMPCulling);
-#endif
-
-                //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
-                // Triangulate new MapPoints
-                CreateNewMapPoints();
-
-                mbAbortBA = false;
-
-                if(!CheckNewKeyFrames())
-                {
-                    //std::cout << "  Thread2=LocalMapping::Run : No new KFs -> Search neighbor KFs;" << std::endl; 
-                    // Find more matches in neighbor keyframes and fuse point duplications
-                    SearchInNeighbors();
-                    //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
-                }
-
-                //mpCurrentKeyFrame->mnNextTarget = 3;
-                //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
-                //msNewMapPointIds.clear();
-
-#ifdef REGISTER_TIMES
-                std::chrono::steady_clock::time_point time_EndMPCreation = std::chrono::steady_clock::now();
-
-                double timeMPCreation = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndMPCreation - time_EndMPCulling).count();
-                vdMPCreation_ms.push_back(timeMPCreation);
-#endif
-
                 bool b_doneLBA = false;
                 int num_FixedKF_BA = 0;
                 int num_OptKF_BA = 0;
@@ -193,8 +193,12 @@ void LocalMapping::Run()
                         else
                         {
                            //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
+                            //if(!mbGBARunning)
+                            //{
                             Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
                             b_doneLBA = true;
+
+                            //}
                         }
 
                     }
@@ -300,7 +304,7 @@ void LocalMapping::Run()
                 //TODO: Here, broadcast KF/inform network of new KF for loop closure
                 //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
                 mpCurrentKeyFrame->mnNextTarget = 3;
-                //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+                notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
                 //msNewMapPointIds.clear();
 
 
@@ -322,30 +326,32 @@ void LocalMapping::Run()
         }
         else if(Stop() && !mbBadImu)
         {
+            //std::cout << "  Thread2=LocalMapping::Run : Stop()" << std::endl;
             // Safe area to stop
-            while(isStopped() && !CheckFinish())
-            {
-                usleep(3000);
-            }
+            //while(isStopped() && !CheckFinish())
+            //{
+            //    usleep(3000);
+            //}
             if(CheckFinish())
                 break;
         }
 
 
         // TODO: HERE SEND THE UPDATED MAP
-        msLastMUStop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
-        auto dCount = duration.count();
+        //msLastMUStop = std::chrono::high_resolution_clock::now();
+        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
+        //auto dCount = duration.count();
         //if (mbLocalMappingDone)
         //{
         
         
-        if(mpCurrentKeyFrame)
+        if(mbKFsAfterMapUpdate || mbLocalMappingDone || mpCurrentKeyFrame)//if(mpCurrentKeyFrame)
         {
 
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-          if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone) && !stopRequested())
+          if ((mpAtlas->GetCurrentMap()) && (mpAtlas->GetCurrentMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone)) //&& !stopRequested())
           {
+            std::cout << "  Thread2=LocalMapping::Run : Sending update, mbGBARunning=" << mbGBARunning << ",KFs in Map=" << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", LM Done=" << mbLocalMappingDone << ", mbKFsAfterMapUpdate=" << mbKFsAfterMapUpdate << std::endl; 
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
@@ -359,6 +365,7 @@ void LocalMapping::Run()
            
             mbLocalMappingDone=false;
             mbKFsAfterMapUpdate=false;
+            msNewMapPointIds.clear();
             //mbAllowLM=false;
             msLastMUStart = std::chrono::high_resolution_clock::now();
             //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
@@ -451,17 +458,17 @@ bool LocalMapping::NeedNewKeyFrame(KeyFrame* pKF)
 void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
     //TODO: subscirber node will insert KF broadcasted by Tracking
     //std::cout << "Thread1=LocalMapping::AddKeyframeFromRos - Added KF with ID=" << pKF->mnId << std::endl;
-    //Verbose::PrintMess("Thread1=LocalMapping::AddKeyframeFromRos **************************", Verbose::VERBOSITY_DEBUG);
     unique_lock<mutex> lock(mMutexNewKFs);
+    Verbose::PrintMess("Thread1=LocalMapping::InsertKeyframeFromRos", Verbose::VERBOSITY_NORMAL);
     
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
-    if(isStopped() || stopRequested())
-        return;
+    //if(isStopped() || stopRequested())
+    //    return;
 
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
     mnLastKeyFrameId = pKF->mnFrameId;
-    //std::cout << "End of AddKeyFrameFromRos" << std::endl;
+    std::cout << "End of AddKeyFrameFromRos, mlNewKeyFrames.size()=" << mlNewKeyFrames.size() << std::endl;
 }
 
 
@@ -494,6 +501,9 @@ void LocalMapping::ProcessNewKeyFrame()
         mlNewKeyFrames.pop_front();
         std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : KF id=" << mpCurrentKeyFrame->mnId << std::endl; 
     }
+
+    if(!mpCurrentKeyFrame)
+        return;
 
     // Compute Bags of Words structures
     mpCurrentKeyFrame->ComputeBoW();
@@ -1070,12 +1080,12 @@ void LocalMapping::SearchInNeighbors()
             {
                 pMP->ComputeDistinctiveDescriptors();
                 pMP->UpdateNormalAndDepth();
-                pMP->SetLastModule(2); // Last module 1=LM
                 //if(pMP->GetMap())
                 //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                 //else 
-                //mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+                mpCurrentKeyFrame->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
             }
+            pMP->SetLastModule(2); // Last module 1=LM
         }
     }
 
@@ -1104,7 +1114,7 @@ bool LocalMapping::Stop()
     if(mbStopRequested && !mbNotStop)
     {
         mbStopped = true;
-        cout << "Local Mapping STOP" << endl;
+        //cout << "Local Mapping STOP" << endl;
         return true;
     }
 

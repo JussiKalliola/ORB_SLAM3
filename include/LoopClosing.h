@@ -90,6 +90,7 @@ public:
     }
     
     bool CheckIfRunning();
+    KeyFrame* GetCurrentKeyFrame();
 
     void RequestFinish();
 

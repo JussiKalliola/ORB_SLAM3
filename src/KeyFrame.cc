@@ -168,13 +168,13 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
     //std::vector <KeyFrame*> mvpMergeCandKFs;
 
     //std::vector <unsigned long int> mvLoopCandKFIds;
-    mvLoopCandKFIds.reserve(kf.mvLoopCandKFIds.size());
+    mvLoopCandKFIds.reserve(kf.mvLoopCandKFIds.size()*3);
     for(const auto& data : kf.mvLoopCandKFIds)
     {
       mvLoopCandKFIds.push_back(data);
     }
     //std::vector <unsigned long int> mvMergeCandKFIds;
-    mvMergeCandKFIds.reserve(kf.mvMergeCandKFIds.size());
+    mvMergeCandKFIds.reserve(kf.mvMergeCandKFIds.size()*3);
     for(const auto& data : kf.mvMergeCandKFIds)
     {
       mvMergeCandKFIds.push_back(data);
@@ -183,7 +183,7 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
     mvpMapPoints = std::vector<MapPoint*>();
     //// For save relation without pointer, this is necessary for save/load function
     //std::vector<std::string> mvBackupMapPointsId;
-    mvBackupMapPointsId.reserve(kf.mvBackupMapPointsId.size());
+    mvBackupMapPointsId.reserve(kf.mvBackupMapPointsId.size()*3);
     for(const auto& data : kf.mvBackupMapPointsId)
     {
       mvBackupMapPointsId.push_back(data);
@@ -197,7 +197,7 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
     //std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames;
     mvpOrderedConnectedKeyFrames = std::vector<KeyFrame*>();
     //std::vector<int> mvOrderedWeights;
-    mvOrderedWeights.reserve(kf.mvOrderedWeights.size());
+    mvOrderedWeights.reserve(kf.mvOrderedWeights.size()*3);
     for(const auto& data : kf.mvOrderedWeights)
     {
       mvOrderedWeights.push_back(data);
@@ -211,19 +211,19 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
       mBackupConnectedKeyFrameIdWeights[it->first] = it->second;
     }
     //std::vector<long unsigned int> mvBackupChildrensId;
-    mvBackupChildrensId.reserve(kf.mvBackupChildrensId.size());
+    mvBackupChildrensId.reserve(kf.mvBackupChildrensId.size()*3);
     for(const auto& data : kf.mvBackupChildrensId)
     {
       mvBackupChildrensId.push_back(data);
     }
     //std::vector<long unsigned int> mvBackupLoopEdgesId;
-    mvBackupLoopEdgesId.reserve(kf.mvBackupLoopEdgesId.size());
+    mvBackupLoopEdgesId.reserve(kf.mvBackupLoopEdgesId.size()*3);
     for(const auto& data : kf.mvBackupLoopEdgesId)
     {
       mvBackupLoopEdgesId.push_back(data);
     }
     //std::vector<long unsigned int> mvBackupMergeEdgesId;
-    mvBackupMergeEdgesId.reserve(kf.mvBackupMergeEdgesId.size());
+    mvBackupMergeEdgesId.reserve(kf.mvBackupMergeEdgesId.size()*3);
     for(const auto& data : kf.mvBackupMergeEdgesId)
     {
       mvBackupMergeEdgesId.push_back(data);
@@ -1553,7 +1553,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     for(int i = 0; i < N; ++i)
     {
 
-        if(mvpMapPoints[i] && spMP.find(mvpMapPoints[i]) != spMP.end()) // Checks if the element is not null
+        if(mvpMapPoints[i]) // Checks if the element is not null
             mvBackupMapPointsId.push_back(mvpMapPoints[i]->mstrHexId);
         else // If the element is null his value is -1 because all the id are positives
             mvBackupMapPointsId.push_back("");
@@ -1564,13 +1564,12 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     {
         if(!it->first)
           continue;
-        if(spKF.find(it->first) != spKF.end())
-            mBackupConnectedKeyFrameIdWeights[it->first->mnId] = it->second;
+        mBackupConnectedKeyFrameIdWeights[it->first->mnId] = it->second;
     }
 
     // Save the parent id
     mBackupParentId = -1;
-    if(mpParent && spKF.find(mpParent) != spKF.end())
+    if(mpParent)
         mBackupParentId = mpParent->mnId;
 
     // Save the id of the childrens KF
@@ -1578,7 +1577,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     mvBackupChildrensId.reserve(mspChildrens.size());
     for(KeyFrame* pKFi : mspChildrens)
     {
-        if(spKF.find(pKFi) != spKF.end())
+        if(pKFi)
             mvBackupChildrensId.push_back(pKFi->mnId);
     }
 
@@ -1587,7 +1586,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     mvBackupLoopEdgesId.reserve(mspLoopEdges.size());
     for(KeyFrame* pKFi : mspLoopEdges)
     {
-        if(spKF.find(pKFi) != spKF.end())
+        if(pKFi)
             mvBackupLoopEdgesId.push_back(pKFi->mnId);
     }
 
@@ -1596,7 +1595,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     mvBackupMergeEdgesId.reserve(mspMergeEdges.size());
     for(KeyFrame* pKFi : mspMergeEdges)
     {
-        if(spKF.find(pKFi) != spKF.end())
+        if(pKFi)
             mvBackupMergeEdgesId.push_back(pKFi->mnId);
     }
 
@@ -1604,7 +1603,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     mvLoopCandKFIds.reserve(mvpLoopCandKFs.size());
     for(KeyFrame* pKFi : mvpLoopCandKFs)
     {
-        if(spKF.find(pKFi) != spKF.end())
+        if(pKFi)
             mvLoopCandKFIds.push_back(pKFi->mnId);
     }
 
@@ -1612,7 +1611,7 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     mvMergeCandKFIds.reserve(mvpMergeCandKFs.size());
     for(KeyFrame* pKFi : mvpMergeCandKFs)
     {
-        if(spKF.find(pKFi) != spKF.end())
+        if(pKFi)
             mvMergeCandKFIds.push_back(pKFi->mnId);
     }
     
@@ -1627,11 +1626,11 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
 
     //Inertial data
     mBackupPrevKFId = -1;
-    if(mPrevKF && spKF.find(mPrevKF) != spKF.end())
+    if(mPrevKF)
         mBackupPrevKFId = mPrevKF->mnId;
 
     mBackupNextKFId = -1;
-    if(mNextKF && spKF.find(mNextKF) != spKF.end())
+    if(mNextKF)
         mBackupNextKFId = mNextKF->mnId;
 
     if(mpImuPreintegrated)
@@ -1944,11 +1943,11 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     SetPose(mTcw);
     mTrl = mTlr.inverse();
     
-    unique_lock<mutex> lock1(mMutexPose,std::defer_lock);
-    unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
-    unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
-    unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
-    lock(lock1, lock2, lock3, lock4);
+    //unique_lock<mutex> lock1(mMutexPose,std::defer_lock);
+    //unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
+    //unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
+    //unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
+    //lock(lock1, lock2, lock3, lock4);
     
     //ComputeBoW();
 
@@ -1966,14 +1965,15 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
       {
           if(!mvBackupMapPointsId[i].empty() && mvBackupMapPointsId[i].length() == 6)
           {
+            ORB_SLAM3::MapPoint* pMP = mpMPid[mvBackupMapPointsId[i]];
             // Check if map point ptr can be found, if not, return
-            if(mpMPid.find(mvBackupMapPointsId[i]) == mpMPid.end()) {
+            if(pMP && pMP->GetMap()==this->mpMap) {
               //std::cout << "MP is unprocessed " << mvBackupMapPointsId[i] << std::endl;
               //*bUnprocessed = true; 
               //return;
-              mvpMapPoints[i] = static_cast<MapPoint*>(NULL);
+              mvpMapPoints[i] = pMP;
             } else {
-              mvpMapPoints[i] = mpMPid[mvBackupMapPointsId[i]];
+              mvpMapPoints[i] = static_cast<MapPoint*>(NULL);
             }
 
           } else {
@@ -2010,7 +2010,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         //  }
         //}
         KeyFrame* pKFi = mpKFid[it->first];
-        if(!pKFi)
+        if(!pKFi || pKFi->GetMap() != this->mpMap)
             continue;
         mConnectedKeyFrameWeights[pKFi] = it->second;
     }
@@ -2026,22 +2026,19 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
       //  return;
       //}
       
-      if(mpKFid.find(mBackupParentId) == mpKFid.end()) {
-        //*bUnprocessed = true; 
-        std::cout << "ERROR: parentKF=" << mBackupParentId << " not found. This ID=" << mnId << std::endl;
+      ORB_SLAM3::KeyFrame* tempParentKF=mpKFid[mBackupParentId];
+      if(!tempParentKF || tempParentKF->GetMap() != this->mpMap)
+      {
         mBackupParentId = -1;
         mpParent = static_cast<KeyFrame*>(NULL);
-      } else {
-        if(mBackupParentId != mnId)
-            mpParent = mpKFid[mBackupParentId];
-        else if(mBackupParentId == mnId)
-        {
-            mBackupParentId = -1;
-            mpParent = static_cast<KeyFrame*>(NULL);
-        }
+      } else 
+      {
+        mBackupParentId = tempParentKF->mnId;
+        mpParent = tempParentKF;
       }
 
     } else {
+      mBackupParentId = -1;
       mpParent = static_cast<KeyFrame*>(NULL);
     }
 
@@ -2067,10 +2064,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         //    return;
         //  }
         //}
-        
-        if(!mpKFid[*it] || mpKFid.find(*it) == mpKFid.end())
+        ORB_SLAM3::KeyFrame* tempChildKF=mpKFid[*it]; 
+        if(!tempChildKF || tempChildKF->GetMap()!=this->mpMap)
             continue;
-        mspChildrens.insert(mpKFid[*it]);
+        mspChildrens.insert(tempChildKF);
     }
 
     //std::cout << "after mspchildrens" << std::endl;
@@ -2096,9 +2093,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         //  }
 
         //}
-        if(!mpKFid[*it] || mpKFid.find(*it) == mpKFid.end())
+        ORB_SLAM3::KeyFrame* tempLoopEdgeKF=mpKFid[*it]; 
+        if(!tempLoopEdgeKF || tempLoopEdgeKF->GetMap()!=this->mpMap)
             continue;
-        mspLoopEdges.insert(mpKFid[*it]);
+        mspLoopEdges.insert(tempLoopEdgeKF);
     }
 
     //std::cout << "after msploopedges" << std::endl;
@@ -2123,23 +2121,26 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         //    return;
         //  }
         //}
-        if(!mpKFid[*it] || mpKFid.find(*it) == mpKFid.end())
+        ORB_SLAM3::KeyFrame* tempMergeEdgeKF=mpKFid[*it]; 
+        if(!tempMergeEdgeKF || tempMergeEdgeKF->GetMap()!=this->mpMap)
             continue;
-        mspMergeEdges.insert(mpKFid[*it]);
+        mspMergeEdges.insert(tempMergeEdgeKF);
     }
     
     mvpLoopCandKFs.clear();
     for(unsigned long int id : mvLoopCandKFIds)
     {
-        if(mpKFid[id] && mpKFid.find(id) != mpKFid.end())
-            mvpLoopCandKFs.push_back(mpKFid[id]);
+        ORB_SLAM3::KeyFrame* tempKF=mpKFid[id]; 
+        if(tempKF && tempKF->GetMap()==this->mpMap)
+            mvpLoopCandKFs.push_back(tempKF);
     }
 
     mvpMergeCandKFs.clear();
     for(unsigned long int id : mvMergeCandKFIds)
     {
-        if(mpKFid[id] && mpKFid.find(id) != mpKFid.end())
-            mvpMergeCandKFs.push_back(mpKFid[id]);
+        ORB_SLAM3::KeyFrame* tempKF=mpKFid[id]; 
+        if(tempKF && tempKF->GetMap()==this->mpMap)
+            mvpMergeCandKFs.push_back(tempKF);
     }
 
     //std::cout << "after mspMergeEdges" << std::endl;
@@ -2161,10 +2162,11 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     //Inertial data
     if(!mPrevKF || (mPrevKF && mPrevKF->mnId != mBackupPrevKFId && mBackupPrevKFId >= 0 && mBackupPrevKFId <= 10000))
     {
-        if(mpKFid.find(mBackupPrevKFId) == mpKFid.end()) {
-          
+        mPrevKF = static_cast<ORB_SLAM3::KeyFrame*>(NULL);
+        ORB_SLAM3::KeyFrame* tempPrevKF = mpKFid[mBackupPrevKFId];
+        if(!tempPrevKF || tempPrevKF->GetMap()!=this->mpMap && !mpKFid.empty()) {          
             for (int i = mBackupPrevKFId-1; i >= 0; --i) {
-                if(mpKFid[i] && mpKFid.find(i) != mpKFid.end() && i != this->mnId)
+                if(mpKFid[i] && mpKFid[i]->GetMap()==this->mpMap && i != this->mnId)
                 {
                     std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
                     mBackupPrevKFId=i;
@@ -2173,13 +2175,13 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
                     mPrevKF->mBackupNextKFId = mnId;
                     break;
                 } 
-                else {
-                    if(mpMap)
-                        mpMap->EraseKeyFrame(i);
-                }
+                //else {
+                //    if(mpMap)
+                //        mpMap->EraseKeyFrame(i);
+                //}
             }
-        } else {
-          mPrevKF = mpKFid[mBackupPrevKFId];
+        } else if(tempPrevKF && tempPrevKF->GetMap()!=this->mpMap && !mpKFid.empty()){
+          mPrevKF = tempPrevKF;
         }
 
     }
@@ -2187,11 +2189,13 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
 
     //std::cout << "after mPrevKF" << std::endl;
     //
-    if(!mNextKF || (mNextKF && mNextKF->mnId != mBackupNextKFId && mBackupNextKFId >= 0 && mBackupNextKFId <= 10000))
+    if((!mNextKF && mBackupNextKFId>=0) || (mNextKF && mNextKF->mnId != mBackupNextKFId && mBackupNextKFId >= 0 && mBackupNextKFId <= 10000) && !mpKFid.empty())
     {
-        if(mpKFid.find(mBackupNextKFId) == mpKFid.end()) {
+        mNextKF = static_cast<KeyFrame*>(NULL);
+        ORB_SLAM3::KeyFrame* tempNextKF = mpKFid[mBackupNextKFId];
+        if(!tempNextKF || tempNextKF->GetMap()!=this->mpMap && !mpKFid.empty()) {          
             for (int i = this->mnId+1; i <= mpKFid.rbegin()->first; ++i) {
-                if(mpKFid[i] && mpKFid.find(i) != mpKFid.end() && i != this->mnId)
+                if(mpKFid[i] && mpKFid[i]->GetMap()==this->mpMap && i != this->mnId)
                 {
                     std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
                     mBackupNextKFId=i;
@@ -2200,18 +2204,16 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
                     mNextKF->mBackupPrevKFId = mnId;
                     break;
                 } 
-                else {
-                    if(mpMap)
-                        mpMap->EraseKeyFrame(i);
-                }
+                //else {
+                //    if(mpMap)
+                //        mpMap->EraseKeyFrame(i);
+                //}
             }
             //std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
             //mNextKF = static_cast<KeyFrame*>(NULL);
-        } else {
-            mNextKF = mpKFid[mBackupNextKFId];
+        } else if(tempNextKF && tempNextKF->GetMap()!=this->mpMap && !mpKFid.empty()) {
+            mNextKF = tempNextKF;
         }
-        if(!mNextKF)
-          mNextKF = static_cast<KeyFrame*>(NULL);
 
     }
     //std::cout << "after mNextKF" << std::endl;
@@ -2224,10 +2226,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     mBackupConnectedKeyFrameIdWeights.clear();
     mvBackupChildrensId.clear();
     mvBackupLoopEdgesId.clear();
-    lock1.unlock();
-    lock2.unlock();
-    lock3.unlock();
-    lock4.unlock();
+    //lock1.unlock();
+    //lock2.unlock();
+    //lock3.unlock();
+    //lock4.unlock();
     //UpdateBestCovisibles();
     //std::cout << "after update cov" << std::endl;
 }

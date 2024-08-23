@@ -97,7 +97,6 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
     //msOptKFs = tempMap.msOptKFs; 
     //msFixedKFs = tempMap.msFixedKFs;
 
-    mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
     //mvpReferenceMapPoints.clear();
     //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
     //{
@@ -134,10 +133,13 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
     mbIsInertial = tempMap.mbIsInertial; 
     mbIMU_BA1 = tempMap.mbIMU_BA1;
     mbIMU_BA2 = tempMap.mbIMU_BA2;
+        
+
+    mnInitKFid = tempMap.mnInitKFid; 
 
     if(nFromModule != 3)
     {
-        mnInitKFid = tempMap.mnInitKFid; 
+        mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
         mnMaxKFid = tempMap.mnMaxKFid; 
         mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
         mpKFinitial = tempMap.mpKFinitial;
@@ -219,7 +221,7 @@ void Map::UpdateMap(const bool mbFail_, const std::set<long unsigned int>& msOpt
 
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
-    cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << endl;
+    //cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << endl;
     unique_lock<mutex> lock(mMutexMap);
     if(mspKeyFrames.empty()){
         //cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
@@ -941,11 +943,10 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     //}
     //
     ////std::cout << "Insert KFs to map in postload=";
+    mspKeyFrames.clear();
     for(const auto& id : mvpBackupKeyFramesId)
     {
-      if(mspErasedKeyFrameIds.count(id))
-          continue;
-      if(mpKeyFrameId[id])
+      if(mpKeyFrameId[id] && !mpKeyFrameId[id]->isBad() && mpKeyFrameId[id]->GetMap()->GetId() == this->mnId)
       {
         //std::cout << id << ", ";
         if(id>mnMaxKFid)
@@ -968,16 +969,15 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     mspMapPoints.clear();
     for(const auto& id : mvpBackupMapPointsId)
     {
-      if(mspErasedMapPointIds.count(id))
-          continue;
-      if(mpMapPointId[id])
+      if(mpMapPointId[id] && !mpMapPointId[id]->isBad() && mpMapPointId[id]->GetMap()->GetId() == this->mnId)
           mspMapPoints.insert(mpMapPointId[id]);
     }
 
     //std::cout << "before ref mps" << std::endl;
+    mvpReferenceMapPoints.clear();
     for (const auto& id : mvpBackupReferenceMapPointsId)
     {
-      if(!mpMapPointId[id] || mpMapPointId[id]->isBad())
+      if(!mpMapPointId[id] || mpMapPointId[id]->isBad() || mpMapPointId[id]->GetMap()->GetId() != this->mnId)
           continue;
       mvpReferenceMapPoints.push_back(mpMapPointId[id]);
     }
@@ -1030,32 +1030,53 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
 
     if(mnBackupKFinitialID != -1)
     {
-        if(mpKeyFrameId.find(mnBackupKFinitialID) != mpKeyFrameId.end())
+        if(mpKeyFrameId[mnBackupKFinitialID] && !mpKeyFrameId[mnBackupKFinitialID]->isBad() && mpKeyFrameId[mnBackupKFinitialID]->GetMap()->GetId() == this->mnId)
         {
-          if(mpKeyFrameId[mnBackupKFinitialID])
               mpKFinitial = mpKeyFrameId[mnBackupKFinitialID];
         } else {
-          mpKFinitial = mpKeyFrameId.begin()->second;
-          mnBackupKFinitialID = mpKeyFrameId.begin()->first;
+          for(std::map<unsigned long int, ORB_SLAM3::KeyFrame*>::iterator it = mpKeyFrameId.begin(); it!=mpKeyFrameId.end(); ++it)
+          {
+              if(it->second && it->second->GetMap()->GetId() == this->mnId)
+              {
+                  mpKFinitial = mpKeyFrameId.begin()->second;
+                  mnBackupKFinitialID = mpKeyFrameId.begin()->first;
+                  break;
+              }
+          }
         }
     } else {
-      mpKFinitial = mpKeyFrameId.begin()->second;
-      mnBackupKFinitialID = mpKeyFrameId.begin()->first;
+        for(std::map<unsigned long int, ORB_SLAM3::KeyFrame*>::iterator it = mpKeyFrameId.begin(); it!=mpKeyFrameId.end(); ++it)
+        {
+            if(it->second && it->second->GetMap()->GetId() == this->mnId)
+            {
+                mpKFinitial = mpKeyFrameId.begin()->second;
+                mnBackupKFinitialID = mpKeyFrameId.begin()->first;
+                break;
+            }
+        }
     }
 
     vector<KeyFrame*> vpKFs = vector<KeyFrame*>(mspKeyFrames.begin(),mspKeyFrames.end());
     sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
 
+    mpKFinitial = static_cast<KeyFrame*>(NULL);
+    mnBackupKFinitialID = -1;
+    mpKFlowerID = static_cast<KeyFrame*>(NULL);
+    mnBackupKFlowerID = -1;
     if(vpKFs.size() > 0)
     {
-        mpKFinitial = vpKFs[0];
-        mnBackupKFinitialID = mpKFinitial->mnId;
-        mpKFlowerID = vpKFs[0];
-        mnBackupKFlowerID = mpKFlowerID->mnId;
-    }
-    else {
-        mpKFlowerID = static_cast<KeyFrame*>(NULL); 
-
+        for(auto const& pKF : vpKFs)
+        {
+            if(pKF && pKF->GetMap()->GetId() == this->mnId)
+            {
+                mpKFinitial = pKF;
+                mnBackupKFinitialID = mpKFinitial->mnId;
+                mpKFlowerID = pKF;
+                mnBackupKFlowerID = mpKFlowerID->mnId;
+                break;
+            }
+            
+        }
     }
     //if(mnBackupKFlowerID != -1)
     //{
@@ -1076,7 +1097,8 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     mvpKeyFrameOrigins.reserve(mvBackupKeyFrameOriginsId.size());
     for(int i = 0; i < mvBackupKeyFrameOriginsId.size(); ++i)
     {
-        mvpKeyFrameOrigins.push_back(mpKeyFrameId[mvBackupKeyFrameOriginsId[i]]);
+        if(mpKeyFrameId[mvBackupKeyFrameOriginsId[i]] && !mpKeyFrameId[mvBackupKeyFrameOriginsId[i]]->isBad() && mpKeyFrameId[mvBackupKeyFrameOriginsId[i]]->GetMap()->GetId() == this->mnId)
+            mvpKeyFrameOrigins.push_back(mpKeyFrameId[mvBackupKeyFrameOriginsId[i]]);
     }
 
     mvpBackupMapPoints.clear();

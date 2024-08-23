@@ -1596,9 +1596,15 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
     if (mSensor == System::MONOCULAR)
     {
         if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET ||(lastID - initID) < mMaxFrames)
+        {
+            std::cout << "init frame" << std::endl;
             mCurrentFrame = Frame(mImGray,timestamp,mpIniORBextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+        }
         else
+        {
+            std::cout << "not init frame" << std::endl;
             mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+        }
     }
     else if(mSensor == System::IMU_MONOCULAR)
     {
@@ -1817,6 +1823,9 @@ void Tracking::Track()
     //  std::cout << "Local map is updated, move on in the function." << std::endl;
     //}
     
+#ifdef REGISTER_TIMES
+        std::chrono::steady_clock::time_point time_Start = std::chrono::steady_clock::now();
+#endif
     // TODO:Temporarily disable BA in local mapping
     //mpLocalMapper->InterruptBA();
     
@@ -2002,7 +2011,7 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(pCurrentMap->KeyFramesInMap()>10)
+                    else if(pCurrentMap->KeyFramesInMap()>10 || mnMapUpdateLastKFId==0 )
                     {
                         // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
                         mState = RECENTLY_LOST;
@@ -2068,13 +2077,13 @@ void Tracking::Track()
 #ifdef REGISTER_TIMES
                     vnTimesLostTrack.push_back(1);
                     vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
-                    double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+                    double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_Start).count();
                     vdTrackTotal_ms.push_back(timeTotal);
                     vdNewKF_ms.push_back(timeNewKF);
                     vdLMTrack_ms.push_back(timeLMTrack);
                     vdPosePred_ms.push_back(timePosePred);
                     // Save the starting time at the same time as end duration for visualization
-                    vtStartTimeTR_ms.push_back(time_StartPosePred);
+                    vtStartTimeTR_ms.push_back(time_Start);
 #endif
                     Verbose::PrintMess("done", Verbose::VERBOSITY_NORMAL);
 
@@ -2336,13 +2345,13 @@ void Tracking::Track()
 #ifdef REGISTER_TIMES
                 vnTimesLostTrack.push_back(1);
                 vtLostTrackTime_ms.push_back(std::chrono::steady_clock::now());
-                double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+                double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_Start).count();
                 vdTrackTotal_ms.push_back(timeTotal);
                 vdNewKF_ms.push_back(timeNewKF);
                 vdLMTrack_ms.push_back(timeLMTrack);
                 vdPosePred_ms.push_back(timePosePred);
                 // Save the starting time at the same time as end duration for visualization
-                vtStartTimeTR_ms.push_back(time_StartPosePred);
+                vtStartTimeTR_ms.push_back(time_Start);
 #endif
                 return;
             }
@@ -2357,13 +2366,13 @@ void Tracking::Track()
             CreateMapInAtlas();
 
 #ifdef REGISTER_TIMES
-            double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+            double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_Start).count();
             vdTrackTotal_ms.push_back(timeTotal);
             vdNewKF_ms.push_back(timeNewKF);
             vdLMTrack_ms.push_back(timeLMTrack);
             vdPosePred_ms.push_back(timePosePred);
             // Save the starting time at the same time as end duration for visualization
-            vtStartTimeTR_ms.push_back(time_StartPosePred);
+            vtStartTimeTR_ms.push_back(time_Start);
 #endif
             return;
         }
@@ -2379,14 +2388,14 @@ void Tracking::Track()
         
         //std::cout << "Current Map ID=" << mpAtlas->GetCurrentMap()->GetId() << ", number of maps=" << mpAtlas->GetAllMaps().size() << std::endl;
 #ifdef REGISTER_TIMES
-        double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_StartPosePred).count();
+        double timeTotal = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(std::chrono::steady_clock::now() - time_Start).count();
         vdNewKF_ms.push_back(timeNewKF);
         vdLMTrack_ms.push_back(timeLMTrack);
         vdTrackTotal_ms.push_back(timeTotal);
         vdPosePred_ms.push_back(timePosePred);
 
         // Save the starting time at the same time as end duration for visualization
-        vtStartTimeTR_ms.push_back(time_StartPosePred);
+        vtStartTimeTR_ms.push_back(time_Start);
 #endif
     }
 
@@ -3320,18 +3329,26 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.9f;
+        thRefRatio = 0.85f;
         mMinFrames=3;
-        //if(mnMatchesInliers <= 100)
-        //{
-        //  thRefRatio = 0.9f;
-        //  //mMinFrames=2; // Mac docker
-        //  mMinFrames=2;
-        //  //mMinFrames=5; // full run w/ this one
-        //  //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
-        //  //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
+        if(mnMatchesInliers <= 70)
+        {
+          thRefRatio = 0.9f;
+          mMinFrames=1; // full run w/ this one
+          //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
+          //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        //}
+        } else if (mnMatchesInliers>=70 && mnMatchesInliers<=100)
+        {
+          thRefRatio = 0.9f;
+          mMinFrames=2; // full run w/ this one
+
+        } else if (mnMatchesInliers>=100&&mnMatchesInliers<=140)
+        {
+          mMinFrames=3; // full run w/ this one
+
+        }
+
         ////else if(mnMatchesInliers > 60 && mnMatchesInliers <= 100)
         ////{
         ////  thRefRatio = 0.85f;
@@ -3345,8 +3362,8 @@ bool Tracking::NeedNewKeyFrame()
         //  //thRefRatio = 0.85f; Mac docker
         //  thRefRatio = 0.8;
         //  //mMinFrames=3; Mac docker
-        //  mMinFrames=3;
-        //  //mMinFrames=7; // full run w/ this one
+        //  //mMinFrames=3;
+        //  mMinFrames=7; // full run w/ this one
         //  //if(mMinFrames>3)
         //  //  mMinFrames--;
 
@@ -3356,8 +3373,8 @@ bool Tracking::NeedNewKeyFrame()
         //  //thRefRatio = 0.85f; Mac Docker
         //  //mMinFrames=4; Mac docker
         //  thRefRatio = 0.7f;
-        //  mMinFrames=4;
-        //  //mMinFrames=9; // full run w/ this one
+        //  //mMinFrames=4;
+        //  mMinFrames=9; // full run w/ this one
         //  //if(mMinFrames<4)
         //  //  mMinFrames++;
 
@@ -3445,7 +3462,7 @@ bool Tracking::NeedNewKeyFrame()
    
     std::cout << "c2a=" << c2a << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2a && (c1a||c1b)))
-        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<5)
+        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
             return true;
         else
             return false;
@@ -4291,7 +4308,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max && pKF->GetLastModule() > 1)
+        if(it->second>max)// && pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;
@@ -4441,7 +4458,7 @@ bool Tracking::Relocalization()
     bool bMatch = false;
     ORBmatcher matcher2(0.9,true);
     int tries = 0; // fix
-    int maxTries=50;// fix
+    int maxTries=10;// fix
     std::cout << "#Candidates=" << nCandidates << "#KFs=" << nKFs << std::endl;
     while(nCandidates>0 && !bMatch)
     {
@@ -4542,8 +4559,8 @@ bool Tracking::Relocalization()
             }
         }
 
-        if(tries > maxTries) // Fix
-          break; // fix
+        //if(tries > maxTries) // Fix
+        //  break; // fix
     }
 
     if(!bMatch)
@@ -4600,8 +4617,8 @@ void Tracking::Reset(bool bLocMap)
     mapUpToDate = false;
     LocalMapIsUpdating(false); 
 
-    KeyFrame::nNextId = 0;
-    Frame::nNextId = 0;
+    //KeyFrame::nNextId = 0;
+    //Frame::nNextId = 0;
     mState = NO_IMAGES_YET;
 
     mbReadyToInitializate = false;
@@ -4673,6 +4690,7 @@ void Tracking::ResetActiveMap(bool bLocMap, long int mapId)
     //KeyFrame::nNextId = mpAtlas->GetLastInitKFid();
     //Frame::nNextId = mnLastInitFrameId;
     mnLastInitFrameId = Frame::nNextId;
+    mnMapUpdateLastKFId=0;
     //mnLastRelocFrameId = mnLastInitFrameId;
     mState = NO_IMAGES_YET; //NOT_INITIALIZED;
 

@@ -720,7 +720,7 @@ void System::SaveTrajectoryEuRoC(const string &filename)
         Twb = vpKFs[0]->GetPoseInverse();
 
     ofstream f;
-    f.open(strTrajectorySavePath.c_str());
+    f.open(filename.c_str());
     // cout << "file open" << endl;
     f << fixed;
 

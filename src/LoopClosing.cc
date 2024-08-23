@@ -397,6 +397,11 @@ bool LoopClosing::CheckNewKeyFrames()
     return(!mlpLoopKeyFrameQueue.empty());
 }
 
+KeyFrame* LoopClosing::GetCurrentKeyFrame()
+{
+    return mpCurrentKF;
+}
+
 bool LoopClosing::NewDetectCommonRegions()
 {
     Verbose::PrintMess("      Thread3=LoopClosing::NewDetectCommonRegions : Detect loop closures and merge;", Verbose::VERBOSITY_NORMAL);
@@ -412,7 +417,8 @@ bool LoopClosing::NewDetectCommonRegions()
         mpCurrentKF->SetNotErase();
         mpCurrentKF->mbCurrentPlaceRecognition = true;
 
-        mpCurrentKF->GetMap()->AddUpdatedKFId(mpCurrentKF->mnId);
+        if(mpCurrentKF->GetMap())
+            mpCurrentKF->GetMap()->AddUpdatedKFId(mpCurrentKF->mnId);
         mpCurrentKF->SetLastModule(3); // Last module 1=LM
 
         mpLastMap = mpCurrentKF->GetMap();
@@ -1103,6 +1109,11 @@ void LoopClosing::CorrectLoop()
         cout << "  Done!!" << endl;
     }
 
+    // Process data before loop correction
+    SetRunning(false);
+    usleep(50000);
+    SetRunning(true);
+
     // Wait until Local Mapping has effectively stopped
     while(!mpLocalMapper->isStopped())
     {
@@ -1170,6 +1181,7 @@ void LoopClosing::CorrectLoop()
                 // Update keyframe pose with corrected Sim3. First transform Sim3 to SE3 (scale translation)
                 Sophus::SE3d correctedTiw(g2oCorrectedSiw.rotation(),g2oCorrectedSiw.translation() / g2oCorrectedSiw.scale());
                 pKFi->SetPose(correctedTiw.cast<float>());
+                pLoopMap->AddUpdatedKFId(pKFi->mnId);
 
                 //Pose without correction
                 g2o::Sim3 g2oSiw(Tiw.unit_quaternion().cast<double>(),Tiw.translation().cast<double>(),1.0);
@@ -1204,11 +1216,14 @@ void LoopClosing::CorrectLoop()
                 // Project with non-corrected pose and project back with corrected pose
                 Eigen::Vector3d P3Dw = pMPi->GetWorldPos().cast<double>();
                 Eigen::Vector3d eigCorrectedP3Dw = g2oCorrectedSwi.map(g2oSiw.map(P3Dw));
+                
+                pLoopMap->AddUpdatedMPId(pMPi->mstrHexId);
 
                 pMPi->SetWorldPos(eigCorrectedP3Dw.cast<float>());
                 pMPi->mnCorrectedByKF = mpCurrentKF->mnId;
                 pMPi->mnCorrectedReference = pKFi->mnId;
                 pMPi->UpdateNormalAndDepth();
+                pLoopMap->AddUpdatedMPId(pMPi->mstrHexId);
             }
 
             // Correct velocity according to orientation correction
@@ -1238,6 +1253,7 @@ void LoopClosing::CorrectLoop()
                     pCurMP->Replace(pLoopMP);
                 else
                 {
+                    pLoopMap->AddUpdatedMPId(pLoopMP->mstrHexId);
                     mpCurrentKF->AddMapPoint(pLoopMP,i);
                     pLoopMP->AddObservation(mpCurrentKF,i);
                     pLoopMP->ComputeDistinctiveDescriptors();
@@ -1262,6 +1278,8 @@ void LoopClosing::CorrectLoop()
 
         // Update connections. Detect new links.
         pKFi->UpdateConnections();
+        if(pKFi->GetMap())
+            pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
         LoopConnections[pKFi]=pKFi->GetConnectedKeyFrames();
         for(vector<KeyFrame*>::iterator vit_prev=vpPreviousNeighbors.begin(), vend_prev=vpPreviousNeighbors.end(); vit_prev!=vend_prev; vit_prev++)
         {
@@ -1309,6 +1327,9 @@ void LoopClosing::CorrectLoop()
     // Add loop edge
     mpLoopMatchedKF->AddLoopEdge(mpCurrentKF);
     mpCurrentKF->AddLoopEdge(mpLoopMatchedKF);
+    
+    //SetRunning(false);
+    //notifyDistributorMapUpdated(false, true, mvMergedIds);
 
     // Launch a new thread to perform Global Bundle Adjustment (Only if few keyframes, if not it would take too much time)
     if(!pLoopMap->isImuInitialized() || (pLoopMap->KeyFramesInMap()<200 && mpAtlas->CountMaps()==1))
@@ -1652,6 +1673,8 @@ void LoopClosing::MergeLocal()
             pKFi->mTcwBefMerge = pKFi->GetPose();
             pKFi->mTwcBefMerge = pKFi->GetPoseInverse();
             pKFi->SetPose(pKFi->mTcwMerge);
+            
+            pMergeMap->AddUpdatedKFId(pKFi->mnId);
 
             // Make sure connections are updated
             pKFi->UpdateMap(pMergeMap);
@@ -1673,6 +1696,7 @@ void LoopClosing::MergeLocal()
             pMPi->SetWorldPos(pMPi->mPosMerge);
             pMPi->SetNormalVector(pMPi->mNormalVectorMerge);
             pMPi->UpdateMap(pMergeMap);
+            pMergeMap->AddUpdatedMPId(pMPi->mstrHexId);
             pMergeMap->AddMapPoint(pMPi);
             pCurrentMap->EraseMapPoint(pMPi);
         }
@@ -1872,6 +1896,7 @@ void LoopClosing::MergeLocal()
                 pKFi->UpdateMap(pMergeMap);
                 pKFi->mbLCDone=true;
                 pMergeMap->AddKeyFrame(pKFi);
+                pMergeMap->AddUpdatedKFId(pKFi->mnId);
                 pCurrentMap->EraseKeyFrame(pKFi);
             }
 
@@ -1882,6 +1907,7 @@ void LoopClosing::MergeLocal()
 
                 pMPi->UpdateMap(pMergeMap);
                 pMergeMap->AddMapPoint(pMPi);
+                pMergeMap->AddUpdatedMPId(pMPi->mstrHexId);
                 pCurrentMap->EraseMapPoint(pMPi);
             }
         }

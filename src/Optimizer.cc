@@ -53,6 +53,7 @@ void Optimizer::GlobalBundleAdjustemnt(Map* pMap, int nIterations, bool* pbStopF
 {
     vector<KeyFrame*> vpKFs = pMap->GetAllKeyFrames();
     vector<MapPoint*> vpMP = pMap->GetAllMapPoints();
+    std::cout << " ================= Starting GlobalBundleAdjustemnt w/ MPs=" << vpMP.size() << ", KFs=" << vpKFs.size() << " ================= " << std::endl;
     BundleAdjustment(vpKFs,vpMP,nIterations,pbStopFlag, nLoopKF, bRobust);
 }
 
@@ -82,6 +83,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     long unsigned int maxKFid = 0;
 
     const int nExpectedSize = (vpKFs.size())*vpMP.size();
+    std::cout << "nExpectedSize=" << nExpectedSize << std::endl;
 
     vector<ORB_SLAM3::EdgeSE3ProjectXYZ*> vpEdgesMono;
     vpEdgesMono.reserve(nExpectedSize);
@@ -112,6 +114,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
 
     // Set KeyFrame vertices
+    long int nTotalEdges=0;
+    long int nVertices=0;
 
     for(size_t i=0; i<vpKFs.size(); i++)
     {
@@ -124,12 +128,14 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         vSE3->setId(pKF->mnId);
         vSE3->setFixed(pKF->mnId==pMap->GetInitKFid());
         optimizer.addVertex(vSE3);
+        nVertices++;
         if(pKF->mnId>maxKFid)
             maxKFid=pKF->mnId;
     }
 
     const float thHuber2D = sqrt(5.99);
     const float thHuber3D = sqrt(7.815);
+
 
     // Set MapPoint vertices
     for(size_t i=0; i<vpMP.size(); i++)
@@ -156,6 +162,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             if(optimizer.vertex(id) == NULL || optimizer.vertex(pKF->mnId) == NULL)
                 continue;
             nEdges++;
+            nTotalEdges++;
 
             const int leftIndex = get<0>(mit->second);
 
@@ -274,6 +281,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
     }
 
+    std::cout << " =========== Vertices=" << nVertices << ", Edges=" << nTotalEdges << " =========== "<< std::endl;
     // Optimize!
     optimizer.setVerbose(true);
     optimizer.initializeOptimization();
@@ -287,6 +295,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         KeyFrame* pKF = vpKFs[i];
         if(pKF->isBad())
             continue;
+        
+        pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
 
         g2o::SE3Quat SE3quat = vSE3->estimate();
@@ -374,6 +384,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
         if(pMP->isBad())
             continue;
+        pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
 
         if(nLoopKF==pMap->GetOriginKF()->mnId)
@@ -1127,7 +1138,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     {
         KeyFrame* pKFi = vNeighKFs[i];
         pKFi->mnBALocalForKF = pKF->mnId;
-        if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)
+        if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
             lLocalKeyFrames.push_back(pKFi);
     }
 
@@ -1150,7 +1161,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
                 if(!pMP->isBad() && pMP->GetMap() == pCurrentMap)
                 {
 
-                    if(pMP->mnBALocalForKF!=pKF->mnId)
+                    if(pMP->mnBALocalForKF!=pKF->mnId && pMP->GetLastModule() <= 2)
                     {
                         lLocalMapPoints.push_back(pMP);
                         pMP->mnBALocalForKF=pKF->mnId;
@@ -1171,7 +1182,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId )
             {                
                 pKFi->mnBAFixedForKF=pKF->mnId;
-                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)
+                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
                     lFixedCameras.push_back(pKFi);
             }
         }
@@ -1279,15 +1290,21 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
 
     int nEdges = 0;
 
+    std::cout << "optimizer=";
     for(list<MapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
         MapPoint* pMP = *lit;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMP->GetWorldPos().cast<double>());
-        int id = pMP->mnId+maxKFid+1;
+        unsigned long int id = pMP->mnId+maxKFid+1;
+        if(optimizer.vertex(id) != NULL)
+            continue;
+        std::cout << id << ",";
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
+        if(optimizer.vertex(id) == NULL)
+            continue;
         nPoints++;
 
         const map<KeyFrame*,tuple<int,int>> observations = pMP->GetObservations();
@@ -1297,7 +1314,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         {
             KeyFrame* pKFi = mit->first;
 
-            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)
+            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule()<=2)
             {
                 const int leftIndex = get<0>(mit->second);
 
@@ -1310,8 +1327,6 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
 
                     ORB_SLAM3::EdgeSE3ProjectXYZ* e = new ORB_SLAM3::EdgeSE3ProjectXYZ();
 
-                    if(optimizer.vertex(id) == NULL || optimizer.vertex(pKFi->mnId) == NULL)
-                        continue;
                     e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                     e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKFi->mnId)));
                     e->setMeasurement(obs);
@@ -1403,6 +1418,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             }
         }
     }
+    std::cout << std::endl;
     num_edges = nEdges;
 
     if(pbStopFlag)
@@ -1545,27 +1561,22 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     // Set KeyFrame vertices
     for(size_t i=0, iend=vpKFs.size(); i<iend;i++)
     {
-        //std::cout << i << ", " << vpKFs.size() << ", ";
         KeyFrame* pKF = vpKFs[i];
-        //std::cout << "Get KF, ";
         if(pKF->isBad())
             continue;
         g2o::VertexSim3Expmap* VSim3 = new g2o::VertexSim3Expmap();
 
         const int nIDi = pKF->mnId;
-        //std::cout << "adding vertex (kf) with id=" << nIDi;
 
         LoopClosing::KeyFrameAndPose::const_iterator it = CorrectedSim3.find(pKF);
 
         if(it!=CorrectedSim3.end())
         {
-            //std::cout << ", it!=CorrectedSim3.end() ";
             vScw[nIDi] = it->second;
             VSim3->setEstimate(it->second);
         }
         else
         {
-            //std::cout << ", it==CorrectedSim3.end() ";
             Sophus::SE3d Tcw = pKF->GetPose().cast<double>();
             g2o::Sim3 Siw(Tcw.unit_quaternion(),Tcw.translation(),1.0);
             vScw[nIDi] = Siw;
@@ -1574,19 +1585,16 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
         if(pKF->mnId==pMap->GetInitKFid())
         {
-            //std::cout << ", mnId==MapInitKFId, ";
             VSim3->setFixed(true);
         }  
       
         VSim3->setId(nIDi);
         VSim3->setMarginalized(false);
         VSim3->_fix_scale = bFixScale;
-        //std::cout << "Before addvertex ";
         optimizer.addVertex(VSim3);
         vZvectors[nIDi]=vScw[nIDi].rotation()*z_vec; // For debugging
 
         vpVertices[nIDi]=VSim3;
-        //std::cout << ", end." << std::endl;
     }
     std::cout << "after looping KF vertices" << std::endl;
 
@@ -1619,46 +1627,42 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             const long unsigned int nIDj = (*sit)->mnId;
             //std::cout << " nIDi=" << nIDi << ", nIDj=" << nIDj << ", ";
             if((nIDi!=pCurKF->mnId || nIDj!=pLoopKF->mnId) && pKF->GetWeight(*sit)<minFeat)
-            {
-                //std::cout << "false ";
                 continue;
-            } else {
-                if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
-                    continue;
-                //std::cout << ", passed" << std::endl;
-                //std::cout << " still before sjw = vScw[nIDj]";
-                const g2o::Sim3 Sjw = vScw[nIDj];
-                //std::cout << " after but before Sji";
-                const g2o::Sim3 Sji = Sjw * Swi;
-                //std::cout << " beffore init e";
+            //if(!optimizer.vertex(nIDj))
+            //    continue;
+            //std::cout << ", passed" << std::endl;
+            //std::cout << " still before sjw = vScw[nIDj]";
+            const g2o::Sim3 Sjw = vScw[nIDj];
+            //std::cout << " after but before Sji";
+            const g2o::Sim3 Sji = Sjw * Swi;
+            //std::cout << " beffore init e";
 
-                g2o::EdgeSim3* e = new g2o::EdgeSim3();
-                //std::cout << ", before set vertex";
-                //if(!optimizer.vertex(nIDj))
-                //{
-                //  std::cout << "nIDj is not valid" << std::endl;
-                //}
-                //if(!optimizer.vertex(nIDi))
-                //{
-                //  std::cout << "nIDi is not valid" << std::endl;
-                //}
-                //std::cout << Sji << ", " << Swi << std::endl;
-                //std::cout << matLambda << std::endl;
-                e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDj)));
-                e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDi)));
-                e->setMeasurement(Sji);
-                //std::cout << ", setMeasurement";
+            g2o::EdgeSim3* e = new g2o::EdgeSim3();
+            //std::cout << ", before set vertex";
+            //if(!optimizer.vertex(nIDj))
+            //{
+            //  std::cout << "nIDj is not valid" << std::endl;
+            //}
+            //if(!optimizer.vertex(nIDi))
+            //{
+            //  std::cout << "nIDi is not valid" << std::endl;
+            //}
+            //std::cout << Sji << ", " << Swi << std::endl;
+            //std::cout << matLambda << std::endl;
+            e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDj)));
+            e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(nIDi)));
+            e->setMeasurement(Sji);
+            //std::cout << ", setMeasurement";
 
-                e->information() = matLambda;
-                
-                //std::cout << ", before add edge";
+            e->information() = matLambda;
+            
+            //std::cout << ", before add edge";
 
-                //optimizer.addEdge(e);
-                count_loop++;
-                sInsertedEdges.insert(make_pair(min(nIDi,nIDj),max(nIDi,nIDj)));
-                //std::cout << ", j loop done." << std::endl;
-                //exit(1);
-            }
+            //optimizer.addEdge(e);
+            count_loop++;
+            sInsertedEdges.insert(make_pair(min(nIDi,nIDj),max(nIDi,nIDj)));
+            //std::cout << ", j loop done." << std::endl;
+            //exit(1);
 
         }
     }
@@ -1668,7 +1672,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     for(size_t i=0, iend=vpKFs.size(); i<iend; i++)
     {
         KeyFrame* pKF = vpKFs[i];
-        if(!pKF || pKF->isBad())
+        if(!pKF)
             continue;
 
         const int nIDi = pKF->mnId;
@@ -1687,13 +1691,13 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         // Spanning tree edge
         if(pParentKF)
         {
-            if(pParentKF->isBad())
-                continue;
+            //if(pParentKF->isBad())
+            //    continue;
 
             int nIDj = pParentKF->mnId;
 
-            if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
-                continue;
+            //if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
+            //    continue;
 
             g2o::Sim3 Sjw;
 
@@ -1821,6 +1825,8 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
         Sophus::SE3f Tiw(CorrectedSiw.rotation().cast<float>(), CorrectedSiw.translation().cast<float>() / s);
         pKFi->SetPose(Tiw);
+        if(pKFi->GetMap())
+            pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
     std::cout << "correct points" << std::endl;
@@ -1854,6 +1860,8 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         pMP->SetWorldPos(eigCorrectedP3Dw.cast<float>());
 
         pMP->UpdateNormalAndDepth();
+        if(pMP->GetMap())
+            pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
     }
 
     // TODO Check this changeindex
@@ -2140,6 +2148,7 @@ void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFi
         if(pKFi->isBad())
             continue;
 
+        pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
         const int nIDi = pKFi->mnId;
 
         g2o::VertexSim3Expmap* VSim3 = static_cast<g2o::VertexSim3Expmap*>(optimizer.vertex(nIDi));
@@ -2159,6 +2168,7 @@ void Optimizer::OptimizeEssentialGraph(KeyFrame* pCurKF, vector<KeyFrame*> &vpFi
         if(pMPi->isBad())
             continue;
 
+        pMPi->GetMap()->AddUpdatedMPId(pMPi->mstrHexId);
         KeyFrame* pRefKF = pMPi->GetReferenceKeyFrame();
         while(pRefKF->isBad())
         {
@@ -4011,6 +4021,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame* pMainKF,vector<KeyFrame*> vpAdju
         }
 
         pKFi->SetPose(Tiw);
+        pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
     //Points
@@ -4022,6 +4033,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame* pMainKF,vector<KeyFrame*> vpAdju
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMPi->mnId+maxKFid+1));
         pMPi->SetWorldPos(vPoint->estimate().cast<float>());
         pMPi->UpdateNormalAndDepth();
+        pMPi->GetMap()->AddUpdatedMPId(pMPi->mstrHexId);
 
     }
 

@@ -3330,22 +3330,22 @@ bool Tracking::NeedNewKeyFrame()
     if(mSensor==System::MONOCULAR)
     {
         thRefRatio = 0.85f;
-        mMinFrames=3;
+        mMinFrames=5; //3
         if(mnMatchesInliers <= 70)
         {
           thRefRatio = 0.9f;
-          mMinFrames=1; // full run w/ this one
+          mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
         } else if (mnMatchesInliers>=70 && mnMatchesInliers<=100)
         {
           thRefRatio = 0.9f;
-          mMinFrames=2; // full run w/ this one
+          mMinFrames=3; //2 // full run w/ this one
 
         } else if (mnMatchesInliers>=100&&mnMatchesInliers<=140)
         {
-          mMinFrames=3; // full run w/ this one
+          mMinFrames=4; //3 // full run w/ this one
 
         }
 

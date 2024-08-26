@@ -1290,7 +1290,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
 
     int nEdges = 0;
 
-    std::cout << "optimizer=";
+    //std::cout << "optimizer=";
     for(list<MapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
         MapPoint* pMP = *lit;
@@ -1299,7 +1299,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         unsigned long int id = pMP->mnId+maxKFid+1;
         if(optimizer.vertex(id) != NULL)
             continue;
-        std::cout << id << ",";
+        //std::cout << id << ",";
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
@@ -1418,7 +1418,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             }
         }
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     num_edges = nEdges;
 
     if(pbStopFlag)

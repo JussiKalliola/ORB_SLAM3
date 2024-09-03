@@ -123,6 +123,7 @@ public:
 
     void SetMapBad(Map* pMap);
     void RemoveBadMaps();
+    std::set<Map*> GetBadMaps();
 
     bool isInertial();
     void SetInertialSensor();

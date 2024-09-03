@@ -96,7 +96,6 @@ void LoopClosing::Run()
 {
     
     mbFinished =false;
-    msLastMUStart = std::chrono::high_resolution_clock::now();
 
     while(1)
     {
@@ -131,9 +130,10 @@ void LoopClosing::Run()
             
             if(bFindedRegion)
             {
-                SetRunning(true);
                 if(mbMergeDetected)
                 {
+
+                    SetRunning(true);
 
                     long unsigned int mnCurId = mpCurrentKF->GetMap()->GetId();
                     long unsigned int mnMergeId = mpMergeMatchedKF->GetMap()->GetId();
@@ -257,6 +257,7 @@ void LoopClosing::Run()
 
                 if(mbLoopDetected)
                 {
+                    SetRunning(true);
                     Verbose::PrintMess("      Thread3=LoopClosing::Run : mbLoopDetected=true;", Verbose::VERBOSITY_NORMAL);
                     //exit(1);
                     bool bGoodLoop = true;
@@ -448,6 +449,15 @@ bool LoopClosing::NewDetectCommonRegions()
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
         return false;
+    }
+
+    if(mpCurrentKF->mnId-mLastLoopKFid < 50)
+    {
+        std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 30 KFs from last LC" << std::endl;
+        mpKeyFrameDB->add(mpCurrentKF);
+        mpCurrentKF->SetErase();
+        return false;
+
     }
 
     //cout << "LoopClousure: Checking KF: " << mpCurrentKF->mnId << endl;
@@ -1109,10 +1119,6 @@ void LoopClosing::CorrectLoop()
         cout << "  Done!!" << endl;
     }
 
-    // Process data before loop correction
-    SetRunning(false);
-    usleep(50000);
-    SetRunning(true);
 
     // Wait until Local Mapping has effectively stopped
     while(!mpLocalMapper->isStopped())
@@ -1402,8 +1408,8 @@ void LoopClosing::MergeLocal()
     Map* pCurrentMap = mpCurrentKF->GetMap();
     Map* pMergeMap = mpMergeMatchedKF->GetMap();
     
-    mvMergedIds.push_back(pMergeMap->GetId());
     mvMergedIds.push_back(pCurrentMap->GetId());
+    mvMergedIds.push_back(pMergeMap->GetId());
     
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge Local, Active map: " + to_string(pCurrentMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge local, Non-Active map: " + to_string(pMergeMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
@@ -1704,6 +1710,7 @@ void LoopClosing::MergeLocal()
         mpAtlas->ChangeMap(pMergeMap);
         mpAtlas->SetMapBad(pCurrentMap);
         pMergeMap->IncreaseChangeIndex();
+        pMergeMap->SetCurrentMap();
         //TODO for debug
         pMergeMap->ChangeId(pCurrentMap->GetId());
 
@@ -1752,6 +1759,7 @@ void LoopClosing::MergeLocal()
             continue;
 
         pKFi->UpdateConnections();
+        pMergeMap->AddUpdatedKFId(pKFi->mnId);
     }
     for(KeyFrame* pKFi : spMergeConnectedKFs)
     {
@@ -1759,6 +1767,7 @@ void LoopClosing::MergeLocal()
             continue;
 
         pKFi->UpdateConnections();
+        pMergeMap->AddUpdatedKFId(pKFi->mnId);
     }
 
     //std::cout << "[Merge]: Start welding bundle adjustment" << std::endl;
@@ -1838,6 +1847,7 @@ void LoopClosing::MergeLocal()
 
                 pKFi->SetPose(correctedTiw.cast<float>());
                 pKFi->mbLCDone=true;
+                pMergeMap->AddUpdatedKFId(pKFi->mnId);
 
                 if(pCurrentMap->isImuInitialized())
                 {
@@ -1861,6 +1871,7 @@ void LoopClosing::MergeLocal()
                 pMPi->SetWorldPos(eigCorrectedP3Dw.cast<float>());
 
                 pMPi->UpdateNormalAndDepth();
+                pMergeMap->AddUpdatedMPId(pMPi->mstrHexId);
             }
         }
 
@@ -1922,6 +1933,8 @@ void LoopClosing::MergeLocal()
 
 
     mpLocalMapper->Release();
+
+    std::cout << "MergeLocal:: Before GBA. Maps=" << mpAtlas->CountMaps() << ", current Map KFs=" << pCurrentMap->KeyFramesInMap() << ", merge Map KFs=" << pMergeMap->KeyFramesInMap() << std::endl;
 
     if(bRelaunchBA && (!pCurrentMap->isImuInitialized() || (pCurrentMap->KeyFramesInMap()<200 && mpAtlas->CountMaps()==1)))
     {

@@ -127,11 +127,11 @@ KeyFrame::KeyFrame(const KeyFrame &kf):
     mnLastModule(kf.mnLastModule), mpCamera(kf.mpCamera), mpCamera2(kf.mpCamera2), mvLeftToRightMatch(kf.mvLeftToRightMatch), mvRightToLeftMatch(kf.mvRightToLeftMatch), 
     mvKeysRight(kf.mvKeysRight), NLeft(kf.NLeft), NRight(kf.NRight)/*, mGridRight(kf.mGridRight)*/, mnNextTarget(kf.mnNextTarget), mbLCDone(kf.mbLCDone)
 {
-    unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
+    //unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
     unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
     unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
-    lock(lock1, lock2, lock3, lock4);
+    lock(/*lock1,*/ lock2, lock3, lock4);
 
     mGrid.resize(kf.mnGridCols);
     if(kf.NLeft != -1)  mGridRight.resize(kf.mnGridCols);
@@ -340,11 +340,11 @@ bImu(bImu), mnNextTarget(mnNextTarget), mnId(mnId), mnFrameId(mnFrameId), mTimeS
 
 void KeyFrame::UpdateKeyFrame(const KeyFrame &kf, const int nFromModule)
 {
-    unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
+    //unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
     unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
     unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
-    lock(lock1, lock2, lock3, lock4);
+    lock(/*lock1,*/ lock2, lock3, lock4);
     
     //mnFrameId                         =mnFrameId_;                         
     //mTimeStamp                        =mTimeStamp_;                         
@@ -541,11 +541,11 @@ void KeyFrame::UpdateKeyFrame( const bool bImu_, const unsigned int mnNextTarget
     /*const std::vector<cv::KeyPoint> mvKeysRight_,*/ /*const int NLeft_,*/ /*const int NRight_,*/ 
     /*std::vector< std::vector <std::vector<size_t> > > mGridRight_*/)
 {
-    unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
+    //unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
     unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
     unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
-    lock(lock1, lock2, lock3, lock4);
+    lock(/*lock1,*/ lock2, lock3, lock4);
     
     //mnFrameId                         =mnFrameId_;                         
     //mTimeStamp                        =mTimeStamp_;                         
@@ -697,11 +697,11 @@ void KeyFrame::UpdateKeyFrame(const long unsigned int mnRelocQuery_, const int m
     const std::vector<long unsigned int>& mvBackupChildrensId_, const bool mbNotErase_, const bool mbToBeErased_, const bool mbBad_,  /*mpMap,*/ 
     const long long int mBackupPrevKFId_, const long long int mBackupNextKFId_, const unsigned int mnLastModule_, const bool mbLCDone_, const unsigned int mnNextTarget_)
 {
-  unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
+  //unique_lock<mutex> lock1(mMutexModule,std::defer_lock);
   //unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
   unique_lock<mutex> lock3(mMutexFeatures,std::defer_lock);
   unique_lock<mutex> lock4(mMutexMap,std::defer_lock);
-  lock(lock1, /*lock2,*/ lock3, lock4);
+  lock(/*lock1,*/ /*lock2,*/ lock3, lock4);
   mnRelocQuery = mnRelocQuery_;
   mnRelocWords = mnRelocWords_;
   mRelocScore = mRelocScore_;

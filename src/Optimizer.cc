@@ -1142,10 +1142,23 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             lLocalKeyFrames.push_back(pKFi);
     }
 
+    if(!lLocalKeyFrames.empty() && !vNeighKFs.empty())
+    {
+        float kfRatio = (lLocalKeyFrames.size()/vNeighKFs.size());
+        std::cout << " ----- lLocalKeyFrames=" << lLocalKeyFrames.size() << ", vNeighKFs=" << vNeighKFs.size() << ", kfRatio=" <<  kfRatio << " ----- " << std::endl;
+        if(kfRatio<0.5)
+        {
+            std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
+            pKF->SetBadFlag();
+            return;
+        }
+    }
+
     // Local MapPoints seen in Local KeyFrames
     num_fixedKF = 0;
     list<MapPoint*> lLocalMapPoints;
     set<MapPoint*> sNumObsMP;
+    unsigned long int mnTotalMPs=0;
     for(list<KeyFrame*>::iterator lit=lLocalKeyFrames.begin() , lend=lLocalKeyFrames.end(); lit!=lend; lit++)
     {
         KeyFrame* pKFi = *lit;
@@ -1160,14 +1173,32 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pMP)
                 if(!pMP->isBad() && pMP->GetMap() == pCurrentMap)
                 {
-
-                    if(pMP->mnBALocalForKF!=pKF->mnId && pMP->GetLastModule() <= 2)
+                    if(pMP->mnBALocalForKF!=pKF->mnId)
                     {
+                        mnTotalMPs++;
+                        //if( pMP->GetLastModule() <= 2)
+                        //{
                         lLocalMapPoints.push_back(pMP);
                         pMP->mnBALocalForKF=pKF->mnId;
+                        //}
                     }
                 }
         }
+    }
+
+
+    if(!lLocalMapPoints.empty() && mnTotalMPs>0 && lLocalMapPoints.size()/mnTotalMPs>0.5)    
+    {
+        float mpRatio = (lLocalMapPoints.size()/mnTotalMPs);
+        std::cout << " ----- lLocalMapPoints=" << lLocalMapPoints.size() << ", mnTotalMPs=" << mnTotalMPs << ", mpRatio=" << mpRatio << " ----- " << std::endl;
+        if(mpRatio<0.5)
+        {
+            std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
+            pKF->SetBadFlag();
+            return;
+
+        }
+
     }
 
     // Fixed Keyframes. Keyframes that see Local MapPoints but that are not Local Keyframes
@@ -1182,7 +1213,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId )
             {                
                 pKFi->mnBAFixedForKF=pKF->mnId;
-                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
+                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap) //&& pKFi->GetLastModule() <= 2)
                     lFixedCameras.push_back(pKFi);
             }
         }
@@ -1314,7 +1345,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         {
             KeyFrame* pKFi = mit->first;
 
-            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule()<=2)
+            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)
             {
                 const int leftIndex = get<0>(mit->second);
 
@@ -1326,6 +1357,8 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
                     obs << kpUn.pt.x, kpUn.pt.y;
 
                     ORB_SLAM3::EdgeSE3ProjectXYZ* e = new ORB_SLAM3::EdgeSE3ProjectXYZ();
+                    if(optimizer.vertex(id) == NULL || optimizer.vertex(pKFi->mnId) == NULL)
+                        continue;
 
                     e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                     e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKFi->mnId)));
@@ -1696,8 +1729,8 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
             int nIDj = pParentKF->mnId;
 
-            //if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
-            //    continue;
+            if(!optimizer.vertex(nIDj) || !optimizer.vertex(nIDi))
+                continue;
 
             g2o::Sim3 Sjw;
 

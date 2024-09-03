@@ -1984,7 +1984,7 @@ void Tracking::Track()
             //  mState=RECENTLY_LOST;
             
             //std::cout << "mState=" << mState << std::endl;
-            if(mState==OK)
+            if(mState==OK || !mapUpToDate )//||mnMapUpdateLastKFId<5)
             {
 
                 // Local Mapping might have changed some MapPoints tracked in last frame
@@ -2011,7 +2011,7 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(pCurrentMap->KeyFramesInMap()>10 || mnMapUpdateLastKFId==0 )
+                    else if(pCurrentMap->KeyFramesInMap()>10 || !mapUpToDate)// || mnMapUpdateLastKFId==0 )
                     {
                         // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
                         mState = RECENTLY_LOST;
@@ -3349,6 +3349,9 @@ bool Tracking::NeedNewKeyFrame()
 
         }
 
+        //if(mpLocalMapper->mbGBARunning)
+        //    mMinFrames+=1;
+
         ////else if(mnMatchesInliers > 60 && mnMatchesInliers <= 100)
         ////{
         ////  thRefRatio = 0.85f;
@@ -3402,7 +3405,7 @@ bool Tracking::NeedNewKeyFrame()
             thRefRatio = 0.90f;
     }
 
-    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << ", mnLastKeyFrameId=" << mnLastKeyFrameId << ", mMinFrames=" << mMinFrames << ", mMaxFrames=" << mMaxFrames << std::endl;
+    std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << ", mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", mMinFrames=" << mMinFrames << ", mMaxFrames=" << mMaxFrames << std::endl;
     //Condition 1c: tracking is weak
     const bool c1c = mSensor!=System::MONOCULAR && mSensor!=System::IMU_MONOCULAR && mSensor!=System::IMU_STEREO && mSensor!=System::IMU_RGBD && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
@@ -3749,7 +3752,16 @@ bool Tracking::IsMapUpToDate()
 
 void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
-  UpdateLocalMap();
+  //UpdateLocalMap();
+  if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId+1)
+      mnMapUpdateLastKFId=pNewKF->mnId+1;
+  if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
+  {
+      if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 5)
+          mpReferenceKF=pNewKF;
+
+  }
+  mapUpToDate=true; 
   //vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
   
   // Initialize Reference KeyFrame and other KF variables
@@ -4308,7 +4320,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max)// && pKF->GetLastModule() > 1)
+        if(it->second>max)//&& pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;

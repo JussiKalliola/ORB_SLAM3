@@ -342,6 +342,12 @@ void Atlas::RemoveBadMaps()
     mspBadMaps.clear();
 }
 
+
+std::set<Map*> Atlas::GetBadMaps()
+{
+    return mspBadMaps;
+}
+
 bool Atlas::isInertial()
 {
     unique_lock<mutex> lock(mMutexAtlas);

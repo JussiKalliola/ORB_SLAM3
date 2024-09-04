@@ -36,10 +36,10 @@ MapPoint::MapPoint():
     mnCorrectedReference(0), mnBAGlobalForKF(0), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<MapPoint*>(NULL))
 {
-    ++nNextId;
+    //++nNextId;
     mpReplaced = static_cast<MapPoint*>(NULL);
-    mpRefKF = static_cast<KeyFrame*>(NULL);
-    mpHostKF = static_cast<KeyFrame*>(NULL);
+    //mpRefKF = static_cast<KeyFrame*>(NULL);
+    //mpHostKF = static_cast<KeyFrame*>(NULL);
 }
 
 MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
@@ -56,7 +56,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     mbTrackInViewR = false;
     mbTrackInView = false;
 
-    mpHostKF = static_cast<KeyFrame*>(NULL);
+    //mpHostKF = static_cast<KeyFrame*>(NULL);
     
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);
@@ -85,7 +85,7 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     mInvDepth=invDepth;
     mInitU=(double)uv_init.x;
     mInitV=(double)uv_init.y;
-    mpHostKF = (pHostKF) ? pHostKF : static_cast<KeyFrame*>(NULL);
+    //mpHostKF = (pHostKF) ? pHostKF : static_cast<KeyFrame*>(NULL);
 
     mNormalVector.setZero();
     
@@ -144,7 +144,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
 
     pFrame->mDescriptors.row(idxF).copyTo(mDescriptor);
 
-    mpHostKF = static_cast<KeyFrame*>(NULL);
+    //mpHostKF = static_cast<KeyFrame*>(NULL);
     
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock(mpMap->mMutexPointCreation);

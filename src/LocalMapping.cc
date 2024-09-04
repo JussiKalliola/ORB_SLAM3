@@ -80,25 +80,17 @@ void LocalMapping::AllowLocalMapping(bool mbAllow)
 
 void LocalMapping::Run()
 {
-    std::cout << " **************** Starting LocalMapping::Run() **************** " << std::endl;
     mbFinished = false;
-    msLastMUStart = std::chrono::high_resolution_clock::now();
-
-    
 
     while(1)
     {
-        //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
-        bool mbLocalMappingDone=false;
 
-        //std::cout << "  Thread2=LocalMapping::Run : Start of the loop" << std::endl;
         // Check if there are keyframes in the queue
-        if(CheckNewKeyFrames() && !mbBadImu && mbAllowLM)
+        if(CheckNewKeyFrames() && !mbBadImu)
         {
-            SetLocalMappingActive(true);
-            //std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
+            std::cout << "  Thread2=LocalMapping::Run : New KFs and mbBadImu=false;" << std::endl; 
 #ifdef REGISTER_TIMES
             double timeLBA_ms = 0;
             double timeKFCulling_ms = 0;
@@ -114,7 +106,6 @@ void LocalMapping::Run()
             vdKFInsert_ms.push_back(timeProcessKF);
 #endif
 
-            //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             // Check recent MapPoints
             MapPointCulling();
 #ifdef REGISTER_TIMES
@@ -124,7 +115,6 @@ void LocalMapping::Run()
             vdMPCulling_ms.push_back(timeMPCulling);
 #endif
 
-            //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             // Triangulate new MapPoints
             CreateNewMapPoints();
 
@@ -132,15 +122,9 @@ void LocalMapping::Run()
 
             if(!CheckNewKeyFrames())
             {
-                //std::cout << "  Thread2=LocalMapping::Run : No new KFs -> Search neighbor KFs;" << std::endl; 
                 // Find more matches in neighbor keyframes and fuse point duplications
                 SearchInNeighbors();
-                //std::cout << "MPs in map=" << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             }
-
-            //mpCurrentKeyFrame->mnNextTarget = 3;
-            //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
-            //msNewMapPointIds.clear();
 
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndMPCreation = std::chrono::steady_clock::now();
@@ -180,14 +164,12 @@ void LocalMapping::Run()
                         }
 
                         bool bLarge = ((mpTracker->GetMatchesInliers()>75)&&mbMonocular)||((mpTracker->GetMatchesInliers()>100)&&!mbMonocular);
-
-                        //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=true -> LocalInertialBA;" << std::endl; 
                         Optimizer::LocalInertialBA(mpCurrentKeyFrame, &mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA, bLarge, !mpCurrentKeyFrame->GetMap()->GetIniertialBA2());
                         b_doneLBA = true;
                     }
                     else
                     {
-                        //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
+                        std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2, mbInertial=false -> LocalBundleAdjustment;" << std::endl; 
                         Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpCurrentKeyFrame->GetMap(),num_FixedKF_BA,num_OptKF_BA,num_MPs_BA,num_edges_BA);
                         b_doneLBA = true;
                     }
@@ -198,14 +180,10 @@ void LocalMapping::Run()
 
                 if(b_doneLBA)
                 {
-                    mbLocalMappingDone=true; 
-                    //std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2 -> LocalBA done;" << std::endl; 
-
-                    // Save the starting time at the same time as end duration for visualization
-                    vtStartTimeLBA_ms.push_back(time_EndMPCreation);
                     timeLBA_ms = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLBA - time_EndMPCreation).count();
                     vdLBA_ms.push_back(timeLBA_ms);
 
+                    std::cout << "  Thread2=LocalMapping::RUN : no new KFs, KFs > 2 -> LocalBA done;" << std::endl; 
                     nLBA_exec += 1;
                     if(mbAbortBA)
                     {
@@ -215,7 +193,6 @@ void LocalMapping::Run()
                     vnLBA_KFopt.push_back(num_OptKF_BA);
                     vnLBA_KFfixed.push_back(num_FixedKF_BA);
                     vnLBA_MPs.push_back(num_MPs_BA);
-
                 }
 
 #endif
@@ -286,31 +263,19 @@ void LocalMapping::Run()
             }
 
 #ifdef REGISTER_TIMES
-            vdLBASync_ms.push_back(timeLBA_ms);
+            vdLBASync_ms.push_back(timeKFCulling_ms);
             vdKFCullingSync_ms.push_back(timeKFCulling_ms);
 #endif
 
-            //std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
-
-            //TODO: Here, broadcast KF/inform network of new KF for loop closure
+            std::cout << "  Thread2=LocalMapping::RUN : Send current KF to Thread3 LoopClosing::InsertKeyFrame;" << std::endl;
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
-            //mpCurrentKeyFrame->mnNextTarget = 3;
-            //notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
-            //msNewMapPointIds.clear();
 
-
-            //mbLocalMappingDone=true;
 #ifdef REGISTER_TIMES
             std::chrono::steady_clock::time_point time_EndLocalMap = std::chrono::steady_clock::now();
-
-            // Save the starting time at the same time as end duration for visualization
-            vtStartTimeLM_ms.push_back(time_StartProcessKF);
 
             double timeLocalMap = std::chrono::duration_cast<std::chrono::duration<double,std::milli> >(time_EndLocalMap - time_StartProcessKF).count();
             vdLMTotal_ms.push_back(timeLocalMap);
 #endif
-        
-            SetLocalMappingActive(false);
         }
         else if(Stop() && !mbBadImu)
         {
@@ -323,45 +288,6 @@ void LocalMapping::Run()
                 break;
         }
 
-
-        // TODO: HERE SEND THE UPDATED MAP
-        //msLastMUStop = std::chrono::high_resolution_clock::now();
-        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(msLastMUStop - msLastMUStart);
-        //auto dCount = duration.count();
-        ////if (mbLocalMappingDone)
-        ////{
-        //
-        //
-        //if(mpCurrentKeyFrame)
-        //{
-
-        //  //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
-        //  if ((dCount > MAP_FREQ) && (mpCurrentKeyFrame->GetMap()) && (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone))
-        //  {
-
-        //    //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
-        //    //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
-        //    //std::cout << "this is before notify map" << std::endl;
-        //    notifyDistributorLocalMapUpdated(mpCurrentKeyFrame->GetMap());
-        //    //std::cout << "This is after notify map" << std::endl;
-        //    
-        //    //mpCurrentKeyFrame->GetMap()->ClearErasedData();
-        //    //mpCurrentKeyFrame->GetMap()->ClearUpdatedKFIds();
-        //    //mpCurrentKeyFrame->GetMap()->ClearUpdatedMPIds();
-        //   
-        //    mbLocalMappingDone=false;
-        //    mbKFsAfterMapUpdate=false;
-        //    //mbAllowLM=false;
-        //    msLastMUStart = std::chrono::high_resolution_clock::now();
-        //    //if(mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 15) {
-        //    //  MAP_FREQ = 2000;
-        //    //} else {
-        //    //  MAP_FREQ = 0;
-        //    //} 
-        //  }
-        //}
-        //}
-        
         ResetIfRequested();
 
         // Tracking will see that Local Mapping is busy
@@ -369,8 +295,7 @@ void LocalMapping::Run()
 
         if(CheckFinish())
             break;
-      
-        //std::cout << "  Thread2=LocalMapping::Run : End of the loop, sleep(3000)" << std::endl;
+
         usleep(3000);
     }
 

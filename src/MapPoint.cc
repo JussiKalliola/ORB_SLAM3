@@ -457,9 +457,6 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
     mnLastModule              = mp.mnLastModule;
 
 }
-
-
-
 void MapPoint::SetWorldPos(const Eigen::Vector3f &Pos) {
     unique_lock<mutex> lock2(mGlobalMutex);
     unique_lock<mutex> lock(mMutexPos);
@@ -483,17 +480,6 @@ KeyFrame* MapPoint::GetReferenceKeyFrame()
     return mpRefKF;
 }
 
-void MapPoint::SetReferenceKeyFrame(KeyFrame* mpRef)
-{
-    unique_lock<mutex> lock(mMutexFeatures);
-    mpRefKF = mpRef;
-    mBackupRefKFId = mpRef->mnId;
-}
-
-long int MapPoint::GetRefBackup()
-{
-  return mBackupRefKFId;
-}
 void MapPoint::AddObservation(KeyFrame* pKF, int idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -571,7 +557,6 @@ int MapPoint::Observations()
 
 void MapPoint::SetBadFlag()
 {
-    
     map<KeyFrame*, tuple<int,int>> obs;
     {
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -587,15 +572,12 @@ void MapPoint::SetBadFlag()
         if(leftIndex != -1){
             pKF->EraseMapPointMatch(leftIndex);
         }
-        //TODO: Uncomment this
-        //if(rightIndex != -1){
-        //    pKF->EraseMapPointMatch(rightIndex);
-        //}
+        if(rightIndex != -1){
+            pKF->EraseMapPointMatch(rightIndex);
+        }
     }
-    
-    if(mpMap)
-        mpMap->EraseMapPoint(this);
-        
+
+    mpMap->EraseMapPoint(this);
 }
 
 MapPoint* MapPoint::GetReplaced()
@@ -607,12 +589,9 @@ MapPoint* MapPoint::GetReplaced()
 
 void MapPoint::Replace(MapPoint* pMP)
 {
-    if(!pMP || pMP->isBad())
-        return;
-    if(pMP->mstrHexId==this->mstrHexId)
+    if(pMP->mnId==this->mnId)
         return;
 
-    
     int nvisible, nfound;
     map<KeyFrame*,tuple<int,int>> obs;
     {
@@ -636,21 +615,21 @@ void MapPoint::Replace(MapPoint* pMP)
 
         if(!pMP->IsInKeyFrame(pKF))
         {
-            if(leftIndex != -1 && leftIndex < 10000){
+            if(leftIndex != -1){
                 pKF->ReplaceMapPointMatch(leftIndex, pMP);
                 pMP->AddObservation(pKF,leftIndex);
             }
-            if(rightIndex != -1 && rightIndex < 10000){
+            if(rightIndex != -1){
                 pKF->ReplaceMapPointMatch(rightIndex, pMP);
                 pMP->AddObservation(pKF,rightIndex);
             }
         }
         else
         {
-            if(leftIndex != -1 && leftIndex < 10000){
+            if(leftIndex != -1){
                 pKF->EraseMapPointMatch(leftIndex);
             }
-            if(rightIndex != -1 && rightIndex < 10000){
+            if(rightIndex != -1){
                 pKF->EraseMapPointMatch(rightIndex);
             }
         }
@@ -658,10 +637,7 @@ void MapPoint::Replace(MapPoint* pMP)
     pMP->IncreaseFound(nfound);
     pMP->IncreaseVisible(nvisible);
     pMP->ComputeDistinctiveDescriptors();
-    
-    if(!mpMap)
-        return;
-    
+
     mpMap->EraseMapPoint(this);
 }
 
@@ -691,16 +667,7 @@ float MapPoint::GetFoundRatio()
     unique_lock<mutex> lock(mMutexFeatures);
     return static_cast<float>(mnFound)/mnVisible;
 }
-int MapPoint::GetFound() 
-{
-    unique_lock<mutex> lock(mMutexFeatures);
-    return mnFound;
-}
-int MapPoint::GetVisible() 
-{
-    unique_lock<mutex> lock(mMutexFeatures);
-    return mnVisible;
-}
+
 void MapPoint::ComputeDistinctiveDescriptors()
 {
     // Retrieve all observed descriptors
@@ -717,7 +684,6 @@ void MapPoint::ComputeDistinctiveDescriptors()
 
     if(observations.empty())
         return;
-    
 
     vDescriptors.reserve(observations.size());
 
@@ -725,17 +691,16 @@ void MapPoint::ComputeDistinctiveDescriptors()
     {
         KeyFrame* pKF = mit->first;
 
-        if(pKF && !pKF->isBad()){
+        if(!pKF->isBad()){
             tuple<int,int> indexes = mit -> second;
             int leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
-            //std::cout << leftIndex << ", " << rightIndex << std::endl;
-            if(leftIndex >= 0 && leftIndex < INT_MAX){
+
+            if(leftIndex != -1){
                 vDescriptors.push_back(pKF->mDescriptors.row(leftIndex));
             }
-            // fix: removed in monocular, add back later. Randomly value is overflown = 1060103539
-            //if(rightIndex >= 0 && rightIndex < INT_MAX){
-            //    vDescriptors.push_back(pKF->mDescriptors.row(rightIndex));
-            //}
+            if(rightIndex != -1){
+                vDescriptors.push_back(pKF->mDescriptors.row(rightIndex));
+            }
         }
     }
 
@@ -811,8 +776,6 @@ void MapPoint::UpdateNormalAndDepth()
         if(mbBad)
             return;
         observations = mObservations;
-        if(!mpRefKF)
-          return;
         pRefKF = mpRefKF;
         Pos = mWorldPos;
     }
@@ -820,24 +783,18 @@ void MapPoint::UpdateNormalAndDepth()
     if(observations.empty())
         return;
 
-    
     Eigen::Vector3f normal;
     normal.setZero();
     int n=0;
     for(map<KeyFrame*,tuple<int,int>>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
     {
         KeyFrame* pKF = mit->first;
-        
-        // Fix this later
-        if(!pKF || pKF->isBad())
-          continue;
 
         tuple<int,int> indexes = mit -> second;
         int leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
 
         if(leftIndex != -1){
             Eigen::Vector3f Owi = pKF->GetCameraCenter();
-            //std::cout << "after getting the translation" << std::endl;
             Eigen::Vector3f normali = Pos - Owi;
             normal = normal + normali / normali.norm();
             n++;
@@ -849,8 +806,7 @@ void MapPoint::UpdateNormalAndDepth()
             n++;
         }
     }
-    
-    //std::cout << "Get Camera Center of Reference KF" << std::endl;
+
     Eigen::Vector3f PC = Pos - pRefKF->GetCameraCenter();
     const float dist = PC.norm();
 
@@ -883,18 +839,6 @@ void MapPoint::SetNormalVector(const Eigen::Vector3f& normal)
 {
     unique_lock<mutex> lock3(mMutexPos);
     mNormalVector = normal;
-}
-
-float MapPoint::GetMinDistance()
-{
-    unique_lock<mutex> lock(mMutexPos);
-    return mfMinDistance;
-}
-
-float MapPoint::GetMaxDistance()
-{
-    unique_lock<mutex> lock(mMutexPos);
-    return mfMaxDistance;
 }
 
 float MapPoint::GetMinDistanceInvariance()
@@ -945,7 +889,7 @@ int MapPoint::PredictScale(const float &currentDist, Frame* pF)
 
 void MapPoint::PrintObservations()
 {
-    cout << "MP_OBS: MP " << mstrHexId << endl;
+    cout << "MP_OBS: MP " << mnId << endl;
     for(map<KeyFrame*,tuple<int,int>>::iterator mit=mObservations.begin(), mend=mObservations.end(); mit!=mend; mit++)
     {
         KeyFrame* pKFi = mit->first;
@@ -965,6 +909,34 @@ void MapPoint::UpdateMap(Map* pMap)
 {
     unique_lock<mutex> lock(mMutexMap);
     mpMap = pMap;
+}
+
+int MapPoint::GetFound() 
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    return mnFound;
+}
+int MapPoint::GetVisible() 
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    return mnVisible;
+}
+
+float MapPoint::GetMinDistance()
+{
+    unique_lock<mutex> lock(mMutexPos);
+    return mfMinDistance;
+}
+
+float MapPoint::GetMaxDistance()
+{
+    unique_lock<mutex> lock(mMutexPos);
+    return mfMaxDistance;
+}
+
+long int MapPoint::GetRefBackup()
+{
+  return mBackupRefKFId;
 }
 
 unsigned int MapPoint::GetLastModule() 

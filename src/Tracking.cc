@@ -3329,7 +3329,7 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.85f;
+        thRefRatio = 0.7f;
         mMinFrames=4; //3
         if(mnMatchesInliers <= 70)
         {
@@ -3340,7 +3340,7 @@ bool Tracking::NeedNewKeyFrame()
 
         } else if (mnMatchesInliers>=70 && mnMatchesInliers<=100)
         {
-          thRefRatio = 0.9f;
+          thRefRatio = 0.8f;
           mMinFrames=3; //2 // full run w/ this one
 
         } else if (mnMatchesInliers>=100&&mnMatchesInliers<=140)

@@ -301,10 +301,10 @@ void LocalMapping::Run()
 
             //TODO: Here, broadcast KF/inform network of new KF for loop closure
             //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
-            if(mpCurrentKeyFrame->mnNextTarget==3)
-                mpCurrentKeyFrame->mnNextTarget = 0;
-            else
-                mpCurrentKeyFrame->mnNextTarget = 3;
+            //if(mpCurrentKeyFrame->mnNextTarget==3)
+            //    mpCurrentKeyFrame->mnNextTarget = 0;
+            //else
+            mpCurrentKeyFrame->mnNextTarget = 3;
             notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
             //msNewMapPointIds.clear();
 

@@ -3331,7 +3331,7 @@ bool Tracking::NeedNewKeyFrame()
     {
         thRefRatio = 0.7f;
         mMinFrames=4; //3
-        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 10)
+        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 4)
         {
           thRefRatio = 0.9f;
           mMinFrames=0; //3

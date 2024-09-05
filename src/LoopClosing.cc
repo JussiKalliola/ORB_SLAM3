@@ -451,7 +451,7 @@ bool LoopClosing::NewDetectCommonRegions()
         return false;
     }
 
-    if(mLastLoopKFid>0 && mpCurrentKF->mnId-mLastLoopKFid < 50)
+    if(mpAtlas->GetCurrentMap()->GetLastBigChangeIdx()>0 && mLastLoopKFid>0 && mpCurrentKF->mnId-mLastLoopKFid < 50)
     {
         std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 30 KFs from last LC" << std::endl;
         mpKeyFrameDB->add(mpCurrentKF);

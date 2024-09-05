@@ -3331,21 +3331,23 @@ bool Tracking::NeedNewKeyFrame()
     {
         thRefRatio = 0.7f;
         mMinFrames=4; //3
-        if(mnMatchesInliers <= 70)
+        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 10)
+        {
+          thRefRatio = 0.9f;
+          mMinFrames=0; //3
+
+        }
+        else if(mnMatchesInliers <= 120 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 10)
         {
           thRefRatio = 0.9f;
           mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>=70 && mnMatchesInliers<=100)
-        {
-          thRefRatio = 0.8f;
-          mMinFrames=3; //2 // full run w/ this one
-
         } else if (mnMatchesInliers>=100&&mnMatchesInliers<=140)
         {
-          mMinFrames=4; //3 // full run w/ this one
+          thRefRatio = 0.8f;
+          mMinFrames=3; //3 // full run w/ this one
 
         }
 
@@ -3753,15 +3755,23 @@ bool Tracking::IsMapUpToDate()
 void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
   //UpdateLocalMap();
-  if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId+1)
-      mnMapUpdateLastKFId=pNewKF->mnId+1;
+  if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
+      mnMapUpdateLastKFId=pNewKF->mnId;
   if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
   {
       if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 5)
           mpReferenceKF=pNewKF;
 
   }
-  mapUpToDate=true; 
+
+
+  if(mpLastKeyFrame)
+  {
+      std::cout << " >>>>>>> mnMapUpdateLastKFId-mpLastKeyFrame=" << static_cast<long int>(mnMapUpdateLastKFId+1)-static_cast<long int>(mpLastKeyFrame->mnId) << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", KeyFramesInMap()=" << mpLastKeyFrame->mnId << std::endl;
+      if(static_cast<long int>(mnMapUpdateLastKFId)-static_cast<long int>(mpLastKeyFrame->mnId) <= 1)
+          mapUpToDate=true; 
+
+  }
   //vector<KeyFrame*> vpKeyFrames = mpAtlas->GetCurrentMap()->GetAllKeyFrames();
   
   // Initialize Reference KeyFrame and other KF variables

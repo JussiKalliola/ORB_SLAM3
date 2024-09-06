@@ -1342,35 +1342,35 @@ namespace ORB_SLAM3
                         if(pMPinKF->Observations()>pMP->Observations())
                         {
                             pMP->Replace(pMPinKF);
-                            pMP->SetLastModule(1); // Last module 1=LM
+                            pMP->SetLastModule(2); // Last module 1=LM
                             //if(pMP->GetMap())
                             //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                             //else
                             //  pKF->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                         } else {
                             pMPinKF->Replace(pMP);
-                            pMPinKF->SetLastModule(1); // Last module 1=LM
+                            pMPinKF->SetLastModule(2); // Last module 1=LM
                             //if(pMPinKF->GetMap())
                             //  pMPinKF->GetMap()->AddUpdatedMPId(pMPinKF->mstrHexId);
                             //else
                             //  pKF->GetMap()->AddUpdatedMPId(pMPinKF->mstrHexId);
                         }
 
-                        pKF->SetLastModule(1); // Last module 1=LM
-                        //pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
+                        pKF->SetLastModule(2); // Last module 1=LM
+                        pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                     }
                 }
                 else
                 {
                     pMP->AddObservation(pKF,bestIdx);
                     pKF->AddMapPoint(pMP,bestIdx);
-                    pMP->SetLastModule(1); // Last module 1=LM
-                    pKF->SetLastModule(1); // Last module 1=LM
+                    pMP->SetLastModule(2); // Last module 1=LM
+                    pKF->SetLastModule(2); // Last module 1=LM
                     //if(pMP->GetMap())
                     //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                     //else
                     //  pKF->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                    //pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
+                    pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                 }
                 nFused++;
             }

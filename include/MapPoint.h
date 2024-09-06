@@ -272,6 +272,9 @@ public:
     static std::mutex mGlobalMutex;
 
     unsigned int mnOriginMapId;
+    
+    long unsigned int mnUpdateCounter;
+    double mUpdateTimeStamp;
 
     inline void SetMpRefKF(KeyFrame* mpKF) {
       mpRefKF = mpKF;

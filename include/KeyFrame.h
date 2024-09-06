@@ -554,8 +554,12 @@ public:
     //cv::Mat mHessianPose;
     unsigned int mnNextTarget;
 
+    long unsigned int mnUpdateCounter;
+    double mUpdateTimeStamp;
+
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:
+
     // sophus poses
     Sophus::SE3<float> mTcw;
     Eigen::Matrix3f mRcw;

@@ -1133,6 +1133,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     pKF->mnBALocalForKF = pKF->mnId;
     Map* pCurrentMap = pKF->GetMap();
 
+    std::cout << " <<<<<<<< START OF LBA: KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
     const vector<KeyFrame*> vNeighKFs = pKF->GetVectorCovisibleKeyFrames();
     for(int i=0, iend=vNeighKFs.size(); i<iend; i++)
     {
@@ -1529,6 +1530,12 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         }
     }
 
+
+    auto now = std::chrono::system_clock::now();
+    auto duration_in_ms = std::chrono::duration<double>(now.time_since_epoch());
+    double currentTime = duration_in_ms.count(); 
+
+    std::cout << " <<<<<<<< KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
     // Recover optimized data
     //Keyframes
     for(list<KeyFrame*>::iterator lit=lLocalKeyFrames.begin(), lend=lLocalKeyFrames.end(); lit!=lend; lit++)
@@ -1539,7 +1546,15 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         Sophus::SE3f Tiw(SE3quat.rotation().cast<float>(), SE3quat.translation().cast<float>());
         pKFi->SetPose(Tiw);
         pKFi->SetLastModule(2); // Last module 1=LM
-        pMap->AddUpdatedKFId(pKFi->mnId);
+                                //
+        double dLastUpdateTime=(pKFi->mUpdateTimeStamp+0.5);
+        if(pKFi->mnUpdateCounter==0 || (pKFi->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
+        {
+            std::cout << " >>>>>>>>> KEYFRAME: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pKFi->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pKFi->mnUpdateCounter << " >>>>>>>>> " << std::endl;
+            pCurrentMap->AddUpdatedKFId(pKFi->mnId);
+            pKFi->mnUpdateCounter++;
+            pKFi->mUpdateTimeStamp=currentTime;
+        }
     }
 
     //Points
@@ -1550,8 +1565,17 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         pMP->SetWorldPos(vPoint->estimate().cast<float>());
         pMP->UpdateNormalAndDepth();
         pMP->SetLastModule(2); // Last module 1=LM
-        pMap->AddUpdatedMPId(pMP->mstrHexId);
+
+        double dLastUpdateTime=(pMP->mUpdateTimeStamp+0.5);
+        if(pMP->mnUpdateCounter == 0 || (pMP->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
+        {
+            //std::cout << " >>>>>>>>> MAP POINT: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pMP->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pMP->mnUpdateCounter << " >>>>>>>>> " << std::endl;
+            pCurrentMap->AddUpdatedMPId(pMP->mstrHexId);
+            pMP->mnUpdateCounter++;
+            pMP->mUpdateTimeStamp=currentTime;
+        }
     }
+    std::cout << " <<<<<<<< KF Updates after LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
     
     std::cout << "******* LocalBundleAdjustment ********* lLocalMapPoints.size()=" << lLocalMapPoints.size() << ", lLocalKeyFrames.size()=" << lLocalKeyFrames.size() << std::endl; 
 

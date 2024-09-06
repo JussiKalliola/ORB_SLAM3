@@ -37,7 +37,8 @@ KeyFrame::KeyFrame():
         mfLogScaleFactor(0), mvScaleFactors(0), mvLevelSigma2(0), mvInvLevelSigma2(0), mnMinX(0), mnMinY(0), mnMaxX(0),
         mnMaxY(0), mPrevKF(static_cast<KeyFrame*>(NULL)), mNextKF(static_cast<KeyFrame*>(NULL)), mbFirstConnection(true), mpParent(static_cast<KeyFrame*>(NULL)), mbNotErase(false),
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
-        NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false)
+        NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false),
+        mnUpdateCounter(0), mUpdateTimeStamp(0)
 {
     //notifyObserverKeyframeAdded(this);
 }
@@ -59,7 +60,8 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap), mbCurrentPlaceRecognition(false), mNameFile(F.mNameFile), mnMergeCorrectedForKF(0),
     mpCamera(F.mpCamera), mpCamera2(F.mpCamera2),
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
-    mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false)
+    mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false),
+    mnUpdateCounter(0), mUpdateTimeStamp(0)
 {
     mnId=nNextId++;
     
@@ -298,7 +300,8 @@ bImu(bImu), mnNextTarget(mnNextTarget), mnId(mnId), mnFrameId(mnFrameId), mTimeS
   mBackupPrevKFId(mBackupPrevKFId), mBackupNextKFId(mBackupNextKFId),
   /*mBackupImuPreintegrated(mBackupImuPreintegrated),*/ mnBackupIdCamera(mnBackupIdCamera), mnBackupIdCamera2(mnBackupIdCamera2), 
   mK_(mK_), mnLastModule(mnLastModule),/*mpCamera(mpCamera),*/ /*mpCamera2(mpCamera2),*/ mvLeftToRightMatch(mvLeftToRightMatch), 
-  mvRightToLeftMatch(mvRightToLeftMatch), mvKeysRight(mvKeysRight), NLeft(NLeft_), NRight(NRight_), mbLCDone(mbLCDone_)/*, mGridRight(mGridRight_)*/
+  mvRightToLeftMatch(mvRightToLeftMatch), mvKeysRight(mvKeysRight), NLeft(NLeft_), NRight(NRight_), mbLCDone(mbLCDone_),/*, mGridRight(mGridRight_)*/
+    mnUpdateCounter(0), mUpdateTimeStamp(0)
 {
 
     mGrid.resize(mnGridCols_);

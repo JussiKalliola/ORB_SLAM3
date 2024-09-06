@@ -3344,7 +3344,7 @@ bool Tracking::NeedNewKeyFrame()
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>=100&&mnMatchesInliers<=140)
+        } else if (mnMatchesInliers>=120&&mnMatchesInliers<=160)
         {
           thRefRatio = 0.8f;
           mMinFrames=3; //3 // full run w/ this one
@@ -3757,12 +3757,12 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
   //UpdateLocalMap();
   if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
       mnMapUpdateLastKFId=pNewKF->mnId;
-  if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
-  {
-      if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 5)
-          mpReferenceKF=pNewKF;
+  //if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
+  //{
+  //    if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 5)
+  //        mpReferenceKF=pNewKF;
 
-  }
+  //}
 
 
   if(mpLastKeyFrame)
@@ -4330,7 +4330,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max)//&& pKF->GetLastModule() > 1)
+        if(it->second>max && pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;

@@ -1984,13 +1984,13 @@ void Tracking::Track()
             //  mState=RECENTLY_LOST;
             
             //std::cout << "mState=" << mState << std::endl;
-            if(mState==OK || !mapUpToDate )//||mnMapUpdateLastKFId<5)
+            if(mState==OK)//||mnMapUpdateLastKFId<5)
             {
 
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
 
-                if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2)
+                if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2 || !mapUpToDate)
                 {
                     Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_DEBUG);
                     bOK = TrackReferenceKeyFrame();
@@ -2011,7 +2011,7 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(pCurrentMap->KeyFramesInMap()>10 || !mapUpToDate)// || mnMapUpdateLastKFId==0 )
+                    else if(pCurrentMap->KeyFramesInMap()>10)// || mnMapUpdateLastKFId==0 )
                     {
                         // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
                         mState = RECENTLY_LOST;

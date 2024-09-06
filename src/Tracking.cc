@@ -2011,7 +2011,7 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(pCurrentMap->KeyFramesInMap()>10)// || mnMapUpdateLastKFId==0 )
+                    else if(pCurrentMap->KeyFramesInMap()>10 || !mapUpToDate)// || mnMapUpdateLastKFId==0 )
                     {
                         // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
                         mState = RECENTLY_LOST;
@@ -4330,7 +4330,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max && pKF->GetLastModule() > 1)
+        if(it->second>max) //&& pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;

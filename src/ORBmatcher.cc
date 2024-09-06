@@ -1357,7 +1357,7 @@ namespace ORB_SLAM3
                         }
 
                         pKF->SetLastModule(2); // Last module 1=LM
-                        pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
+                        //pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                     }
                 }
                 else
@@ -1370,7 +1370,7 @@ namespace ORB_SLAM3
                     //  pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
                     //else
                     //  pKF->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
-                    pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
+                    //pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
                 }
                 nFused++;
             }

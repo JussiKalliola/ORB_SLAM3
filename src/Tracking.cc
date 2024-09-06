@@ -3331,20 +3331,20 @@ bool Tracking::NeedNewKeyFrame()
     {
         thRefRatio = 0.7f;
         mMinFrames=4; //3
-        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 4)
+        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 4)
         {
           thRefRatio = 0.9f;
           mMinFrames=0; //3
 
         }
-        else if(mnMatchesInliers <= 120 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 10)
+        else if(mnMatchesInliers <= 120 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
         {
           thRefRatio = 0.9f;
           mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>=120&&mnMatchesInliers<=160)
+        } else if (mnMatchesInliers>120&&mnMatchesInliers<=160)
         {
           thRefRatio = 0.8f;
           mMinFrames=3; //3 // full run w/ this one

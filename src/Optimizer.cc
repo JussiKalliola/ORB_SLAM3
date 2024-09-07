@@ -1566,7 +1566,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         pMP->UpdateNormalAndDepth();
         pMP->SetLastModule(2); // Last module 1=LM
 
-        double dLastUpdateTime=(pMP->mUpdateTimeStamp+0.2);
+        double dLastUpdateTime=(pMP->mUpdateTimeStamp+0.5);
         if(pMP->mnUpdateCounter == 0 || (pMP->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
         {
             //std::cout << " >>>>>>>>> MAP POINT: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pMP->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pMP->mnUpdateCounter << " >>>>>>>>> " << std::endl;

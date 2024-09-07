@@ -644,21 +644,21 @@ void MapPoint::Replace(MapPoint* pMP)
 
         if(!pMP->IsInKeyFrame(pKF))
         {
-            if(leftIndex != -1 && leftIndex < 10000){
+            if(leftIndex != -1){
                 pKF->ReplaceMapPointMatch(leftIndex, pMP);
                 pMP->AddObservation(pKF,leftIndex);
             }
-            if(rightIndex != -1 && rightIndex < 10000){
+            if(rightIndex != -1){
                 pKF->ReplaceMapPointMatch(rightIndex, pMP);
                 pMP->AddObservation(pKF,rightIndex);
             }
         }
         else
         {
-            if(leftIndex != -1 && leftIndex < 10000){
+            if(leftIndex != -1){
                 pKF->EraseMapPointMatch(leftIndex);
             }
-            if(rightIndex != -1 && rightIndex < 10000){
+            if(rightIndex != -1){
                 pKF->EraseMapPointMatch(rightIndex);
             }
         }
@@ -737,7 +737,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
             tuple<int,int> indexes = mit -> second;
             int leftIndex = get<0>(indexes), rightIndex = get<1>(indexes);
             //std::cout << leftIndex << ", " << rightIndex << std::endl;
-            if(leftIndex >= 0 && leftIndex < INT_MAX){
+            if(leftIndex >= 0){
                 vDescriptors.push_back(pKF->mDescriptors.row(leftIndex));
             }
             // fix: removed in monocular, add back later. Randomly value is overflown = 1060103539

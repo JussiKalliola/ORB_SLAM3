@@ -1993,14 +1993,14 @@ void Tracking::Track()
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
 
-                if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2 || !mapUpToDate)
+                if((!mbVelocity && !pCurrentMap->isImuInitialized()) || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
-                    Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_DEBUG);
+                    Verbose::PrintMess("TRACK: Track with respect to the reference KF ", Verbose::VERBOSITY_NORMAL);
                     bOK = TrackReferenceKeyFrame();
                 }
                 else
                 {
-                    Verbose::PrintMess("TRACK: Track with motion model", Verbose::VERBOSITY_DEBUG);
+                    Verbose::PrintMess("TRACK: Track with motion model", Verbose::VERBOSITY_NORMAL);
                     bOK = TrackWithMotionModel();
                     if(!bOK)
                         bOK = TrackReferenceKeyFrame();
@@ -2014,12 +2014,12 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    //else if(!mapUpToDate)// || mnMapUpdateLastKFId==0 )
-                    //{
-                    //    // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
-                    //    mState = RECENTLY_LOST;
-                    //    mTimeStampLost = mCurrentFrame.mTimeStamp;
-                    //}
+                    else if(pCurrentMap->KeyFramesInMap() > 10)// || mnMapUpdateLastKFId==0 )
+                    {
+                        // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
+                        mState = RECENTLY_LOST;
+                        mTimeStampLost = mCurrentFrame.mTimeStamp;
+                    }
                     else
                     {
                         mState = LOST;
@@ -2385,7 +2385,7 @@ void Tracking::Track()
 
         //Verbose::PrintMess("Thread1=Tracking::Track : End of the function. Set mCurrentFrame as mLastFrame.\n", Verbose::VERBOSITY_NORMAL);
         //std::cout << "mCurrentFrame.mvpMapPoints=" << mCurrentFrame.mvpMapPoints.size() << ", mLastFrame.mvpMapPoints=" << mLastFrame.mvpMapPoints.size() << std::endl;
-        //std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
+        std::cout << "mpReferenceKF->mnId=" << mpReferenceKF->mnId << std::endl; 
         mLastFrame = Frame(mCurrentFrame);
         
         
@@ -2428,7 +2428,7 @@ void Tracking::Track()
     }
 
 
-    //std::cout << "last mState=" << mState << std::endl;
+    std::cout << "last mState=" << mState << std::endl;
 
 #ifdef REGISTER_LOOP
     if (Stop()) {
@@ -2872,6 +2872,7 @@ bool Tracking::TrackReferenceKeyFrame()
     ORBmatcher matcher(0.7,true);
     vector<MapPoint*> vpMapPointMatches;
 
+    cout << " TrackReferenceKeyFrame"<< endl;
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
     if(nmatches<15)
@@ -2886,7 +2887,6 @@ bool Tracking::TrackReferenceKeyFrame()
     //mCurrentFrame.PrintPointDistribution();
 
 
-    // cout << " TrackReferenceKeyFrame mLastFrame.mTcw:  " << mLastFrame.mTcw << endl;
     Optimizer::PoseOptimization(&mCurrentFrame);
 
     // Discard outliers
@@ -3006,7 +3006,7 @@ bool Tracking::TrackWithMotionModel()
 {
     ORBmatcher matcher(0.9,true);
 
-    //Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel", Verbose::VERBOSITY_NORMAL);
+    Verbose::PrintMess("Thread1=Tracking::TrackWithMotionModel", Verbose::VERBOSITY_NORMAL);
     // Update last frame pose according to its reference keyframe
     // Create "visual odometry" points if in Localization Mode
     UpdateLastFrame();
@@ -3332,7 +3332,7 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.7f;
+        thRefRatio = 0.8f;
         mMinFrames=4; //3
         if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 4)
         {
@@ -3340,14 +3340,14 @@ bool Tracking::NeedNewKeyFrame()
           mMinFrames=0; //3
 
         }
-        else if(mnMatchesInliers <= 120 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
+        else if(mnMatchesInliers <= 70 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
         {
           thRefRatio = 0.9f;
           mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>120&&mnMatchesInliers<=160)
+        } else if (mnMatchesInliers>70&&mnMatchesInliers<=140)
         {
           thRefRatio = 0.8f;
           mMinFrames=3; //3 // full run w/ this one
@@ -3754,17 +3754,27 @@ bool Tracking::IsMapUpToDate()
   return mapUpToDate;
 }
 
+unsigned long int Tracking::GetReferenceID()
+{
+    if(mpReferenceKF)
+        return mpReferenceKF->mnId;
+    else
+      return 0;
+}
+
 
 void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
-  //UpdateLocalMap();
   if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
-      mnMapUpdateLastKFId=pNewKF->mnId;
-  if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
   {
-      mpReferenceKF=pNewKF;
-
+      mnMapUpdateLastKFId=pNewKF->mnId;
+      //UpdateLocalMap();
   }
+  //if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
+  //{
+  //    mpReferenceKF=pNewKF;
+
+  //}
 
 
   if(mpLastKeyFrame)
@@ -4159,7 +4169,7 @@ void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFr
   //LocalMapIsUpdating(false); 
 
   //msRelocStatus = false;
-  //std::cout << "reference id in the end of the function: " << mpReferenceKF->mnId << std::endl;
+  std::cout << "reference id in the end of the function: " << mpReferenceKF->mnId << std::endl;
   //std::cout << "mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << std::endl; 
   
   // Edge-SLAM: debug

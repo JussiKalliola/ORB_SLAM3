@@ -1984,7 +1984,9 @@ void Tracking::Track()
             //  mState=RECENTLY_LOST;
             
             //std::cout << "mState=" << mState << std::endl;
-            bool mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
+            bool mbInitNotFinished = false;
+            if(pCurrentMap->KeyFramesInMap() < 5)
+                mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
             if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
             {
 
@@ -2012,12 +2014,12 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(!mapUpToDate)// || mnMapUpdateLastKFId==0 )
-                    {
-                        // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
-                        mState = RECENTLY_LOST;
-                        mTimeStampLost = mCurrentFrame.mTimeStamp;
-                    }
+                    //else if(!mapUpToDate)// || mnMapUpdateLastKFId==0 )
+                    //{
+                    //    // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
+                    //    mState = RECENTLY_LOST;
+                    //    mTimeStampLost = mCurrentFrame.mTimeStamp;
+                    //}
                     else
                     {
                         mState = LOST;
@@ -3758,12 +3760,11 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
   //UpdateLocalMap();
   if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
       mnMapUpdateLastKFId=pNewKF->mnId;
-  //if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
-  //{
-  //    if(mpAtlas->GetCurrentMap()->KeyFramesInMap() < 5)
-  //        mpReferenceKF=pNewKF;
+  if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
+  {
+      mpReferenceKF=pNewKF;
 
-  //}
+  }
 
 
   if(mpLastKeyFrame)

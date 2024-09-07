@@ -1985,7 +1985,7 @@ void Tracking::Track()
             
             //std::cout << "mState=" << mState << std::endl;
             bool mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
-            if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
+            if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
             {
 
                 // Local Mapping might have changed some MapPoints tracked in last frame

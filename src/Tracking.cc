@@ -1984,7 +1984,8 @@ void Tracking::Track()
             //  mState=RECENTLY_LOST;
             
             //std::cout << "mState=" << mState << std::endl;
-            if(mState==OK)//||mnMapUpdateLastKFId<5)
+            bool mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
+            if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
             {
 
                 // Local Mapping might have changed some MapPoints tracked in last frame
@@ -2011,7 +2012,7 @@ void Tracking::Track()
                     {
                         mState = LOST;
                     }
-                    else if(pCurrentMap->KeyFramesInMap()>10 || !mapUpToDate)// || mnMapUpdateLastKFId==0 )
+                    else if(!mapUpToDate)// || mnMapUpdateLastKFId==0 )
                     {
                         // cout << "KF in map: " << pCurrentMap->KeyFramesInMap() << endl;
                         mState = RECENTLY_LOST;

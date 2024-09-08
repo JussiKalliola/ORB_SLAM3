@@ -453,7 +453,7 @@ bool LoopClosing::NewDetectCommonRegions()
 
     if(mpAtlas->GetCurrentMap()->GetLastBigChangeIdx()>0 && mLastLoopKFid>0 && mpCurrentKF->mnId-mLastLoopKFid < 50)
     {
-        std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 30 KFs from last LC" << std::endl;
+        std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 50 KFs from last LC" << std::endl;
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
         return false;
@@ -1408,8 +1408,8 @@ void LoopClosing::MergeLocal()
     Map* pCurrentMap = mpCurrentKF->GetMap();
     Map* pMergeMap = mpMergeMatchedKF->GetMap();
     
-    mvMergedIds.push_back(pCurrentMap->GetId());
     mvMergedIds.push_back(pMergeMap->GetId());
+    mvMergedIds.push_back(pCurrentMap->GetId());
     
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge Local, Active map: " + to_string(pCurrentMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
     Verbose::PrintMess("      Thread3=LoopClosing::MergeLocal : Merge local, Non-Active map: " + to_string(pMergeMap->GetId()) + ";", Verbose::VERBOSITY_NORMAL);
@@ -1712,7 +1712,7 @@ void LoopClosing::MergeLocal()
         pMergeMap->IncreaseChangeIndex();
         pMergeMap->SetCurrentMap();
         //TODO for debug
-        pMergeMap->ChangeId(pCurrentMap->GetId());
+        //pMergeMap->ChangeId(pCurrentMap->GetId());
 
         //std::cout << "[Merge]: merging maps finished" << std::endl;
     }
@@ -2374,6 +2374,21 @@ void LoopClosing::SearchAndFuse(const vector<KeyFrame*> &vConectedKFs, vector<Ma
     //cout << "FUSE-POSE: " << total_replaces << " MPs had been fused" << endl;
 }
 
+void LoopClosing::StopGBA()
+{
+    {
+        unique_lock<mutex> lock(mMutexGBA);
+        mbStopGBA = true;
+
+        mnFullBAIdx++;
+
+        if(mpThreadGBA)
+        {
+            mpThreadGBA->detach();
+            delete mpThreadGBA;
+        }
+    }
+}
 
 
 void LoopClosing::RequestReset()

@@ -62,6 +62,7 @@ public:
     void Run();
 
     void InsertKeyFrame(KeyFrame *pKF);
+    void StopGBA();
 
     void RequestReset();
     void RequestResetActiveMap(Map* pMap);

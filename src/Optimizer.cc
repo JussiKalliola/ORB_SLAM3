@@ -146,6 +146,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMP->GetWorldPos().cast<double>());
         const int id = pMP->mnId+maxKFid+1;
+        if(optimizer.vertex(id) != NULL)
+            continue;
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
@@ -1143,17 +1145,17 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             lLocalKeyFrames.push_back(pKFi);
     }
 
-    if(!lLocalKeyFrames.empty() && !vNeighKFs.empty())
-    {
-        float kfRatio = (lLocalKeyFrames.size()/vNeighKFs.size());
-        std::cout << " ----- lLocalKeyFrames=" << lLocalKeyFrames.size() << ", vNeighKFs=" << vNeighKFs.size() << ", kfRatio=" <<  kfRatio << " ----- " << std::endl;
-        if(kfRatio<0.5)
-        {
-            std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
-            pKF->SetBadFlag();
-            return;
-        }
-    }
+    //if(!lLocalKeyFrames.empty() && !vNeighKFs.empty())
+    //{
+    //    float kfRatio = (lLocalKeyFrames.size()/vNeighKFs.size());
+    //    std::cout << " ----- lLocalKeyFrames=" << lLocalKeyFrames.size() << ", vNeighKFs=" << vNeighKFs.size() << ", kfRatio=" <<  kfRatio << " ----- " << std::endl;
+    //    if(kfRatio<0.5)
+    //    {
+    //        std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
+    //        pKF->SetBadFlag();
+    //        return;
+    //    }
+    //}
 
     // Local MapPoints seen in Local KeyFrames
     num_fixedKF = 0;
@@ -1177,30 +1179,30 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
                     if(pMP->mnBALocalForKF!=pKF->mnId)
                     {
                         mnTotalMPs++;
-                        //if( pMP->GetLastModule() <= 2)
-                        //{
-                        lLocalMapPoints.push_back(pMP);
-                        pMP->mnBALocalForKF=pKF->mnId;
-                        //}
+                        if( pMP->GetLastModule() <= 2)
+                        {
+                            lLocalMapPoints.push_back(pMP);
+                            pMP->mnBALocalForKF=pKF->mnId;
+                        }
                     }
                 }
         }
     }
 
 
-    if(!lLocalMapPoints.empty() && mnTotalMPs>0 && lLocalMapPoints.size()/mnTotalMPs>0.5)    
-    {
-        float mpRatio = (lLocalMapPoints.size()/mnTotalMPs);
-        std::cout << " ----- lLocalMapPoints=" << lLocalMapPoints.size() << ", mnTotalMPs=" << mnTotalMPs << ", mpRatio=" << mpRatio << " ----- " << std::endl;
-        if(mpRatio<0.5)
-        {
-            std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
-            pKF->SetBadFlag();
-            return;
+    //if(!lLocalMapPoints.empty() && mnTotalMPs>0 && lLocalMapPoints.size()/mnTotalMPs>0.5)    
+    //{
+    //    float mpRatio = (lLocalMapPoints.size()/mnTotalMPs);
+    //    std::cout << " ----- lLocalMapPoints=" << lLocalMapPoints.size() << ", mnTotalMPs=" << mnTotalMPs << ", mpRatio=" << mpRatio << " ----- " << std::endl;
+    //    if(mpRatio<0.5)
+    //    {
+    //        std::cout << "LM-LBA: Too few neighbors updated, LBA aborted" << std::endl;
+    //        pKF->SetBadFlag();
+    //        return;
 
-        }
+    //    }
 
-    }
+    //}
 
     // Fixed Keyframes. Keyframes that see Local MapPoints but that are not Local Keyframes
     list<KeyFrame*> lFixedCameras;
@@ -1214,7 +1216,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId )
             {                
                 pKFi->mnBAFixedForKF=pKF->mnId;
-                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap) //&& pKFi->GetLastModule() <= 2)
+                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
                     lFixedCameras.push_back(pKFi);
             }
         }
@@ -1346,7 +1348,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         {
             KeyFrame* pKFi = mit->first;
 
-            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)
+            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
             {
                 const int leftIndex = get<0>(mit->second);
 
@@ -1547,7 +1549,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         pKFi->SetPose(Tiw);
         pKFi->SetLastModule(2); // Last module 1=LM
                                 //
-        double dLastUpdateTime=(pKFi->mUpdateTimeStamp+0.2);
+        double dLastUpdateTime=(pKFi->mUpdateTimeStamp+0.0);
         if(pKFi->mnUpdateCounter==0 || (pKFi->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
         {
             std::cout << " >>>>>>>>> KEYFRAME: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pKFi->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pKFi->mnUpdateCounter << " >>>>>>>>> " << std::endl;
@@ -1566,7 +1568,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         pMP->UpdateNormalAndDepth();
         pMP->SetLastModule(2); // Last module 1=LM
 
-        double dLastUpdateTime=(pMP->mUpdateTimeStamp+0.5);
+        double dLastUpdateTime=(pMP->mUpdateTimeStamp+0.0);
         if(pMP->mnUpdateCounter == 0 || (pMP->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
         {
             //std::cout << " >>>>>>>>> MAP POINT: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pMP->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pMP->mnUpdateCounter << " >>>>>>>>> " << std::endl;
@@ -3779,6 +3781,8 @@ void Optimizer::LocalBundleAdjustment(KeyFrame* pMainKF,vector<KeyFrame*> vpAdju
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMPi->GetWorldPos().cast<double>());
         const int id = pMPi->mnId+maxKFid+1;
+        if(optimizer.vertex(id) != NULL)
+            continue;
         //const int id = 0+maxKFid+1;
         vPoint->setId(id);
         vPoint->setMarginalized(true);

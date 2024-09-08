@@ -3252,7 +3252,7 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     
     // Don't send update if local map is still updating
-    //if(mbLocalMapIsUpdating)
+    //if(mpLocalMapper->isStopped())
     //    return false;
     
 
@@ -3340,14 +3340,14 @@ bool Tracking::NeedNewKeyFrame()
           mMinFrames=0; //3
 
         }
-        else if(mnMatchesInliers <= 70 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
+        else if(mnMatchesInliers <= 100 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
         {
           thRefRatio = 0.9f;
           mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>70&&mnMatchesInliers<=140)
+        } else if (mnMatchesInliers>100&&mnMatchesInliers<=140)
         {
           thRefRatio = 0.8f;
           mMinFrames=3; //3 // full run w/ this one
@@ -3768,13 +3768,21 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
   if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
   {
       mnMapUpdateLastKFId=pNewKF->mnId;
-      //UpdateLocalMap();
   }
-  //if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
-  //{
-  //    mpReferenceKF=pNewKF;
 
+  //if(pNewKF)
+  //{
+  //    if(pNewKF->GetLastModule() > mpReferenceKF->GetLastModule())
+  //    {
+  //        std::cout << "updating reference, pNewKF=" << pNewKF->mnId << ", last ref=" << mpReferenceKF->mnId << std::endl;
+  //        UpdateLocalMap();
+  //    }
   //}
+  if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
+  {
+      mpReferenceKF=pNewKF;
+
+  }
 
 
   if(mpLastKeyFrame)

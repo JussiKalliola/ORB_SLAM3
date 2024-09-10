@@ -304,8 +304,12 @@ void LocalMapping::Run()
             //if(mpCurrentKeyFrame->mnNextTarget==3)
             //    mpCurrentKeyFrame->mnNextTarget = 0;
             //else
-            mpCurrentKeyFrame->mnNextTarget = 3;
-            notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+            if(!msNewMapPointIds.empty())
+            {
+                mpCurrentKeyFrame->mnNextTarget = 3;
+                notifyDistributorAddKeyframe(mpCurrentKeyFrame, msNewMapPointIds); // Send KF to loop closing (module 3)
+
+            }
             //msNewMapPointIds.clear();
 
 

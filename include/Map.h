@@ -278,6 +278,13 @@ public:
     }
 
 
+    void notifyNewMapPointCreated(ORB_SLAM3::MapPoint* pMP)
+    {
+      if (distributor_) {
+        distributor_->onNewMapPoint(pMP);
+      }
+
+    }
 
 
     void UpdateMap(Map* pM) {
@@ -307,13 +314,6 @@ public:
 
 protected:
 
-    void notifyNewMapPointCreated(ORB_SLAM3::MapPoint* pMP)
-    {
-      if (distributor_) {
-        distributor_->onNewMapPoint(pMP);
-      }
-
-    }
     
     void notifyNewKeyFrameAdded(ORB_SLAM3::KeyFrame* pKF)
     {

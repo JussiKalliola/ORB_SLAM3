@@ -1141,7 +1141,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     {
         KeyFrame* pKFi = vNeighKFs[i];
         pKFi->mnBALocalForKF = pKF->mnId;
-        if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
+        if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap) // && pKFi->GetLastModule() <= 2)
             lLocalKeyFrames.push_back(pKFi);
     }
 
@@ -1179,11 +1179,11 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
                     if(pMP->mnBALocalForKF!=pKF->mnId)
                     {
                         mnTotalMPs++;
-                        if( pMP->GetLastModule() <= 2)
-                        {
-                            lLocalMapPoints.push_back(pMP);
-                            pMP->mnBALocalForKF=pKF->mnId;
-                        }
+                        //if( pMP->GetLastModule() <= 2)
+                        //{
+                        lLocalMapPoints.push_back(pMP);
+                        pMP->mnBALocalForKF=pKF->mnId;
+                        //}
                     }
                 }
         }
@@ -1216,7 +1216,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId )
             {                
                 pKFi->mnBAFixedForKF=pKF->mnId;
-                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
+                if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap) //&& pKFi->GetLastModule() <= 2)
                     lFixedCameras.push_back(pKFi);
             }
         }
@@ -1348,7 +1348,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         {
             KeyFrame* pKFi = mit->first;
 
-            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap && pKFi->GetLastModule() <= 2)
+            if(!pKFi->isBad() && pKFi->GetMap() == pCurrentMap)// && pKFi->GetLastModule() <= 2)
             {
                 const int leftIndex = get<0>(mit->second);
 

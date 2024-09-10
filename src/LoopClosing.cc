@@ -451,14 +451,14 @@ bool LoopClosing::NewDetectCommonRegions()
         return false;
     }
 
-    if(mpAtlas->GetCurrentMap()->GetLastBigChangeIdx()>0 && mLastLoopKFid>0 && mpCurrentKF->mnId-mLastLoopKFid < 50)
-    {
-        std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 50 KFs from last LC" << std::endl;
-        mpKeyFrameDB->add(mpCurrentKF);
-        mpCurrentKF->SetErase();
-        return false;
+    //if(mpAtlas->GetCurrentMap()->GetLastBigChangeIdx()>0 && mLastLoopKFid>0 && mpCurrentKF->mnId-mLastLoopKFid < 20)
+    //{
+    //    std::cout << "    Thread3=LoopClosing::NewDetectCommonRegions : less than 50 KFs from last LC" << std::endl;
+    //    mpKeyFrameDB->add(mpCurrentKF);
+    //    mpCurrentKF->SetErase();
+    //    return false;
 
-    }
+    //}
 
     //cout << "LoopClousure: Checking KF: " << mpCurrentKF->mnId << endl;
 
@@ -1712,7 +1712,7 @@ void LoopClosing::MergeLocal()
         pMergeMap->IncreaseChangeIndex();
         pMergeMap->SetCurrentMap();
         //TODO for debug
-        //pMergeMap->ChangeId(pCurrentMap->GetId());
+        pMergeMap->ChangeId(pCurrentMap->GetId());
 
         //std::cout << "[Merge]: merging maps finished" << std::endl;
     }
@@ -1950,6 +1950,8 @@ void LoopClosing::MergeLocal()
     mpCurrentKF->AddMergeEdge(mpMergeMatchedKF);
     
 
+    pCurrentMap->InformNewBigChange();
+    pMergeMap->InformNewBigChange();
     pCurrentMap->IncreaseChangeIndex();
     pMergeMap->IncreaseChangeIndex();
 

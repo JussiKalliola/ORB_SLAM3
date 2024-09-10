@@ -75,6 +75,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
     std::string strSystemId(cSystemId);
     mstrHexId=createHashId("", mnId);
     //std::cout << "MP Constructor0: Hash=" << mstrHexId << ", " << createHashId("main", mnId) << std::endl;
+    pMap->notifyNewMapPointCreated(this);
 }
 
 MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap):
@@ -109,6 +110,7 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     std::string strSystemId(cSystemId);
     mstrHexId=createHashId("", mnId);
     //std::cout << "MP Constructor1: Hash=" << mstrHexId << std::endl;
+    pMap->notifyNewMapPointCreated(this);
 
 }
 
@@ -165,6 +167,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     std::string strSystemId(cSystemId);
     mstrHexId=createHashId("", mnId);
     //std::cout << "MP Constructor2: Hash=" << mstrHexId << std::endl;
+    pMap->notifyNewMapPointCreated(this);
     
 }
 
@@ -386,83 +389,88 @@ void MapPoint::UpdateMapPoint(const int nObs_, /*KeyFrame* mpHostKF = nullptr, *
 void MapPoint::UpdateMapPoint(const MapPoint& mp) 
 {
     
-    SetWorldPos(mp.mWorldPos);
+    //SetWorldPos(mp.mWorldPos);
 
-    //unique_lock<mutex> lock1(mMutexModule);
-    //unique_lock<mutex> lock3(mMutexMap);
-    //unique_lock<mutex> lock4(mMutexPos);
-    ////unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
-    //
-    //lock(lock1, /*lock2,*/ lock3, lock4);
-
-    mnFirstKFid               = mp.mnFirstKFid;
-    mnFirstFrame              = mp.mnFirstFrame;
-    nObs                      = mp.nObs;
-    //mTrackProjX               = mTrackProjX_;
-    //mTrackProjY               = mTrackProjY_;
-    //mTrackDepth               = mTrackDepth_;
-    //mTrackDepthR              = mTrackDepthR_;
-    //mTrackProjXR              = mTrackProjXR_;
-    //mTrackProjYR              = mTrackProjYR_;
-    //mbTrackInView             = mbTrackInView_;
-    //mbTrackInViewR            = mbTrackInViewR_;
-    //mnTrackScaleLevel         = mnTrackScaleLevel_;
-    //mnTrackScaleLevelR        = mnTrackScaleLevelR_;
-    //mTrackViewCos             = mTrackViewCos_;
-    //mTrackViewCosR            = mTrackViewCosR_;
-    //mnTrackReferenceForFrame  = mnTrackReferenceForFrame_;
-    //mnLastFrameSeen           = mnLastFrameSeen_;
-    //mnBALocalForKF            = mp.mnBALocalForKF;
-    //mnFuseCandidateForKF      = mp.mnFuseCandidateForKF;
-    //mnLoopPointForKF          = mp.mnLoopPointForKF;
-    //mnCorrectedByKF           = mp.mnCorrectedByKF;
-    //mnCorrectedReference      = mp.mnCorrectedReference;
-    //mPosGBA                   = mp.mPosGBA;
-    //mnBAGlobalForKF           = mp.mnBAGlobalForKF;
-    //mnBALocalForMerge         = mp.mnBALocalForMerge;
-    //mPosMerge                 = mp.mPosMerge;
-    //mNormalVectorMerge        = mp.mNormalVectorMerge;
-    mInvDepth                 = mp.mInvDepth;
-    mInitU                    = mp.mInitU;
-    mInitV                    = mp.mInitV;
-    mpHostKF                  = mp.mpHostKF;
-    //mBackupHostKFId           = mp->mBackupHostKFId;
-    mnOriginMapId             = mp.mnOriginMapId;
-    //mObservations             = mp.mObservations;
     {
-        unique_lock<mutex> lock2(mMutexFeatures);
-        mObservations.clear();
-        mBackupObservationsId1.clear();
-        mBackupObservationsId2.clear();
+        //unique_lock<mutex> lock1(mMutexModule);
+        unique_lock<mutex> lock1(mMutexMap, std::defer_lock);
+        unique_lock<mutex> lock3(mMutexPos,std::defer_lock);
+        //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
+        //
+        lock(lock1, /*lock2,*/ lock3/*, lock4*/);
+        
+        mWorldPos = mp.mWorldPos;
 
-        map<KeyFrame*, std::tuple<int,int>> mObs(mp.mObservations);
-        for(map<KeyFrame*, std::tuple<int,int>>::const_iterator it = mObs.begin(), end = mObs.end(); it != end; ++it)
-        {
-          //std::cout << it->first->mnId << "," << get<0>(it->second) << std::endl;
-          if(it->first)
-          {
-              mObservations[it->first] = it->second;
-              mBackupObservationsId1[it->first->mnId] = get<0>(it->second); 
-              mBackupObservationsId2[it->first->mnId] = get<1>(it->second); 
-          }
+        mnFirstKFid               = mp.mnFirstKFid;
+        mnFirstFrame              = mp.mnFirstFrame;
+        nObs                      = mp.nObs;
+        //mTrackProjX               = mTrackProjX_;
+        //mTrackProjY               = mTrackProjY_;
+        //mTrackDepth               = mTrackDepth_;
+        //mTrackDepthR              = mTrackDepthR_;
+        //mTrackProjXR              = mTrackProjXR_;
+        //mTrackProjYR              = mTrackProjYR_;
+        //mbTrackInView             = mbTrackInView_;
+        //mbTrackInViewR            = mbTrackInViewR_;
+        //mnTrackScaleLevel         = mnTrackScaleLevel_;
+        //mnTrackScaleLevelR        = mnTrackScaleLevelR_;
+        //mTrackViewCos             = mTrackViewCos_;
+        //mTrackViewCosR            = mTrackViewCosR_;
+        //mnTrackReferenceForFrame  = mnTrackReferenceForFrame_;
+        //mnLastFrameSeen           = mnLastFrameSeen_;
+        //mnBALocalForKF            = mp.mnBALocalForKF;
+        //mnFuseCandidateForKF      = mp.mnFuseCandidateForKF;
+        //mnLoopPointForKF          = mp.mnLoopPointForKF;
+        //mnCorrectedByKF           = mp.mnCorrectedByKF;
+        //mnCorrectedReference      = mp.mnCorrectedReference;
+        //mPosGBA                   = mp.mPosGBA;
+        //mnBAGlobalForKF           = mp.mnBAGlobalForKF;
+        //mnBALocalForMerge         = mp.mnBALocalForMerge;
+        //mPosMerge                 = mp.mPosMerge;
+        //mNormalVectorMerge        = mp.mNormalVectorMerge;
+        mInvDepth                 = mp.mInvDepth;
+        mInitU                    = mp.mInitU;
+        mInitV                    = mp.mInitV;
+        mpHostKF                  = mp.mpHostKF;
+        //mBackupHostKFId           = mp->mBackupHostKFId;
+        mnOriginMapId             = mp.mnOriginMapId;
+        //mObservations             = mp.mObservations;
+        if(!mp.mObservations.empty()){
+            unique_lock<mutex> lock2(mMutexFeatures);
+            mObservations.clear();
+            mBackupObservationsId1.clear();
+            mBackupObservationsId2.clear();
+
+            map<KeyFrame*, std::tuple<int,int>> mObs(mp.mObservations);
+            for(map<KeyFrame*, std::tuple<int,int>>::const_iterator it = mObs.begin(), end = mObs.end(); it != end; ++it)
+            {
+              //std::cout << it->first->mnId << "," << get<0>(it->second) << std::endl;
+              if(it->first)
+              {
+                  mObservations[it->first] = it->second;
+                  mBackupObservationsId1[it->first->mnId] = get<0>(it->second); 
+                  mBackupObservationsId2[it->first->mnId] = get<1>(it->second); 
+              }
+            }
+            mDescriptor               = mp.mDescriptor.clone();
         }
-        mDescriptor               = mp.mDescriptor.clone();
+
+
+        mNormalVector             = mp.mNormalVector;
+        mpRefKF                   = mp.mpRefKF;
+        //mBackupRefKFId            = mp->mBackupRefKFId;
+        mnVisible                 = mp.mnVisible;
+        mnFound                   = mp.mnFound;
+        mbBad                     = mp.mbBad;
+        mpReplaced                = mp.mpReplaced;
+        //long long int mBackupReplacedId = -1,
+        //mBackupReplacedStrId      = mp->mBackupReplacedStrId;
+        mfMinDistance             = mp.mfMinDistance;
+        mfMaxDistance             = mp.mfMaxDistance;
+        mpMap                     = mp.mpMap;
+        mnLastModule              = mp.mnLastModule;
+
     }
-
-
-    mNormalVector             = mp.mNormalVector;
-    mpRefKF                   = mp.mpRefKF;
-    //mBackupRefKFId            = mp->mBackupRefKFId;
-    mnVisible                 = mp.mnVisible;
-    mnFound                   = mp.mnFound;
-    mbBad                     = mp.mbBad;
-    mpReplaced                = mp.mpReplaced;
-    //long long int mBackupReplacedId = -1,
-    //mBackupReplacedStrId      = mp->mBackupReplacedStrId;
-    mfMinDistance             = mp.mfMinDistance;
-    mfMaxDistance             = mp.mfMaxDistance;
-    mpMap                     = mp.mpMap;
-    mnLastModule              = mp.mnLastModule;
 
 }
 
@@ -1060,9 +1068,10 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     if(mpRefKF)
     {
         mBackupRefKFId = mpRefKF->mnId;
-    } else {
-        mpHostKF = static_cast<KeyFrame*>(NULL);
-    }
+    } 
+    //else {
+    //    mpHostKF = static_cast<KeyFrame*>(NULL);
+    //}
 
 
     // Save the id of the reference KF
@@ -1070,9 +1079,10 @@ void MapPoint::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP)
     if(mpHostKF)
     {
         mBackupHostKFId = mpHostKF->mnId;
-    } else {
-        mpHostKF = static_cast<KeyFrame*>(NULL);
-    }
+    } 
+    //else {
+    //    mpHostKF = static_cast<KeyFrame*>(NULL);
+    //}
 
 }
 
@@ -1226,7 +1236,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     //}
 
     // Check if map point ptr can be found, if not, return
-    if(mpKFid[mBackupRefKFId] && mpKFid[mBackupRefKFId]->GetMap() == this->mpMap) {
+    if(mpKFid[mBackupRefKFId] && mpKFid[mBackupRefKFId]->GetMap()->GetId() == this->mpMap->GetId()) {
       //if(mBackupRefKFId < mpKFid.rbegin()->first)
       //{
       //  mBackupRefKFId = -1;
@@ -1258,7 +1268,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     //  return;
     //}
     // Check if map point ptr can be found, if not, return
-    if(mpKFid[mBackupHostKFId] && mpKFid[mBackupHostKFId]->GetMap() == this->mpMap) {
+    if(mpKFid[mBackupHostKFId] && mpKFid[mBackupHostKFId]->GetMap()->GetId() == this->mpMap->GetId()) {
       mpHostKF = mpKFid[mBackupHostKFId];
       //if(mBackupHostKFId < mpKFid.rbegin()->first)
       //{
@@ -1286,7 +1296,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     if(mBackupReplacedStrId!="" && mBackupReplacedStrId.length() == 6)
     {
         ORB_SLAM3::MapPoint* tempMP = mpMPid[mBackupReplacedStrId];
-        if (tempMP && tempMP->GetMap() == this->mpMap)
+        if (tempMP && tempMP->GetMap()->GetId() == this->mpMap->GetId())
         {
           mpReplaced = tempMP;
         }
@@ -1312,7 +1322,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         
         // Check if map point ptr can be found, if not, return
         ORB_SLAM3::KeyFrame* tempKF = mpKFid[it->first];
-        if(!tempKF || tempKF->GetMap() != this->mpMap) 
+        if(!tempKF || tempKF->GetMap()->GetId() != this->mpMap->GetId()) 
           continue;
         //if(it->first < mpKFid.rbegin()->first)
         //{

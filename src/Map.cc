@@ -152,6 +152,16 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
         mspMapPoints = tempMap.mspMapPoints;
         mspKeyFrames = tempMap.mspKeyFrames;
 
+        for(const auto& pMP : mspMapPoints)
+        {
+          pMP->UpdateMap(this);
+        }
+
+        for(const auto& pKF : mspKeyFrames)
+        {
+          pKF->UpdateMap(this);
+        }
+
     }
 }
 
@@ -714,8 +724,6 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
         if(!pMPi) 
             continue;
         //ustd::cout << "pMPi exists " << pMPi->mstrHexId << std::endl;
-        if(pMPi->isBad())
-            continue;
 
         //if(!mspUpdatedMapPointIds.empty() && mspUpdatedMapPointIds.find(pMPi->mstrHexId) == mspUpdatedMapPointIds.end())
         //    continue;
@@ -737,7 +745,7 @@ void Map::PreSave(std::set<GeometricCamera*> &spCams)
     mvpBackupKeyFramesId.clear();
     for(KeyFrame* pKFi : mspKeyFrames)
     {
-        if(!pKFi || pKFi->isBad())
+        if(!pKFi)
             continue;
         //if(!mspUpdatedKeyFrameIds.empty() && mspUpdatedKeyFrameIds.find(pKFi->mnId) == mspUpdatedKeyFrameIds.end())
         //    continue;
@@ -946,7 +954,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     mspKeyFrames.clear();
     for(const auto& id : mvpBackupKeyFramesId)
     {
-      if(mpKeyFrameId[id] && !mpKeyFrameId[id]->isBad() && mpKeyFrameId[id]->GetMap()->GetId() == this->mnId)
+      if(mpKeyFrameId[id] && !mpKeyFrameId[id]->isBad() )
       {
         //std::cout << id << ", ";
         if(id>mnMaxKFid)
@@ -958,8 +966,12 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         {
           mnBackupKFinitialID = id;
         }
+        
+        //if(mpKeyFrameId[id]->GetMap()->GetId() != this->mnId)
+        //    mpKeyFrameId[id]->UpdateMap(this);
 
         mspKeyFrames.insert(mpKeyFrameId[id]);
+            
       }
     }
     //std::cout << std::endl;
@@ -969,8 +981,14 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     mspMapPoints.clear();
     for(const auto& id : mvpBackupMapPointsId)
     {
-      if(mpMapPointId[id] && !mpMapPointId[id]->isBad() && mpMapPointId[id]->GetMap()->GetId() == this->mnId)
-          mspMapPoints.insert(mpMapPointId[id]);
+      if(mpMapPointId[id] && !mpMapPointId[id]->isBad())
+      {
+
+        //if(mpMapPointId[id]->GetMap()->GetId() != this->mnId)
+        //    mpMapPointId[id]->UpdateMap(this);
+        
+        mspMapPoints.insert(mpMapPointId[id]);
+      }
     }
 
     //std::cout << "before ref mps" << std::endl;

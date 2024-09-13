@@ -3334,24 +3334,24 @@ bool Tracking::NeedNewKeyFrame()
     if(mSensor==System::MONOCULAR)
     {
         thRefRatio = 0.8f;
-        mMinFrames=3; //3
+        mMinFrames=4; //3
         if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 3)
         {
           thRefRatio = 0.9f;
           mMinFrames=0; //3
 
         }
-        else if(mnMatchesInliers <= 100 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
+        else if(mnMatchesInliers <= 80 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
         {
-          thRefRatio = 0.85f;
-          mMinFrames=1; //1 // full run w/ this one
+          thRefRatio = 0.9f;
+          mMinFrames=2; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
-        } else if (mnMatchesInliers>100&&mnMatchesInliers<=160)
+        } else if (mnMatchesInliers>80&&mnMatchesInliers<=140)
         {
           thRefRatio = 0.8f;
-          mMinFrames=2; //3 // full run w/ this one
+          mMinFrames=3; //3 // full run w/ this one
 
         }
 

@@ -94,8 +94,8 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 {
     unique_lock<mutex> lock(mMutexMap);
     mbFail = tempMap.mbFail; 
-    //msOptKFs = tempMap.msOptKFs; 
-    //msFixedKFs = tempMap.msFixedKFs;
+    msOptKFs = tempMap.msOptKFs; 
+    msFixedKFs = tempMap.msFixedKFs;
 
     //mvpReferenceMapPoints.clear();
     //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
@@ -137,15 +137,15 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 
     mnInitKFid = tempMap.mnInitKFid; 
 
+    mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
+    mpKFinitial = tempMap.mpKFinitial;
+    mpKFlowerID = tempMap.mpKFlowerID;
+    mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
+    mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
     if(nFromModule != 3)
     {
         mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
         mnMaxKFid = tempMap.mnMaxKFid; 
-        mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
-        mpKFinitial = tempMap.mpKFinitial;
-        mpKFlowerID = tempMap.mpKFlowerID;
-        mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
-        mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
         mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
         mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
 

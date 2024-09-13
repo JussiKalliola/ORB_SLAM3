@@ -1192,7 +1192,8 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
         //}
         
         // Check if map point ptr can be found, if not, return
-        if(mpKFid.find(it->first) == mpKFid.end()) {
+        ORB_SLAM3::KeyFrame* pKFi = mpKFid[it->first];
+        if(!pKFi || (pKFi && pKFi->GetMap() && pKFi->GetMap()->GetId() != this->mpMap->GetId())) {
           continue;
           //if(it->first < mpKFid.rbegin()->first)
           //{
@@ -1204,13 +1205,9 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
           //}
         } else {
 
-          KeyFrame* pKFi = mpKFid[it->first];
           map<long unsigned int, int>::const_iterator it2 = mBackupObservationsId2.find(it->first);
           std::tuple<int, int> indexes = tuple<int,int>(it->second,it2->second);
-          if(pKFi)
-          {
-             mObservations[pKFi] = indexes;
-          }
+          mObservations[pKFi] = indexes;
         }
     }
 
@@ -1243,7 +1240,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
       //  mpRefKF=static_cast<KeyFrame*>(NULL);
       //} 
       //else {
-
+      
       mpRefKF = mpKFid[mBackupRefKFId];
       //  *bUnprocessed = true; 
       //  std::cout << "ref kf id " << mBackupRefKFId << std::endl;

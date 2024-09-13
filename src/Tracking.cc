@@ -3850,12 +3850,14 @@ void Tracking::UpdateFromLocalMapping(ORB_SLAM3::KeyFrame* pKF)
   
   if(pKF)
   {
-      mnMapUpdateLastKFId=pKF->mnId;
-      mpReferenceKF=pKF;
+      //mnMapUpdateLastKFId=pKF->mnId;
+      //mpReferenceKF=pKF;
       std::cout << " ################## pNewKF-mnId==mpReferenceKF->mnId && pNewKF->mbLCDone==true" << std::endl;
       Sophus::SE3f Tlr = mlRelativeFramePoses.back();
       mLastFrame.SetPose(Tlr * mpReferenceKF->GetPose());
       mLastFrame.mpReferenceKF = mpReferenceKF;
+      mlRelativeFramePoses.push_back(mlRelativeFramePoses.back());
+      mlpReferences.push_back(mlpReferences.back());
   }
   //UpdateLocalMap();
   //unique_lock<mutex> lock(mMutexLocalMapUpdate);
@@ -4351,7 +4353,7 @@ void Tracking::UpdateLocalKeyFrames()
         if(pKF->isBad())
             continue;
 
-        if(it->second>max && pKF->GetLastModule() > 1)
+        if(it->second>max) //&& pKF->GetLastModule() > 1)
         {
             max=it->second;
             pKFmax=pKF;

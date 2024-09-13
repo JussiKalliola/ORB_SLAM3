@@ -1187,6 +1187,8 @@ void LoopClosing::CorrectLoop()
                 // Update keyframe pose with corrected Sim3. First transform Sim3 to SE3 (scale translation)
                 Sophus::SE3d correctedTiw(g2oCorrectedSiw.rotation(),g2oCorrectedSiw.translation() / g2oCorrectedSiw.scale());
                 pKFi->SetPose(correctedTiw.cast<float>());
+                pKFi->SetLastModule(3);
+                pKFi->mbLCDone=true;
                 pLoopMap->AddUpdatedKFId(pKFi->mnId);
 
                 //Pose without correction
@@ -1223,12 +1225,12 @@ void LoopClosing::CorrectLoop()
                 Eigen::Vector3d P3Dw = pMPi->GetWorldPos().cast<double>();
                 Eigen::Vector3d eigCorrectedP3Dw = g2oCorrectedSwi.map(g2oSiw.map(P3Dw));
                 
-                pLoopMap->AddUpdatedMPId(pMPi->mstrHexId);
 
                 pMPi->SetWorldPos(eigCorrectedP3Dw.cast<float>());
                 pMPi->mnCorrectedByKF = mpCurrentKF->mnId;
                 pMPi->mnCorrectedReference = pKFi->mnId;
                 pMPi->UpdateNormalAndDepth();
+                pMPi->SetLastModule(3);
                 pLoopMap->AddUpdatedMPId(pMPi->mstrHexId);
             }
 
@@ -1259,6 +1261,7 @@ void LoopClosing::CorrectLoop()
                     pCurMP->Replace(pLoopMP);
                 else
                 {
+                    pLoopMP->SetLastModule(3);
                     pLoopMap->AddUpdatedMPId(pLoopMP->mstrHexId);
                     mpCurrentKF->AddMapPoint(pLoopMP,i);
                     pLoopMP->AddObservation(mpCurrentKF,i);
@@ -1680,6 +1683,8 @@ void LoopClosing::MergeLocal()
             pKFi->mTwcBefMerge = pKFi->GetPoseInverse();
             pKFi->SetPose(pKFi->mTcwMerge);
             
+            pKFi->SetLastModule(3);
+            pKFi->mbLCDone=true;
             pMergeMap->AddUpdatedKFId(pKFi->mnId);
 
             // Make sure connections are updated
@@ -1702,6 +1707,7 @@ void LoopClosing::MergeLocal()
             pMPi->SetWorldPos(pMPi->mPosMerge);
             pMPi->SetNormalVector(pMPi->mNormalVectorMerge);
             pMPi->UpdateMap(pMergeMap);
+            pMPi->SetLastModule(3);
             pMergeMap->AddUpdatedMPId(pMPi->mstrHexId);
             pMergeMap->AddMapPoint(pMPi);
             pCurrentMap->EraseMapPoint(pMPi);
@@ -1759,6 +1765,8 @@ void LoopClosing::MergeLocal()
             continue;
 
         pKFi->UpdateConnections();
+        pKFi->SetLastModule(3);
+        pKFi->mbLCDone=true;
         pMergeMap->AddUpdatedKFId(pKFi->mnId);
     }
     for(KeyFrame* pKFi : spMergeConnectedKFs)
@@ -1767,6 +1775,8 @@ void LoopClosing::MergeLocal()
             continue;
 
         pKFi->UpdateConnections();
+        pKFi->SetLastModule(3);
+        pKFi->mbLCDone=true;
         pMergeMap->AddUpdatedKFId(pKFi->mnId);
     }
 
@@ -1847,6 +1857,7 @@ void LoopClosing::MergeLocal()
 
                 pKFi->SetPose(correctedTiw.cast<float>());
                 pKFi->mbLCDone=true;
+                pKFi->SetLastModule(3);
                 pMergeMap->AddUpdatedKFId(pKFi->mnId);
 
                 if(pCurrentMap->isImuInitialized())
@@ -2576,6 +2587,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 pKF->mTcwBefGBA = pKF->GetPose();
                 //cout << "pKF->mTcwBefGBA: " << pKF->mTcwBefGBA << endl;
                 pKF->SetPose(pKF->mTcwGBA);
+                pKF->SetLastModule(3);
                 pActiveMap->AddUpdatedKFId(pKF->mnId);
                 pKF->mbLCDone = true;
                 /*cv::Mat Tco_cn = pKF->mTcwBefGBA * pKF->mTcwGBA.inv();
@@ -2642,6 +2654,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                     //assert(!pKF->mVwbGBA.empty());
                     pKF->SetVelocity(pKF->mVwbGBA);
                     pKF->SetNewBias(pKF->mBiasGBA);                    
+                    pKF->SetLastModule(3);
                     pActiveMap->AddUpdatedKFId(pKF->mnId);
                 }
 
@@ -2663,6 +2676,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 {
                     // If optimized by Global BA, just update
                     pMP->SetWorldPos(pMP->mPosGBA);
+                    pMP->SetLastModule(3);
                     pActiveMap->AddUpdatedMPId(pMP->mstrHexId);
                 }
                 else
@@ -2684,6 +2698,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
 
                     // Backproject using corrected camera
                     pMP->SetWorldPos(pRefKF->GetPoseInverse() * Xc);
+                    pMP->SetLastModule(3);
                     pActiveMap->AddUpdatedMPId(pMP->mstrHexId);
                 }
             }

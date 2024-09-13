@@ -109,7 +109,7 @@ public:
     
     void UpdateReference(ORB_SLAM3::KeyFrame* pNewKF);
     unsigned long int GetReferenceID();
-    void UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string,MapPoint*> mpOrbMapPoints);
+    void UpdateFromLocalMapping(ORB_SLAM3::KeyFrame* pKF);
     bool IsMapUpToDate();
     void MUReset();
 

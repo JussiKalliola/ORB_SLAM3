@@ -1236,7 +1236,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     //}
 
     // Check if map point ptr can be found, if not, return
-    if(mpKFid[mBackupRefKFId] && mpKFid[mBackupRefKFId]->GetMap()->GetId() == this->mpMap->GetId()) {
+    if(mpKFid[mBackupRefKFId] && (mpKFid[mBackupRefKFId]->GetMap() && mpKFid[mBackupRefKFId]->GetMap()->GetId() == this->mpMap->GetId())) {
       //if(mBackupRefKFId < mpKFid.rbegin()->first)
       //{
       //  mBackupRefKFId = -1;
@@ -1268,7 +1268,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     //  return;
     //}
     // Check if map point ptr can be found, if not, return
-    if(mpKFid[mBackupHostKFId] && mpKFid[mBackupHostKFId]->GetMap()->GetId() == this->mpMap->GetId()) {
+    if(mpKFid[mBackupHostKFId] && (mpKFid[mBackupRefKFId]->GetMap() && mpKFid[mBackupHostKFId]->GetMap()->GetId() == this->mpMap->GetId())) {
       mpHostKF = mpKFid[mBackupHostKFId];
       //if(mBackupHostKFId < mpKFid.rbegin()->first)
       //{
@@ -1296,7 +1296,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     if(mBackupReplacedStrId!="" && mBackupReplacedStrId.length() == 6)
     {
         ORB_SLAM3::MapPoint* tempMP = mpMPid[mBackupReplacedStrId];
-        if (tempMP && tempMP->GetMap()->GetId() == this->mpMap->GetId())
+        if (tempMP && (tempMP->GetMap() && tempMP->GetMap()->GetId() == this->mpMap->GetId()))
         {
           mpReplaced = tempMP;
         }
@@ -1322,7 +1322,7 @@ void MapPoint::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         
         // Check if map point ptr can be found, if not, return
         ORB_SLAM3::KeyFrame* tempKF = mpKFid[it->first];
-        if(!tempKF || tempKF->GetMap()->GetId() != this->mpMap->GetId()) 
+        if(!tempKF || (tempKF->GetMap() && tempKF->GetMap()->GetId() != this->mpMap->GetId())) 
           continue;
         //if(it->first < mpKFid.rbegin()->first)
         //{

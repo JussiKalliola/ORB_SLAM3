@@ -3333,9 +3333,9 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.9f;
-        mMinFrames=4; //3
-        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 4)
+        thRefRatio = 0.8f;
+        mMinFrames=3; //3
+        if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 3)
         {
           thRefRatio = 0.9f;
           mMinFrames=0; //3
@@ -3343,15 +3343,15 @@ bool Tracking::NeedNewKeyFrame()
         }
         else if(mnMatchesInliers <= 100 && mpAtlas->GetCurrentMap()->KeyFramesInMap() > 4)
         {
-          thRefRatio = 0.9f;
-          mMinFrames=2; //1 // full run w/ this one
+          thRefRatio = 0.85f;
+          mMinFrames=1; //1 // full run w/ this one
           //c5 = (mCurrentFrame.mTimeStamp-mpLastKeyFrame->mTimeStamp)>=0.1; // do not publish kf's more frequently than every 10ms  
           //c1a = mCurrentFrame.mnId>=mnLastKeyFrameId+30;
 
         } else if (mnMatchesInliers>100&&mnMatchesInliers<=160)
         {
-          thRefRatio = 0.9f;
-          mMinFrames=3; //3 // full run w/ this one
+          thRefRatio = 0.8f;
+          mMinFrames=2; //3 // full run w/ this one
 
         }
 
@@ -3766,52 +3766,12 @@ unsigned long int Tracking::GetReferenceID()
 
 void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 {
+  
   if(pNewKF && mnMapUpdateLastKFId < pNewKF->mnId)
   {
       mnMapUpdateLastKFId=pNewKF->mnId;
-
   }
 
-
-  if(pNewKF->mbLCDone)
-  {
-      //UpdateLocalMap();
-      //UpdateLocalMap();
-      //for(int i =0; i<mLastFrame.N; i++)
-      //{
-      //    if(lastFrame_points_availability[i])
-      //    {
-      //        //MapPoint* newpMP = mpMap->RetrieveMapPoint(lastFrame_points_ids[i], true);
-      //        
-      //        MapPoint* newpMP = mpOrbMapPoints[lastFrame_points_ids[lastFrameMPCounter]]; //pM->RetrieveMapPoint(lastFrame_points_ids[lastFrameMPCounter]);
-      //        std::cout << lastFrame_points_ids[lastFrameMPCounter] << ",";
-      //        if (newpMP)
-      //        {
-      //            mLastFrame.mvpMapPoints[i] = newpMP;
-      //        }
-      //        else
-      //        {
-      //            mLastFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
-      //        }
-
-      //        ++lastFrameMPCounter;
-      //    }
-      //}
-  }
-
-  //if(pNewKF)
-  //{
-  //    if(pNewKF->GetLastModule() > mpReferenceKF->GetLastModule())
-  //    {
-  //        std::cout << "updating reference, pNewKF=" << pNewKF->mnId << ", last ref=" << mpReferenceKF->mnId << std::endl;
-  //        UpdateLocalMap();
-  //    }
-  //}
-  //if(pNewKF && (!mpReferenceKF || mpReferenceKF->isBad()))
-  //{
-  //    mpReferenceKF=pNewKF;
-
-  //}
 
 
   if(mpLastKeyFrame)
@@ -3884,9 +3844,20 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 
 }
 
-void Tracking::UpdateFromLocalMapping(Map* pM, std::map<unsigned long int, KeyFrame*> mpOrbKeyFrames, std::map<std::string, MapPoint*>mpOrbMapPoints)
+void Tracking::UpdateFromLocalMapping(ORB_SLAM3::KeyFrame* pKF)
 {
-  UpdateLocalMap();
+
+  
+  if(pKF)
+  {
+      mnMapUpdateLastKFId=pKF->mnId;
+      mpReferenceKF=pKF;
+      std::cout << " ################## pNewKF-mnId==mpReferenceKF->mnId && pNewKF->mbLCDone==true" << std::endl;
+      Sophus::SE3f Tlr = mlRelativeFramePoses.back();
+      mLastFrame.SetPose(Tlr * mpReferenceKF->GetPose());
+      mLastFrame.mpReferenceKF = mpReferenceKF;
+  }
+  //UpdateLocalMap();
   //unique_lock<mutex> lock(mMutexLocalMapUpdate);
   //// Keep current reference keyframe Id, and reset refKFSet
   //long unsigned int refId = mpReferenceKF->mnId; // mpReferenceKF is from tarcking

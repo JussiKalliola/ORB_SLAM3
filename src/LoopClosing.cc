@@ -2576,6 +2576,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 pKF->mTcwBefGBA = pKF->GetPose();
                 //cout << "pKF->mTcwBefGBA: " << pKF->mTcwBefGBA << endl;
                 pKF->SetPose(pKF->mTcwGBA);
+                pActiveMap->AddUpdatedKFId(pKF->mnId);
                 pKF->mbLCDone = true;
                 /*cv::Mat Tco_cn = pKF->mTcwBefGBA * pKF->mTcwGBA.inv();
                 cv::Vec3d trasl = Tco_cn.rowRange(0,3).col(3);
@@ -2641,6 +2642,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                     //assert(!pKF->mVwbGBA.empty());
                     pKF->SetVelocity(pKF->mVwbGBA);
                     pKF->SetNewBias(pKF->mBiasGBA);                    
+                    pActiveMap->AddUpdatedKFId(pKF->mnId);
                 }
 
                 lpKFtoCheck.pop_front();
@@ -2661,6 +2663,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
                 {
                     // If optimized by Global BA, just update
                     pMP->SetWorldPos(pMP->mPosGBA);
+                    pActiveMap->AddUpdatedMPId(pMP->mstrHexId);
                 }
                 else
                 {
@@ -2681,6 +2684,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
 
                     // Backproject using corrected camera
                     pMP->SetWorldPos(pRefKF->GetPoseInverse() * Xc);
+                    pActiveMap->AddUpdatedMPId(pMP->mstrHexId);
                 }
             }
 
@@ -2702,6 +2706,7 @@ void LoopClosing::RunGlobalBundleAdjustment(Map* pActiveMap, unsigned long nLoop
             vdFGBATotal_ms.push_back(timeFGBA);
             vtStartTimeFGBA_ms.push_back(time_StartFGBA);
 #endif
+            std::cout << " =========== updated KFs=" << pActiveMap->GetUpdatedKFIds().size() << ", MPs=" << pActiveMap->GetUpdatedMPIds().size() << " =========== "<< std::endl;
             notifyDistributorMapUpdated(false, true, mvMergedIds);
             msLastMUStart = std::chrono::high_resolution_clock::now();
             SetRunning(false);

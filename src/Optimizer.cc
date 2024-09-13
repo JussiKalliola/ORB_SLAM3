@@ -283,7 +283,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
     }
 
-    std::cout << " =========== Vertices=" << nVertices << ", Edges=" << nTotalEdges << " =========== "<< std::endl;
+    std::cout << " =========== Vertices=" << nVertices << ", Edges=" << nTotalEdges  << " =========== "<< std::endl;
     // Optimize!
     optimizer.setVerbose(true);
     optimizer.initializeOptimization();
@@ -298,7 +298,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         if(pKF->isBad())
             continue;
         
-        pKF->GetMap()->AddUpdatedKFId(pKF->mnId);
+        pMap->AddUpdatedKFId(pKF->mnId);
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
 
         g2o::SE3Quat SE3quat = vSE3->estimate();
@@ -386,7 +386,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
         if(pMP->isBad())
             continue;
-        pMP->GetMap()->AddUpdatedMPId(pMP->mstrHexId);
+        pMap->AddUpdatedMPId(pMP->mstrHexId);
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
 
         if(nLoopKF==pMap->GetOriginKF()->mnId)
@@ -400,6 +400,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             pMP->mnBAGlobalForKF = nLoopKF;
         }
     }
+    std::cout << " =========== updated KFs=" << pMap->GetUpdatedKFIds().size() << ", MPs=" << pMap->GetUpdatedMPIds().size() << " =========== "<< std::endl;
 }
 
 void Optimizer::FullInertialBA(Map *pMap, int its, const bool bFixLocal, const long unsigned int nLoopId, bool *pbStopFlag, bool bInit, float priorG, float priorA, Eigen::VectorXd *vSingVal, bool *bHess)

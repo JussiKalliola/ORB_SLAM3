@@ -1054,7 +1054,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
         } else {
           for(std::map<unsigned long int, ORB_SLAM3::KeyFrame*>::iterator it = mpKeyFrameId.begin(); it!=mpKeyFrameId.end(); ++it)
           {
-              if(it->second && it->second->GetMap() && it->second->GetMap()->GetId() == this->mnId)
+              if(it->second && !it->second->isBad() && it->second->GetMap() && it->second->GetMap()->GetId() == this->mnId)
               {
                   mpKFinitial = mpKeyFrameId.begin()->second;
                   mnBackupKFinitialID = mpKeyFrameId.begin()->first;
@@ -1065,7 +1065,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     } else {
         for(std::map<unsigned long int, ORB_SLAM3::KeyFrame*>::iterator it = mpKeyFrameId.begin(); it!=mpKeyFrameId.end(); ++it)
         {
-            if(it->second && it->second->GetMap()&& it->second->GetMap()->GetId() == this->mnId)
+            if(it->second && !it->second->isBad() &&it->second->GetMap()&& it->second->GetMap()->GetId() == this->mnId)
             {
                 mpKFinitial = mpKeyFrameId.begin()->second;
                 mnBackupKFinitialID = mpKeyFrameId.begin()->first;
@@ -1085,7 +1085,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     {
         for(auto const& pKF : vpKFs)
         {
-            if(pKF && pKF->GetMap()->GetId() == this->mnId)
+            if(pKF && !pKF->isBad() && pKF->GetMap()->GetId() == this->mnId)
             {
                 mpKFinitial = pKF;
                 mnBackupKFinitialID = mpKFinitial->mnId;

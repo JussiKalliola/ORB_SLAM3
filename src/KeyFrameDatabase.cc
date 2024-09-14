@@ -640,7 +640,8 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
                     }
                 }
                 pKFi->mnPlaceRecognitionWords++;
-                pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
+                if(pKFi->GetMap())
+                    pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
                 pKFi->SetLastModule(3); // Last module 1=LM
             }
         }

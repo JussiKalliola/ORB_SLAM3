@@ -425,7 +425,7 @@ bool LoopClosing::NewDetectCommonRegions()
         mpLastMap = mpCurrentKF->GetMap();
         
         if(!mpLastMap)
-            return;
+            return false;
     }
 
     if(mpLastMap->IsInertial() && !mpLastMap->GetIniertialBA2())

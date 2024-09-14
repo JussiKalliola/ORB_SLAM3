@@ -1985,8 +1985,7 @@ void Tracking::Track()
             
             //std::cout << "mState=" << mState << std::endl;
             bool mbInitNotFinished = false;
-            if(pCurrentMap->KeyFramesInMap() < 5)
-                mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
+            mbInitNotFinished = mCurrentFrame.mTimeStamp-mTimeStampLost>2.0f && !mapUpToDate;
             if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
             {
 

@@ -2171,8 +2171,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         ORB_SLAM3::KeyFrame* tempPrevKF = mpKFid[mBackupPrevKFId];
         if(!tempPrevKF && !mpKFid.empty()) {          
             for (int i = mBackupPrevKFId-1; i >= 0; --i) {
-                if(mpKFid[i] && tempPrevKF->GetMap() && mpKFid[i]->GetMap()->GetId()==this->mpMap->GetId() && i != this->mnId)
+                if(mpKFid[i] && i != this->mnId)
                 {
+                    if(mpKFid[i]->GetMap() && this->mpMap && mpKFid[i]->GetMap()->GetId()!=this->mpMap->GetId())
+                        continue;
                     std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
                     mBackupPrevKFId=i;
                     mPrevKF = mpKFid[mBackupPrevKFId];
@@ -2203,8 +2205,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         ORB_SLAM3::KeyFrame* tempNextKF = mpKFid[mBackupNextKFId];
         if(!tempNextKF && !mpKFid.empty()) {          
             for (int i = this->mnId+1; i <= mpKFid.rbegin()->first; ++i) {
-                if(mpKFid[i] && mpKFid[i]->GetMap()->GetId()==this->mpMap->GetId() && i != this->mnId)
+                if(mpKFid[i] && i != this->mnId)
                 {
+                    if(mpKFid[i]->GetMap() && this->mpMap && mpKFid[i]->GetMap()->GetId()!=this->mpMap->GetId())
+                        continue;
                     std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
                     mBackupNextKFId=i;
                     mNextKF = mpKFid[mBackupNextKFId];

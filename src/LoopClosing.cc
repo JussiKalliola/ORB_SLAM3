@@ -423,6 +423,9 @@ bool LoopClosing::NewDetectCommonRegions()
         mpCurrentKF->SetLastModule(3); // Last module 1=LM
 
         mpLastMap = mpCurrentKF->GetMap();
+        
+        if(!mpLastMap)
+            return;
     }
 
     if(mpLastMap->IsInertial() && !mpLastMap->GetIniertialBA2())

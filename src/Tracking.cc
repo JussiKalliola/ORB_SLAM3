@@ -2930,6 +2930,31 @@ void Tracking::UpdateLastFrame()
     //std::cout << "Thread1=Tracking::UpdateLastFrame" << std::endl;
     // Update pose according to reference keyframe
     KeyFrame* pRef = mLastFrame.mpReferenceKF;
+    bool mbSuitableMP = true;
+    if(pRef && pRef->mbLCDone && pRef->GetLastModule() == 3)
+    {
+        for(int i =0; i<mLastFrame.N; i++)
+        {
+            MapPoint* pMP = mLastFrame.mvpMapPoints[i];
+
+            if(!pMP || (pMP && pMP->GetLastModule() != 3))
+            {
+                mLastFrame.mvpMapPoints[i] = static_cast<ORB_SLAM3::MapPoint*>(NULL);
+            }
+        }
+
+
+        for(int i =0; i<mCurrentFrame.N; i++)
+        {
+            MapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+
+            if(!pMP || (pMP && pMP->GetLastModule() != 3))
+            {
+                mCurrentFrame.mvpMapPoints[i] = static_cast<ORB_SLAM3::MapPoint*>(NULL);
+            }
+        }
+
+    }
     Sophus::SE3f Tlr = mlRelativeFramePoses.back();
     mLastFrame.SetPose(Tlr * pRef->GetPose());
 
@@ -3850,7 +3875,7 @@ void Tracking::UpdateReference(ORB_SLAM3::KeyFrame* pNewKF)
 void Tracking::UpdateFromLocalMapping(ORB_SLAM3::KeyFrame* pKF)
 {
 
-  UpdateLastFrame();
+  //UpdateLastFrame();
   
   //if(pKF)
   //{

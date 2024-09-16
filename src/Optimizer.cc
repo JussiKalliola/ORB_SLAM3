@@ -872,7 +872,16 @@ int Optimizer::PoseOptimization(Frame *pFrame)
     for(int i=0; i<N; i++)
     {
         MapPoint* pMP = pFrame->mvpMapPoints[i];
-        if(pMP)
+        bool mbSuitableMP = true;
+        if(pFrame->mpReferenceKF && pFrame->mpReferenceKF->mbLCDone && pFrame->mpReferenceKF->GetLastModule() == 3)
+        {
+            if(pMP && pMP->GetLastModule() == 3)
+                mbSuitableMP = true;
+            else
+                mbSuitableMP = false;
+
+        }
+        if(pMP && mbSuitableMP)
         {
             //Conventional SLAM
             if(!pFrame->mpCamera2){

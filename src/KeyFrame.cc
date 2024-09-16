@@ -59,6 +59,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(static_cast<KeyFrame*>(NULL)), mDistCoef(F.mDistCoef), mbNotErase(false), mnDataset(F.mnDataset),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap), mbCurrentPlaceRecognition(false), mNameFile(F.mNameFile), mnMergeCorrectedForKF(0),
     mpCamera(F.mpCamera), mpCamera2(F.mpCamera2),
+    mnBackupIdCamera(F.mpCamera->GetId()), 
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
     mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false),
     mnUpdateCounter(0), mUpdateTimeStamp(0)
@@ -1543,7 +1544,7 @@ void KeyFrame::SetLastModule(unsigned int mnId)
     mnLastModule = mnId;
 }
 
-void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricCamera*>& spCam)
+void KeyFrame::PreSave()//(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricCamera*>& spCam)
 {
     unique_lock<mutex> lock1(mMutexPose,std::defer_lock);
     unique_lock<mutex> lock2(mMutexConnections,std::defer_lock);
@@ -1586,47 +1587,47 @@ void KeyFrame::PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP, set<GeometricC
     }
 
     // Save the id of the loop edge KF
-    mvBackupLoopEdgesId.clear();
-    mvBackupLoopEdgesId.reserve(mspLoopEdges.size());
-    for(KeyFrame* pKFi : mspLoopEdges)
-    {
-        if(pKFi)
-            mvBackupLoopEdgesId.push_back(pKFi->mnId);
-    }
+    //mvBackupLoopEdgesId.clear();
+    //mvBackupLoopEdgesId.reserve(mspLoopEdges.size());
+    //for(KeyFrame* pKFi : mspLoopEdges)
+    //{
+    //    if(pKFi)
+    //        mvBackupLoopEdgesId.push_back(pKFi->mnId);
+    //}
 
     // Save the id of the merge edge KF
-    mvBackupMergeEdgesId.clear();
-    mvBackupMergeEdgesId.reserve(mspMergeEdges.size());
-    for(KeyFrame* pKFi : mspMergeEdges)
-    {
-        if(pKFi)
-            mvBackupMergeEdgesId.push_back(pKFi->mnId);
-    }
+    //mvBackupMergeEdgesId.clear();
+    //mvBackupMergeEdgesId.reserve(mspMergeEdges.size());
+    //for(KeyFrame* pKFi : mspMergeEdges)
+    //{
+    //    if(pKFi)
+    //        mvBackupMergeEdgesId.push_back(pKFi->mnId);
+    //}
 
-    mvLoopCandKFIds.clear();
-    mvLoopCandKFIds.reserve(mvpLoopCandKFs.size());
-    for(KeyFrame* pKFi : mvpLoopCandKFs)
-    {
-        if(pKFi)
-            mvLoopCandKFIds.push_back(pKFi->mnId);
-    }
+    //mvLoopCandKFIds.clear();
+    //mvLoopCandKFIds.reserve(mvpLoopCandKFs.size());
+    //for(KeyFrame* pKFi : mvpLoopCandKFs)
+    //{
+    //    if(pKFi)
+    //        mvLoopCandKFIds.push_back(pKFi->mnId);
+    //}
 
-    mvMergeCandKFIds.clear();
-    mvMergeCandKFIds.reserve(mvpMergeCandKFs.size());
-    for(KeyFrame* pKFi : mvpMergeCandKFs)
-    {
-        if(pKFi)
-            mvMergeCandKFIds.push_back(pKFi->mnId);
-    }
+    //mvMergeCandKFIds.clear();
+    //mvMergeCandKFIds.reserve(mvpMergeCandKFs.size());
+    //for(KeyFrame* pKFi : mvpMergeCandKFs)
+    //{
+    //    if(pKFi)
+    //        mvMergeCandKFIds.push_back(pKFi->mnId);
+    //}
     
     //Camera data
-    mnBackupIdCamera = -1;
-    if(mpCamera && spCam.find(mpCamera) != spCam.end())
-        mnBackupIdCamera = mpCamera->GetId();
+    //mnBackupIdCamera = -1;
+    //if(mpCamera && spCam.find(mpCamera) != spCam.end())
+    //    mnBackupIdCamera = mpCamera->GetId();
 
     mnBackupIdCamera2 = -1;
-    if(mpCamera2 && spCam.find(mpCamera2) != spCam.end())
-        mnBackupIdCamera2 = mpCamera2->GetId();
+    //if(mpCamera2 && spCam.find(mpCamera2) != spCam.end())
+    //    mnBackupIdCamera2 = mpCamera2->GetId();
 
     //Inertial data
     mBackupPrevKFId = -1;

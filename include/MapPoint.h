@@ -121,15 +121,15 @@ public:
     MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF, KeyFrame* pHostKF, Map* pMap);
     MapPoint(const Eigen::Vector3f &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
     MapPoint(const long long int mnId_, const std::string mstrHexId, const long int mnFirstKFid, const long int mnFirstFrame, const int nObs, 
-        const float mTrackProjX, const float mTrackProjY, const float mTrackDepth, const float mTrackDepthR, const float mTrackProjXR, const float mTrackProjYR, 
+        /*const float mTrackProjX, const float mTrackProjY, const float mTrackDepth, const float mTrackDepthR, const float mTrackProjXR, const float mTrackProjYR, 
         const bool mbTrackInView, const bool mbTrackInViewR, const int mnTrackScaleLevel, const int mnTrackScaleLevelR,const float mTrackViewCos, 
         const float mTrackViewCosR,const long unsigned int mnTrackReferenceForFrame, const long unsigned int mnLastFrameSeen,const long unsigned int mnBALocalForKF,
         const long unsigned int mnFuseCandidateForKF,const long unsigned int mnLoopPointForKF, const long unsigned int mnCorrectedByKF, 
         const long unsigned int mnCorrectedReference, const Eigen::Vector3f mPosGBA, const long unsigned int mnBAGlobalForKF, 
-        const long unsigned int mnBALocalForMerge, const Eigen::Vector3f mPosMerge, const Eigen::Vector3f mNormalVectorMerge, const double mInvDepth,
+        const long unsigned int mnBALocalForMerge, const Eigen::Vector3f mPosMerge, const Eigen::Vector3f mNormalVectorMerge,*/ const double mInvDepth,
         const double mInitU, const double mInitV, /*KeyFrame* mpHostKF,*/ const long long int mBackupHostKFId, const unsigned int mnOriginMapId, 
         const Eigen::Vector3f mWorldPos, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations,*/ const std::map<long unsigned int, int>& mBackupObservationsId1, 
-        const std::map<long unsigned int, int>& mBackupObservationsId2, const Eigen::Vector3f mNormalVector, const cv::Mat& mDescriptor, 
+        const std::map<long unsigned int, int>& mBackupObservationsId2, const Eigen::Vector3f mNormalVector, /*const cv::Mat& mDescriptor,*/ 
         /*KeyFrame* mpRefKF,*/ const long long int mBackupRefKFId, const int mnVisible, const int mnFound, const bool mbBad, /*MapPoint* mpReplaced,*/ 
         /*long long int mBackupReplacedId,*/const std::string mBackupReplacedStrId, const float mfMinDistance, 
         const float mfMaxDistance /*Map* mpMap*/, const unsigned int mnLastModule);
@@ -137,21 +137,21 @@ public:
     void UpdateMapPoint(const long int mnFirstKFid_, const long int mnFirstFrame_, const int nObs_, /*float mTrackProjX_, float mTrackProjY_, */
         /*float mTrackDepth_, float mTrackDepthR_, float mTrackProjXR_, float mTrackProjYR_, bool mbTrackInView_, */
         /*bool mbTrackInViewR_, int mnTrackScaleLevel_, int mnTrackScaleLevelR_, float mTrackViewCos_, float mTrackViewCosR_, */
-        /*long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_,*/ const long unsigned int mnBALocalForKF_, 
+        /*long unsigned int mnTrackReferenceForFrame_, long unsigned int mnLastFrameSeen_,*/ /*const long unsigned int mnBALocalForKF_, 
         const long unsigned int mnFuseCandidateForKF_, const long unsigned int mnLoopPointForKF_, const long unsigned int mnCorrectedByKF_, 
         const long unsigned int mnCorrectedReference_, const Eigen::Vector3f mPosGBA_, const long unsigned int mnBAGlobalForKF_, 
-        const long unsigned int mnBALocalForMerge_, const Eigen::Vector3f mPosMerge_, const Eigen::Vector3f mNormalVectorMerge_, 
+        const long unsigned int mnBALocalForMerge_, const Eigen::Vector3f mPosMerge_, const Eigen::Vector3f mNormalVectorMerge_,*/ 
         const double mInvDepth_, const double mInitU_, const double mInitV_, /*KeyFrame* mpHostKF = nullptr, */const long long int mBackupHostKFId_, 
         const unsigned int mnOriginMapId_, const Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */
         const std::map<long unsigned int, int>& mBackupObservationsId1_, const std::map<long unsigned int, int>& mBackupObservationsId2_, 
-        const Eigen::Vector3f mNormalVector_, const cv::Mat& mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/const long long int mBackupRefKFId_,
+        const Eigen::Vector3f mNormalVector_, /*const cv::Mat& mDescriptor_,*/ /*KeyFrame* mpRefKF = nullptr,*/const long long int mBackupRefKFId_,
         const int mnVisible_,const int mnFound_,const bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */
         const std::string mBackupReplacedStrId_, const float mfMinDistance_, const float mfMaxDistance_ /*Map* mpMap = nullptr */, const unsigned int mnLastModule_);
 
     void UpdateMapPoint(const int nObs_, /*KeyFrame* mpHostKF = nullptr, */const long long int mBackupHostKFId_, 
         const unsigned int mnOriginMapId_, const Eigen::Vector3f mWorldPos_, /*std::map<KeyFrame*,std::tuple<int,int> > mObservations = std::map<KeyFrame*,std::tuple<int,int> >(), */
         const std::map<long unsigned int, int>& mBackupObservationsId1_, const std::map<long unsigned int, int>& mBackupObservationsId2_, 
-        const Eigen::Vector3f mNormalVector_, const cv::Mat& mDescriptor_, /*KeyFrame* mpRefKF = nullptr,*/const long long int mBackupRefKFId_,
+        const Eigen::Vector3f mNormalVector_, /*const cv::Mat& mDescriptor_,*/ /*KeyFrame* mpRefKF = nullptr,*/const long long int mBackupRefKFId_,
         const int mnVisible_,const int mnFound_,const bool mbBad_, /*MapPoint* mpReplaced = nullptr, */ /*long long int mBackupReplacedId = -1, */
         const std::string mBackupReplacedStrId_, const float mfMinDistance_, const float mfMaxDistance_ /*Map* mpMap = nullptr */, const unsigned int mnLastModule_);
 
@@ -215,7 +215,7 @@ public:
 
     void PrintObservations();
     std::string createHashId(const std::string& strSystemId, unsigned long int mnMPId);
-    void PreSave(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
+    void PreSave();//(set<KeyFrame*>& spKF,set<MapPoint*>& spMP);
     void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordered_map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
     void PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::string, MapPoint*>& mpMPid, bool* bUnprocessed, std::set<unsigned long int> mspUnprocKFids=std::set<unsigned long int>());
     

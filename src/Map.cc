@@ -146,10 +146,10 @@ void Map::UpdateMap(const Map &tempMap, const int nFromModule)
     {
         mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
         mnMaxKFid = tempMap.mnMaxKFid; 
-        mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
+        //mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
         mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
 
-        mspMapPoints = tempMap.mspMapPoints;
+        //mspMapPoints = tempMap.mspMapPoints;
         mspKeyFrames = tempMap.mspKeyFrames;
 
         for(const auto& pMP : mspMapPoints)
@@ -978,18 +978,18 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
 
     ////std::cout << "before mps" << std::endl;
     //// TODO: Here we need to check the local mapping id and tracking id
-    mspMapPoints.clear();
-    for(const auto& id : mvpBackupMapPointsId)
-    {
-      if(mpMapPointId[id] && !mpMapPointId[id]->isBad())
-      {
+    //mspMapPoints.clear();
+    //for(const auto& id : mvpBackupMapPointsId)
+    //{
+    //  if(mpMapPointId[id] && !mpMapPointId[id]->isBad())
+    //  {
 
-        //if(mpMapPointId[id]->GetMap()->GetId() != this->mnId)
-        //    mpMapPointId[id]->UpdateMap(this);
-        
-        mspMapPoints.insert(mpMapPointId[id]);
-      }
-    }
+    //    //if(mpMapPointId[id]->GetMap()->GetId() != this->mnId)
+    //    //    mpMapPointId[id]->UpdateMap(this);
+    //    
+    //    mspMapPoints.insert(mpMapPointId[id]);
+    //  }
+    //}
 
     //std::cout << "before ref mps" << std::endl;
     mvpReferenceMapPoints.clear();
@@ -1120,8 +1120,8 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
     }
 
     mvpBackupMapPoints.clear();
-    ClearUpdatedKFIds();
-    ClearUpdatedMPIds();
+    //ClearUpdatedKFIds();
+    //ClearUpdatedMPIds();
 }
 
 std::vector<std::string> Map::GetBackupMapPointsId() {

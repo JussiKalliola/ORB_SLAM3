@@ -1258,7 +1258,7 @@ void KeyFrame::SetBadFlag()
     {
         unique_lock<mutex> lock(mMutexConnections);
     
-        if(mnId==mpMap->GetInitKFid())
+        if(mpMap && mnId==mpMap->GetInitKFid())
         {
             return;
         }
@@ -1359,7 +1359,8 @@ void KeyFrame::SetBadFlag()
     }
 
     mpKeyFrameDB->erase(this);
-    mpMap->EraseKeyFrame(this);
+    if(mpMap)
+        mpMap->EraseKeyFrame(this);
 }
 
 bool KeyFrame::isBad()

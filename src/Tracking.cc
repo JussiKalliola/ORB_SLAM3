@@ -3254,7 +3254,7 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     
     // Don't send update if local map is still updating
-    if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
+    if(mpLocalMapper->isStopped()||mpLocalMapper->stopRequested())
         return false;
     
 

@@ -4507,7 +4507,7 @@ bool Tracking::Relocalization()
     bool bMatch = false;
     ORBmatcher matcher2(0.9,true);
     int tries = 0; // fix
-    int maxTries=10;// fix
+    int maxTries=50;// fix
     std::cout << "#Candidates=" << nCandidates << "#KFs=" << nKFs << std::endl;
     while(nCandidates>0 && !bMatch)
     {
@@ -4608,8 +4608,8 @@ bool Tracking::Relocalization()
             }
         }
 
-        //if(tries > maxTries) // Fix
-        //  break; // fix
+        if(tries > maxTries) // Fix
+          break; // fix
     }
 
     if(!bMatch)

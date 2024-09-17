@@ -640,8 +640,8 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
                     }
                 }
                 pKFi->mnPlaceRecognitionWords++;
-                if(pKFi->GetMap())
-                    pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
+                //if(pKFi->GetMap())
+                //    pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
                 pKFi->SetLastModule(3); // Last module 1=LM
             }
         }
@@ -678,7 +678,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
             nscores++;
             float si = mpVoc->score(pKF->mBowVec,pKFi->mBowVec);
             pKFi->mPlaceRecognitionScore=si;
-            pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
+            //pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
             pKFi->SetLastModule(3); // Last module 1=LM
             //std::cout << pKFi->mnId << ". pKFi->mPlaceRecognitionScore=" << si <<  std::endl;
             lScoreAndMatch.push_back(make_pair(si,pKFi));

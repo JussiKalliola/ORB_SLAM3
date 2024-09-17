@@ -2173,13 +2173,14 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         ORB_SLAM3::KeyFrame* tempPrevKF = mpKFid[mBackupPrevKFId];
         if(!tempPrevKF && !mpKFid.empty()) {          
             for (int i = mBackupPrevKFId-1; i >= 0; --i) {
-                if(mpKFid[i] && i != this->mnId)
+                tempPrevKF=mpKFid[i];
+                if(tempPrevKF && i != this->mnId)
                 {
-                    if(mpKFid[i]->GetMap() && this->mpMap && mpKFid[i]->GetMap()->GetId()!=this->mpMap->GetId())
+                    if(tempPrevKF->GetMap() && this->mpMap && tempPrevKF->GetMap()->GetId()!=this->mpMap->GetId())
                         continue;
                     std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
                     mBackupPrevKFId=i;
-                    mPrevKF = mpKFid[mBackupPrevKFId];
+                    mPrevKF = tempPrevKF;
                     mPrevKF->mNextKF = this;
                     mPrevKF->mBackupNextKFId = mnId;
                     break;
@@ -2207,13 +2208,14 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         ORB_SLAM3::KeyFrame* tempNextKF = mpKFid[mBackupNextKFId];
         if(!tempNextKF && !mpKFid.empty()) {          
             for (int i = this->mnId+1; i <= mpKFid.rbegin()->first; ++i) {
-                if(mpKFid[i] && i != this->mnId)
+                tempNextKF = mpKFid[i];
+                if(tempNextKF && i != this->mnId)
                 {
-                    if(mpKFid[i]->GetMap() && this->mpMap && mpKFid[i]->GetMap()->GetId()!=this->mpMap->GetId())
+                    if(tempNextKF->GetMap() && this->mpMap && tempNextKF->GetMap()->GetId()!=this->mpMap->GetId())
                         continue;
                     std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
                     mBackupNextKFId=i;
-                    mNextKF = mpKFid[mBackupNextKFId];
+                    mNextKF = tempNextKF;
                     mNextKF->mPrevKF = this;
                     mNextKF->mBackupPrevKFId = mnId;
                     break;

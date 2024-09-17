@@ -2201,13 +2201,15 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
 
 
     //std::cout << "after mPrevKF" << std::endl;
-    //
+    // This needs to be fixed, take all KFs from SLAM map. mpKFid is modified during the loop so crashes
     if((!mNextKF && mBackupNextKFId>=0) || (mNextKF && mNextKF->mnId != mBackupNextKFId && mBackupNextKFId >= 0 && mBackupNextKFId <= 10000) && !mpKFid.empty())
     {
         mNextKF = static_cast<KeyFrame*>(NULL);
         ORB_SLAM3::KeyFrame* tempNextKF = mpKFid[mBackupNextKFId];
         if(!tempNextKF && !mpKFid.empty()) {          
-            for (int i = this->mnId+1; i <= mpKFid.rbegin()->first; ++i) {
+            unsigned long int mnLastId=mpKFid.rbegin()->first;
+            for (int i = this->mnId+1; i <= mnLastId; ++i) {
+                
                 tempNextKF = mpKFid[i];
                 if(tempNextKF && i != this->mnId)
                 {

@@ -1237,7 +1237,7 @@ void LocalMapping::KeyFrameCulling()
         count++;
         KeyFrame* pKF = *vit;
 
-        if((pKF->mnId==pKF->GetMap()->GetInitKFid()) || pKF->isBad())
+        if((pKF->mnId==(pKF->GetMap() && pKF->GetMap()->GetInitKFid())) || pKF->isBad())
             continue;
         const vector<MapPoint*> vpMapPoints = pKF->GetMapPointMatches();
 

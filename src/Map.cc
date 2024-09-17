@@ -92,66 +92,73 @@ Map::~Map()
 
 void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 {
-    unique_lock<mutex> lock(mMutexMap);
-    mbFail = tempMap.mbFail; 
-    msOptKFs = tempMap.msOptKFs; 
-    msFixedKFs = tempMap.msFixedKFs;
-
-    //mvpReferenceMapPoints.clear();
-    //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
-    //{
-    //  mvpReferenceMapPoints.push_back(tempMP);
-    //}
-
-    //mvpReferenceMapPoints = tempMap.mvpReferenceMapPoints;
-
-    //mvpBackupReferenceMapPointsId = tempMap.mvpBackupReferenceMapPointsId;
-    //mvpBackupReferenceMapPointsId.clear();
-    //for(std::string tempMPid : tempMap.mvpBackupReferenceMapPointsId)
-    //{
-    //  mvpBackupReferenceMapPointsId.push_back(tempMPid);
-    //}
-
-    mspErasedMapPointIds = tempMap.mspErasedMapPointIds;
-    for(const auto id : tempMap.mspErasedKeyFrameIds)
     {
-        mspErasedKeyFrameIds.insert(id);
+        unique_lock<mutex> lock(mMutexMap);
+        mbFail = tempMap.mbFail; 
+        msOptKFs = tempMap.msOptKFs; 
+        msFixedKFs = tempMap.msFixedKFs;
+
+        //mvpReferenceMapPoints.clear();
+        //for(ORB_SLAM3::MapPoint* tempMP : tempMap.mvpReferenceMapPoints)
+        //{
+        //  mvpReferenceMapPoints.push_back(tempMP);
+        //}
+
+        //mvpReferenceMapPoints = tempMap.mvpReferenceMapPoints;
+
+        //mvpBackupReferenceMapPointsId = tempMap.mvpBackupReferenceMapPointsId;
+        //mvpBackupReferenceMapPointsId.clear();
+        //for(std::string tempMPid : tempMap.mvpBackupReferenceMapPointsId)
+        //{
+        //  mvpBackupReferenceMapPointsId.push_back(tempMPid);
+        //}
+
+        mspErasedMapPointIds = tempMap.mspErasedMapPointIds;
+        for(const auto id : tempMap.mspErasedKeyFrameIds)
+        {
+            mspErasedKeyFrameIds.insert(id);
+        }
+
+        //for(const auto id : tempMap.mspErasedMapPointIds)
+        //{
+        //    mspErasedMapPointIds.insert(id);
+        //}
+
+        mbImuInitialized = tempMap.mbImuInitialized; 
+        mnMapChange = tempMap.mnMapChange; 
+        mnMapChangeNotified = tempMap.mnMapChangeNotified; 
+        mnBigChangeIdx = tempMap.mnBigChangeIdx;
+        mIsInUse = tempMap.mIsInUse; 
+        mHasTumbnail = tempMap.mHasTumbnail; 
+        mbBad = tempMap.mbBad; 
+        mbIsInertial = tempMap.mbIsInertial; 
+        mbIMU_BA1 = tempMap.mbIMU_BA1;
+        mbIMU_BA2 = tempMap.mbIMU_BA2;
+            
+
+        mnInitKFid = tempMap.mnInitKFid; 
+
+        mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
+        mpKFinitial = tempMap.mpKFinitial;
+        mpKFlowerID = tempMap.mpKFlowerID;
+        mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
+        mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
+
     }
-
-    //for(const auto id : tempMap.mspErasedMapPointIds)
-    //{
-    //    mspErasedMapPointIds.insert(id);
-    //}
-
-    mbImuInitialized = tempMap.mbImuInitialized; 
-    mnMapChange = tempMap.mnMapChange; 
-    mnMapChangeNotified = tempMap.mnMapChangeNotified; 
-    mnBigChangeIdx = tempMap.mnBigChangeIdx;
-    mIsInUse = tempMap.mIsInUse; 
-    mHasTumbnail = tempMap.mHasTumbnail; 
-    mbBad = tempMap.mbBad; 
-    mbIsInertial = tempMap.mbIsInertial; 
-    mbIMU_BA1 = tempMap.mbIMU_BA1;
-    mbIMU_BA2 = tempMap.mbIMU_BA2;
-        
-
-    mnInitKFid = tempMap.mnInitKFid; 
-
-    mvBackupKeyFrameOriginsId = tempMap.mvBackupKeyFrameOriginsId; 
-    mpKFinitial = tempMap.mpKFinitial;
-    mpKFlowerID = tempMap.mpKFlowerID;
-    mnBackupKFinitialID = tempMap.mnBackupKFinitialID; 
-    mnBackupKFlowerID = tempMap.mnBackupKFlowerID; 
     if(nFromModule != 3)
     {
-        mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
-        mnMaxKFid = tempMap.mnMaxKFid; 
-        //mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
-        mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
+        {
+            unique_lock<mutex> lock(mMutexMap);
+            mvpReferenceMapPoints=tempMap.mvpReferenceMapPoints;
+            mnMaxKFid = tempMap.mnMaxKFid; 
+            //mvpBackupMapPointsId = tempMap.mvpBackupMapPointsId;
+            mvpBackupKeyFramesId = tempMap.mvpBackupKeyFramesId;
 
-        //mspMapPoints = tempMap.mspMapPoints;
-        mspKeyFrames = tempMap.mspKeyFrames;
+            //mspMapPoints = tempMap.mspMapPoints;
+            mspKeyFrames = tempMap.mspKeyFrames;
 
+
+        }
         for(const auto& pMP : mspMapPoints)
         {
           pMP->UpdateMap(this);
@@ -1048,7 +1055,7 @@ void Map::PostLoad(KeyFrameDatabase* pKFDB, ORBVocabulary* pORBVoc, map<long uns
 
     if(mnBackupKFinitialID != -1)
     {
-        if(mpKeyFrameId[mnBackupKFinitialID] && !mpKeyFrameId[mnBackupKFinitialID]->isBad() && mpKeyFrameId[mnBackupKFinitialID]->GetMap()->GetId() == this->mnId)
+        if(mpKeyFrameId[mnBackupKFinitialID] && !mpKeyFrameId[mnBackupKFinitialID]->isBad() && (mpKeyFrameId[mnBackupKFinitialID]->GetMap() && mpKeyFrameId[mnBackupKFinitialID]->GetMap()->GetId() == this->mnId || !mpKeyFrameId[mnBackupKFinitialID]->GetMap()))
         {
               mpKFinitial = mpKeyFrameId[mnBackupKFinitialID];
         } else {

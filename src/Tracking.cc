@@ -3254,7 +3254,7 @@ bool Tracking::NeedNewKeyFrame()
         return false;
     
     // Don't send update if local map is still updating
-    if(mpLocalMapper->isStopped())
+    if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
         return false;
     
 
@@ -3289,7 +3289,7 @@ bool Tracking::NeedNewKeyFrame()
 
 
     // Local Mapping accept keyframes?
-    //bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
+    bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
 
     // Check how many "close" points are being tracked and how many could be potentially created.
     int nNonTrackedClose = 0;
@@ -3472,10 +3472,18 @@ bool Tracking::NeedNewKeyFrame()
    
     std::cout << "c2a=" << c2a << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2a && (c1a||c1b)))
-        if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
+        if(bLocalMappingIdle || mpLocalMapper->IsInitializing())
+        {
             return true;
+        }
         else
-            return false;
+        {
+            mpLocalMapper->InterruptBA();
+            if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
+                return true;
+            else
+                return false;
+        }
     else
         return false;
 }

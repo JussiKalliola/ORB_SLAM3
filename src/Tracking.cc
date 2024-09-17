@@ -3472,7 +3472,7 @@ bool Tracking::NeedNewKeyFrame()
    
     std::cout << "c2a=" << c2a << ", c1b||c1a=" << (c1a||c1b) << ", c5=" << c5 << ", c1b=" << c1b << ", c1a=" << c1a <<  ", c4=" << c4 << ", c3=" << c3 << ", DistKFQueue=" << distributor_->KeyFramesInQueue() << std::endl;
     if((c2a && (c1a||c1b)))
-        if(bLocalMappingIdle || mpLocalMapper->IsInitializing())
+        if(bLocalMappingIdle||mpLocalMapper->IsInitializing())
         {
             return true;
         }

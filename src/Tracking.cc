@@ -3334,7 +3334,7 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.8f;
+        thRefRatio = 0.70f;
         mMinFrames=2; //3
         //if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 3)
         //{

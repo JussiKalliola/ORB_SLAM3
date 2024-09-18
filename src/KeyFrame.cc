@@ -434,11 +434,11 @@ void KeyFrame::UpdateKeyFrame(const KeyFrame &kf, const int nFromModule)
     //mnMaxX                            =mnMaxX_;                            
     //mnMaxY                            =mnMaxY_;                            
     mPrevKF                         =kf.mPrevKF;                         
-    if(mPrevKF)
-      mPrevKF->mNextKF=this;
+    //if(mPrevKF)
+    //  mPrevKF->mNextKF=this;
     mNextKF                         =kf.mNextKF;                         
-    if(mNextKF)
-      mNextKF->mPrevKF=this;
+    //if(mNextKF)
+    //  mNextKF->mPrevKF=this;
     //mpImuPreintegrated              =//mpImuPreintegrated_;              
     //mImuCalib                         =mImuCalib_;                         
     //mnOriginMapId                     =mnOriginMapId_;                     

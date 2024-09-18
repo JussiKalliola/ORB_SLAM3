@@ -1987,7 +1987,7 @@ void Tracking::Track()
             bool mbInitNotFinished = false;
             //if(pCurrentMap->KeyFramesInMap() < 5)
 
-            mbInitNotFinished = static_cast<int>(mCurrentFrame.mnId-mnLastKeyFrameId) < 20 && !mapUpToDate;
+            mbInitNotFinished = mpAtlas->GetCurrentMap()->KeyFramesInMap() < 10 && static_cast<int>(mCurrentFrame.mnId-mnLastKeyFrameId) < 20 && !mapUpToDate;
             if(mState==OK || mbInitNotFinished)//||mnMapUpdateLastKFId<5)
             {
 

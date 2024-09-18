@@ -777,13 +777,11 @@ void System::SaveTrajectoryEuRoC(const string &filename)
 
         //cout << "2.5" << endl;
 
-        while(pKF->isBad())
+        while(!pKF || pKF->isBad())
         {
             //cout << " 2.bad" << endl;
             Trw = Trw * pKF->mTcp;
             pKF = pKF->GetParent();
-            if(!pKF)
-                break;
             //cout << "--Parent KF: " << pKF->mnId << endl;
         }
 

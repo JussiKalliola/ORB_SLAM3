@@ -38,7 +38,7 @@ KeyFrame::KeyFrame():
         mnMaxY(0), mPrevKF(static_cast<KeyFrame*>(NULL)), mNextKF(static_cast<KeyFrame*>(NULL)), mbFirstConnection(true), mpParent(static_cast<KeyFrame*>(NULL)), mbNotErase(false),
         mbToBeErased(false), mbBad(false), mHalfBaseline(0), mbCurrentPlaceRecognition(false), mnMergeCorrectedForKF(0),
         NLeft(0),NRight(0), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false),
-        mnUpdateCounter(0), mUpdateTimeStamp(0)
+        mnUpdateCounter(0), mUpdateTimeStamp(0), mnLastModule(1)
 {
     //notifyObserverKeyframeAdded(this);
 }
@@ -62,7 +62,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnBackupIdCamera(F.mpCamera->GetId()), 
     mvLeftToRightMatch(F.mvLeftToRightMatch),mvRightToLeftMatch(F.mvRightToLeftMatch), mTlr(F.GetRelativePoseTlr()),
     mvKeysRight(F.mvKeysRight), NLeft(F.Nleft), NRight(F.Nright), mTrl(F.GetRelativePoseTrl()), mnNumberOfOpt(0), mbHasVelocity(false), mnNextTarget(0), mbLCDone(false),
-    mnUpdateCounter(0), mUpdateTimeStamp(0)
+    mnUpdateCounter(0), mUpdateTimeStamp(0), mnLastModule(1)
 {
     mnId=nNextId++;
     

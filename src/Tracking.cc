@@ -3479,10 +3479,10 @@ bool Tracking::NeedNewKeyFrame()
         else
         {
             mpLocalMapper->InterruptBA();
-            if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
-                return true;
-            else
-                return false;
+            //if(mpLocalMapper->KeyframesInQueue()<3 && distributor_->KeyFramesInQueue()<3)
+            //    return true;
+            //else
+            return false;
         }
     else
         return false;

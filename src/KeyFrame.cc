@@ -1730,7 +1730,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
       
       if(mpKFid.find(mBackupParentId) == mpKFid.end()) {
         //*bUnprocessed = true; 
-        std::cout << "ERROR: parentKF=" << mBackupParentId << " not found. This ID=" << mnId << std::endl;
+        //std::cout << "ERROR: parentKF=" << mBackupParentId << " not found. This ID=" << mnId << std::endl;
         mBackupParentId = -1;
         mpParent = static_cast<KeyFrame*>(NULL);
       } else {
@@ -1882,7 +1882,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
             for (int i = mBackupPrevKFId-1; i >= 0; --i) {
                 if(mpKFid[i] && mpKFid.find(i) != mpKFid.end())
                 {
-                    std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i << std::endl;
+                    //std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i << std::endl;
                     mBackupPrevKFId=i;
                     mPrevKF = mpKFid[mBackupPrevKFId];
                     mPrevKF->mNextKF = this;
@@ -1917,7 +1917,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, std::unordere
         
         if(mpKFid.find(mBackupNextKFId) == mpKFid.end()) {
           //*bUnprocessed = true; 
-          std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
+          //std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
           mNextKF = static_cast<KeyFrame*>(NULL);
         } else {
           mNextKF = mpKFid[mBackupNextKFId];
@@ -1990,7 +1990,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
     } else 
     {
 
-      std::cout << "N=" << N <<" != mvBackupMapPointsId.size()=" << mvBackupMapPointsId.size() << std::endl;
+      //std::cout << "N=" << N <<" != mvBackupMapPointsId.size()=" << mvBackupMapPointsId.size() << std::endl;
     }
 
     //std::cout << "after mvp map point stuff" << std::endl;
@@ -2178,7 +2178,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
                 {
                     if(tempPrevKF->GetMap() && this->mpMap && tempPrevKF->GetMap()->GetId()!=this->mpMap->GetId())
                         continue;
-                    std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
+                    //std::cout << "PREVKF NOT FOUND, CHANGING FROM prevKF=" << mBackupPrevKFId << " to=" << i  << ", id=" << mnId<< std::endl;
                     mBackupPrevKFId=i;
                     mPrevKF = tempPrevKF;
                     mPrevKF->mNextKF = this;
@@ -2215,7 +2215,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
                 {
                     if(tempNextKF->GetMap() && this->mpMap && tempNextKF->GetMap()->GetId()!=this->mpMap->GetId())
                         continue;
-                    std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
+                    //std::cout << "NEXTKF NOT FOUND, CHANGING FROM nextKF=" << mBackupNextKFId << " to=" << i << ", id=" << mnId<< std::endl;
                     mBackupNextKFId=i;
                     mNextKF = tempNextKF;
                     mNextKF->mPrevKF = this;

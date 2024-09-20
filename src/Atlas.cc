@@ -60,18 +60,18 @@ void Atlas::CreateNewMap()
 {
     
     unique_lock<mutex> lock(mMutexAtlas);
-    cout << "Thread1=Atlas::CreateNewMap : Creation of new map with id: " << Map::nNextId << endl;
+    //cout << "Thread1=Atlas::CreateNewMap : Creation of new map with id: " << Map::nNextId << endl;
     if(mpCurrentMap){
         if(!mspMaps.empty() && mnLastInitKFidMap < mpCurrentMap->GetMaxKFid())
             mnLastInitKFidMap = mpCurrentMap->GetMaxKFid()+1; //The init KF is the next of current maximum
 
         mpCurrentMap->SetStoredMap();
-        cout << "Thread1=Atlas::CreateNewMap : Stored map with ID: " << mpCurrentMap->GetId() << endl;
+        //cout << "Thread1=Atlas::CreateNewMap : Stored map with ID: " << mpCurrentMap->GetId() << endl;
 
         //if(mHasViewer)
         //    mpViewer->AddMapToCreateThumbnail(mpCurrentMap);
     }
-    cout << "Thread1=Atlas::CreateNewMap : Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
+    //cout << "Thread1=Atlas::CreateNewMap : Creation of new map with last KF id: " << mnLastInitKFidMap << endl;
 
     mpCurrentMap = new Map(mnLastInitKFidMap);
     mpCurrentMap->SetCurrentMap();
@@ -84,7 +84,7 @@ void Atlas::CreateNewMap()
 void Atlas::AddMap(Map* pMap)
 {
     unique_lock<mutex> lock(mMutexAtlas);
-    cout << "Create new map with id: " << pMap->GetId() << endl;
+    //cout << "Create new map with id: " << pMap->GetId() << endl;
     if(mpCurrentMap){
         mpCurrentMap->SetStoredMap();
     }

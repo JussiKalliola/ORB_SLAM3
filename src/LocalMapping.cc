@@ -81,7 +81,7 @@ void LocalMapping::AllowLocalMapping(bool mbAllow)
 
 void LocalMapping::Run()
 {
-    std::cout << " **************** Starting LocalMapping::Run() **************** " << std::endl;
+    //std::cout << " **************** Starting LocalMapping::Run() **************** " << std::endl;
     mbFinished = false;
     msLastMUStart = std::chrono::high_resolution_clock::now();
 
@@ -131,7 +131,7 @@ void LocalMapping::Run()
             // Triangulate new MapPoints
             CreateNewMapPoints();
 
-            std::cout << "  Thread2=LocalMapping::Run : GBA is not running, performing whole pipeline." << std::endl; 
+            //std::cout << "  Thread2=LocalMapping::Run : GBA is not running, performing whole pipeline." << std::endl; 
             mbAbortBA = false;
 
             if(!CheckNewKeyFrames())
@@ -355,7 +355,7 @@ void LocalMapping::Run()
           //std::cout << (dCount > MAP_FREQ) << ", " << (mpCurrentKeyFrame->GetMap()->KeyFramesInMap() > 0) << ", " << mbKFsAfterMapUpdate << ", " << mlNewKeyFrames.empty() << std::endl; 
           if ((mpAtlas->GetCurrentMap()) && (mpAtlas->GetCurrentMap()->KeyFramesInMap() >= 1) && (mbKFsAfterMapUpdate || mbLocalMappingDone)) //&& !stopRequested())
           {
-            std::cout << "  Thread2=LocalMapping::Run : Sending update, mbGBARunning=" << mbGBARunning << ",KFs in Map=" << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", LM Done=" << mbLocalMappingDone << ", mbKFsAfterMapUpdate=" << mbKFsAfterMapUpdate << std::endl; 
+            //std::cout << "  Thread2=LocalMapping::Run : Sending update, mbGBARunning=" << mbGBARunning << ",KFs in Map=" << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", LM Done=" << mbLocalMappingDone << ", mbKFsAfterMapUpdate=" << mbKFsAfterMapUpdate << std::endl; 
 
             //std::cout << "Local mapping done, check if data needs to be sent, " << dCount << ", " << mpCurrentKeyFrame->GetMap()->KeyFramesInMap() << ", " << mpCurrentKeyFrame->GetMap()->GetAllMapPoints().size() << std::endl;
             //unique_lock<mutex> lock(mpCurrentKeyFrame->GetMap()->mMutexMapUpdate);
@@ -414,7 +414,7 @@ bool LocalMapping::NeedNewKeyFrame(KeyFrame* pKF)
 
     // Local Mapping accept keyframes?
     bool bLocalMappingIdle = AcceptKeyFrames();
-    std::cout << "idle" << std::endl;
+    //std::cout << "idle" << std::endl;
     // Edge-SLAM: checked in NeedNewKeyFrame() function in tracking thread on client
     // Condition 1c: tracking is weak
     //const bool c1c =  mSensor!=System::MONOCULAR && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
@@ -427,7 +427,7 @@ bool LocalMapping::NeedNewKeyFrame(KeyFrame* pKF)
     //if(pKF->GetNeedNKF() == 1)
     //{
     // Condition 1a: More than "MaxFrames" have passed from last keyframe insertion
-    std::cout << "mnFrameId=" << pKF->mnFrameId << ">=" << mnLastKeyFrameId+30 << std::endl;
+    //std::cout << "mnFrameId=" << pKF->mnFrameId << ">=" << mnLastKeyFrameId+30 << std::endl;
     c1a = pKF->mnFrameId >= mnLastKeyFrameId+30;//mMaxFrames;
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
     c1b = (pKF->mnFrameId >= mnLastKeyFrameId+0 && bLocalMappingIdle); //mMinFrames && bLocalMappingIdle);
@@ -461,7 +461,7 @@ bool LocalMapping::NeedNewKeyFrame(KeyFrame* pKF)
 
 void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
     //TODO: subscirber node will insert KF broadcasted by Tracking
-    std::cout << "Thread1=LocalMapping::AddKeyframeFromRos - Added KF with ID=" << pKF->mnId << std::endl;
+    //std::cout << "Thread1=LocalMapping::AddKeyframeFromRos - Added KF with ID=" << pKF->mnId << std::endl;
     unique_lock<mutex> lock(mMutexNewKFs);
     //Verbose::PrintMess("Thread1=LocalMapping::InsertKeyframeFromRos", Verbose::VERBOSITY_NORMAL);
     
@@ -472,7 +472,7 @@ void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
     mnLastKeyFrameId = pKF->mnFrameId;
-    std::cout << "End of AddKeyFrameFromRos, mlNewKeyFrames.size()=" << mlNewKeyFrames.size() << std::endl;
+    //std::cout << "End of AddKeyFrameFromRos, mlNewKeyFrames.size()=" << mlNewKeyFrames.size() << std::endl;
 }
 
 
@@ -480,7 +480,7 @@ void LocalMapping::InsertKeyframeFromRos(KeyFrame* pKF) {
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 {
     //TODO: subscirber node will insert KF broadcasted by Tracking
-    Verbose::PrintMess("Thread1=LocalMapping::InsertKeyFrame", Verbose::VERBOSITY_NORMAL);
+    //Verbose::PrintMess("Thread1=LocalMapping::InsertKeyFrame", Verbose::VERBOSITY_NORMAL);
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
     mbAbortBA=true;
@@ -503,7 +503,7 @@ void LocalMapping::ProcessNewKeyFrame()
         mbKFsAfterMapUpdate = true;
         mpCurrentKeyFrame = mlNewKeyFrames.front();
         mlNewKeyFrames.pop_front();
-        std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : KF id=" << mpCurrentKeyFrame->mnId << std::endl; 
+        //std::cout << "  Thread2=LocalMapping::ProcessNewKeyFrame : KF id=" << mpCurrentKeyFrame->mnId << std::endl; 
     }
 
     if(!mpCurrentKeyFrame)
@@ -1150,7 +1150,7 @@ void LocalMapping::Release()
     //mlNewKeyFrames.clear();
 
     notifyStopRequest(false);
-    cout << "Local Mapping RELEASE" << endl;
+    //cout << "Local Mapping RELEASE" << endl;
 }
 
 bool LocalMapping::AcceptKeyFrames()

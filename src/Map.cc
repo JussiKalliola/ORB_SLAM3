@@ -29,7 +29,7 @@ long unsigned int Map::nNextId=0;
 Map::Map():mnMaxKFid(0),mnBigChangeIdx(0), mbImuInitialized(false), mnMapChange(0), mpFirstRegionKF(static_cast<KeyFrame*>(NULL)),
 mbFail(false), mIsInUse(false), mHasTumbnail(false), mbBad(false), mnMapChangeNotified(0), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false)
 {
-    std::cout << "Thread1=Map::Map : Create a new map without KFid" << std::endl;
+    //std::cout << "Thread1=Map::Map : Create a new map without KFid" << std::endl;
     mnId=nNextId++;
     mThumbnail = static_cast<GLubyte*>(NULL);
 }
@@ -38,7 +38,7 @@ Map::Map(int initKFid):mnInitKFid(initKFid), mnMaxKFid(initKFid),/*mnLastLoopKFi
                        mHasTumbnail(false), mbBad(false), mbImuInitialized(false), mpFirstRegionKF(static_cast<KeyFrame*>(NULL)),
                        mnMapChange(0), mbFail(false), mnMapChangeNotified(0), mbIsInertial(false), mbIMU_BA1(false), mbIMU_BA2(false)
 {
-    std::cout << "Thread1=Map::Map : Create a new map with KFid" << std::endl;
+    //std::cout << "Thread1=Map::Map : Create a new map with KFid" << std::endl;
     mnId=nNextId++;
     mThumbnail = static_cast<GLubyte*>(NULL);
 }
@@ -70,7 +70,7 @@ Map::Map(const bool mbFail, const std::set<long unsigned int>& msOptKFs, const s
     mvpBackupKeyFrames = std::vector<KeyFrame*>();
 
     mvpReferenceMapPoints = std::vector<MapPoint*>();
-    std::cout << "Thread1=Map::Map : Create a new map from ROS" << std::endl;
+    //std::cout << "Thread1=Map::Map : Create a new map from ROS" << std::endl;
 }
 
 Map::~Map()
@@ -1180,12 +1180,12 @@ MapPoint* Map::RetrieveMapPoint(std::string id)
       std::string current_id = pMP->mstrHexId; //(isTracking)?(*sit)->mnId:(*sit)->lmMnId;
       if (current_id == id)
       {
-          std::cout << " returning mp, ";
+          //std::cout << " returning mp, ";
           return pMP;
       }
     }
 
-    std::cout << " returning null, ";
+    //std::cout << " returning null, ";
     return NULL;
 }
 

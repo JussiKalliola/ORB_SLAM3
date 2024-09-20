@@ -83,7 +83,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     long unsigned int maxKFid = 0;
 
     const int nExpectedSize = (vpKFs.size())*vpMP.size();
-    std::cout << "nExpectedSize=" << nExpectedSize << std::endl;
+    //std::cout << "nExpectedSize=" << nExpectedSize << std::endl;
 
     vector<ORB_SLAM3::EdgeSE3ProjectXYZ*> vpEdgesMono;
     vpEdgesMono.reserve(nExpectedSize);
@@ -400,7 +400,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             pMP->mnBAGlobalForKF = nLoopKF;
         }
     }
-    std::cout << " =========== updated KFs=" << pMap->GetUpdatedKFIds().size() << ", MPs=" << pMap->GetUpdatedMPIds().size() << " =========== "<< std::endl;
+    //std::cout << " =========== updated KFs=" << pMap->GetUpdatedKFIds().size() << ", MPs=" << pMap->GetUpdatedMPIds().size() << " =========== "<< std::endl;
 }
 
 void Optimizer::FullInertialBA(Map *pMap, int its, const bool bFixLocal, const long unsigned int nLoopId, bool *pbStopFlag, bool bInit, float priorG, float priorA, Eigen::VectorXd *vSingVal, bool *bHess)
@@ -577,7 +577,7 @@ void Optimizer::FullInertialBA(Map *pMap, int its, const bool bFixLocal, const l
                 }
             }
             else
-                cout << pKFi->mnId << " or " << pKFi->mPrevKF->mnId << " no imu" << endl;
+                //cout << pKFi->mnId << " or " << pKFi->mPrevKF->mnId << " no imu" << endl;
         }
     }
 
@@ -1145,7 +1145,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     pKF->mnBALocalForKF = pKF->mnId;
     Map* pCurrentMap = pKF->GetMap();
 
-    std::cout << " <<<<<<<< START OF LBA: KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
+    //std::cout << " <<<<<<<< START OF LBA: KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
     const vector<KeyFrame*> vNeighKFs = pKF->GetVectorCovisibleKeyFrames();
     for(int i=0, iend=vNeighKFs.size(); i<iend; i++)
     {
@@ -1547,7 +1547,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
     auto duration_in_ms = std::chrono::duration<double>(now.time_since_epoch());
     double currentTime = duration_in_ms.count(); 
 
-    std::cout << " <<<<<<<< KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
+    //std::cout << " <<<<<<<< KF Updates before LBA=" << pCurrentMap->GetUpdatedKFIds().size() << " <<<<<<<<<<<<<< " << std::endl; 
     // Recover optimized data
     //Keyframes
     for(list<KeyFrame*>::iterator lit=lLocalKeyFrames.begin(), lend=lLocalKeyFrames.end(); lit!=lend; lit++)
@@ -1562,7 +1562,7 @@ void Optimizer::LocalBundleAdjustment(KeyFrame *pKF, bool* pbStopFlag, Map* pMap
         double dLastUpdateTime=(pKFi->mUpdateTimeStamp+0.0);
         if(pKFi->mnUpdateCounter==0 || (pKFi->mnUpdateCounter > 0 && currentTime>dLastUpdateTime))
         {
-            std::cout << " >>>>>>>>> KEYFRAME: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pKFi->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pKFi->mnUpdateCounter << " >>>>>>>>> " << std::endl;
+            //std::cout << " >>>>>>>>> KEYFRAME: LastUpdateTime=" << dLastUpdateTime << ", currentTime=" << currentTime << ", currentTime>pKFi->mUpdateTimeStamp+1000=" << (currentTime>dLastUpdateTime) << ", mnUpdateCounter=" << pKFi->mnUpdateCounter << " >>>>>>>>> " << std::endl;
             pCurrentMap->AddUpdatedKFId(pKFi->mnId);
             pKFi->mnUpdateCounter++;
             pKFi->mUpdateTimeStamp=currentTime;
@@ -1619,13 +1619,13 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     vector<g2o::Sim3,Eigen::aligned_allocator<g2o::Sim3> > vScw(nMaxKFid+1);
     vector<g2o::Sim3,Eigen::aligned_allocator<g2o::Sim3> > vCorrectedSwc(nMaxKFid+1);
     vector<g2o::VertexSim3Expmap*> vpVertices(nMaxKFid+1);
-    std::cout << "nMaxKFid=" << nMaxKFid+1 << std::endl;
+    //std::cout << "nMaxKFid=" << nMaxKFid+1 << std::endl;
     vector<Eigen::Vector3d> vZvectors(nMaxKFid+1); // For debugging
     Eigen::Vector3d z_vec;
     z_vec << 0.0, 0.0, 1.0;
 
     const int minFeat = 100;
-    std::cout << "before looping KF vertices" << std::endl;
+    //std::cout << "before looping KF vertices" << std::endl;
 
     // Set KeyFrame vertices
     for(size_t i=0, iend=vpKFs.size(); i<iend;i++)
@@ -1665,15 +1665,15 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
 
         vpVertices[nIDi]=VSim3;
     }
-    std::cout << "after looping KF vertices" << std::endl;
+    //std::cout << "after looping KF vertices" << std::endl;
 
 
     set<pair<long unsigned int,long unsigned int> > sInsertedEdges;
 
     const Eigen::Matrix<double,7,7> matLambda = Eigen::Matrix<double,7,7>::Identity();
 
-    std::cout << "before setting loop edges" << std::endl;
-    std::cout << "LoopConnections=" << LoopConnections.size() << std::endl;
+    //std::cout << "before setting loop edges" << std::endl;
+    //std::cout << "LoopConnections=" << LoopConnections.size() << std::endl;
     // Set Loop edges
     int count_loop = 0;
     for(map<KeyFrame *, set<KeyFrame *> >::const_iterator mit = LoopConnections.begin(), mend=LoopConnections.end(); mit!=mend; mit++)
@@ -1736,7 +1736,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
         }
     }
 
-    std::cout << "before setting normal edges" << std::endl;
+    //std::cout << "before setting normal edges" << std::endl;
     // Set normal edges
     for(size_t i=0, iend=vpKFs.size(); i<iend; i++)
     {
@@ -1872,14 +1872,14 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
     }
 
 
-    std::cout << "init optimixation" << std::endl;
+    //std::cout << "init optimixation" << std::endl;
     optimizer.initializeOptimization();
     optimizer.computeActiveErrors();
     optimizer.optimize(20);
     optimizer.computeActiveErrors();
     unique_lock<mutex> lock(pMap->mMutexMapUpdate);
 
-    std::cout << "recover poses" << std::endl;
+    //std::cout << "recover poses" << std::endl;
     // SE3 Pose Recovering. Sim3:[sR t;0 1] -> SE3:[R t/s;0 1]
     for(size_t i=0;i<vpKFs.size();i++)
     {
@@ -1898,7 +1898,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, KeyFrame* pLoopKF, KeyFrame* p
             pKFi->GetMap()->AddUpdatedKFId(pKFi->mnId);
     }
 
-    std::cout << "correct points" << std::endl;
+    //std::cout << "correct points" << std::endl;
     // Correct points. Transform to "non-optimized" reference keyframe pose and transform back with optimized pose
     for(size_t i=0, iend=vpMPs.size(); i<iend; i++)
     {

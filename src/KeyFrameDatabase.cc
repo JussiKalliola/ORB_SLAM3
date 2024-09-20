@@ -647,7 +647,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
         }
     }
     
-    std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
+    //std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
     //std::cout << "After bow vector stuff" << std::endl;
     if(lKFsSharingWords.empty())
         return;
@@ -674,7 +674,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
 
         if(pKFi->mnPlaceRecognitionWords>minCommonWords)
         {
-            std::cout << "pKFi->mnRelocWords=" << pKFi->mnPlaceRecognitionWords << ", minCommonWords=" << minCommonWords << std::endl;
+            //std::cout << "pKFi->mnRelocWords=" << pKFi->mnPlaceRecognitionWords << ", minCommonWords=" << minCommonWords << std::endl;
             nscores++;
             float si = mpVoc->score(pKF->mBowVec,pKFi->mBowVec);
             pKFi->mPlaceRecognitionScore=si;
@@ -685,7 +685,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
         }
     }
     
-    std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
+    //std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
     //std::cout << "After similarity stuff" << std::endl;
     if(lScoreAndMatch.empty())
         return;
@@ -729,7 +729,7 @@ void KeyFrameDatabase::DetectNBestCandidates(KeyFrame *pKF, vector<KeyFrame*> &v
     set<KeyFrame*> spAlreadyAddedKF;
     int i = 0;
     list<pair<float,KeyFrame*> >::iterator it=lAccScoreAndMatch.begin();
-    std::cout << "before final while loop" << std::endl;
+    //std::cout << "before final while loop" << std::endl;
     while(i < lAccScoreAndMatch.size() && (vpLoopCand.size() < nNumCandidates || vpMergeCand.size() < nNumCandidates))
     {
         KeyFrame* pKFi = it->second;
@@ -787,7 +787,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
             //std::cout << std::endl;
         }
     }
-    std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
+    //std::cout << "lKFsSharingWords.size()=" << lKFsSharingWords.size() << std::endl;
     if(lKFsSharingWords.empty())
         return vector<KeyFrame*>();
 
@@ -821,7 +821,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
         }
     }
     
-    std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
+    //std::cout << "lScoreAndMatch.size()=" << lScoreAndMatch.size() << std::endl;
     if(lScoreAndMatch.empty())
         return vector<KeyFrame*>();
 
@@ -856,7 +856,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
             bestAccScore=accScore;
     }
 
-    std::cout << "bestAccScore=" << bestAccScore << std::endl;
+    //std::cout << "bestAccScore=" << bestAccScore << std::endl;
     // Return all those keyframes with a score higher than 0.75*bestScore
     float minScoreToRetain = 0.75f*bestAccScore;
     set<KeyFrame*> spAlreadyAddedKF;
@@ -878,7 +878,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F, Map
         }
     }
 
-    std::cout << "vpRelocCandidates.size()=" << vpRelocCandidates.size() << std::endl;
+    //std::cout << "vpRelocCandidates.size()=" << vpRelocCandidates.size() << std::endl;
     return vpRelocCandidates;
 }
 

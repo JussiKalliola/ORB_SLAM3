@@ -2229,7 +2229,7 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
             }
             //std::cout << "ERROR: nextKF=" << mBackupNextKFId << " not found. This ID=" << mnId << std::endl;
             //mNextKF = static_cast<KeyFrame*>(NULL);
-        } else if(tempNextKF && tempNextKF->GetMap()->GetId()==this->mpMap->GetId() && !mpKFid.empty()) {
+        } else if(tempNextKF && ((tempNextKF->GetMap() && this->mpMap && tempNextKF->GetMap()->GetId()==this->mpMap->GetId() && !mpKFid.empty()) || !tempNextKF->GetMap() || !this->mpMap)) {
             mBackupNextKFId=tempNextKF->mnId;
             mNextKF = tempNextKF;
             mNextKF->mPrevKF = this;

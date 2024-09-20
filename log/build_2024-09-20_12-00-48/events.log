@@ -1,0 +1,166 @@
+[0.000000] (-) TimerEvent: {}
+[0.000164] (ORB_SLAM3) JobQueued: {'identifier': 'ORB_SLAM3', 'dependencies': OrderedDict()}
+[0.000224] (ORB_SLAM3) JobStarted: {'identifier': 'ORB_SLAM3'}
+[0.007433] (ORB_SLAM3) JobProgress: {'identifier': 'ORB_SLAM3', 'progress': 'cmake'}
+[0.007569] (ORB_SLAM3) Command: {'cmd': ['/usr/local/bin/cmake', '/root/ORB_SLAM3-dev', '-DCMAKE_INSTALL_PREFIX=/root/ORB_SLAM3-dev/install/ORB_SLAM3'], 'cwd': '/root/ORB_SLAM3-dev/build/ORB_SLAM3', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('TARGET_BUILD', 'dev'), ('ARCH', 'amd64'), ('TMUX', '/tmp/tmux-0/default,27901,0'), ('PYTHONBUFFERED', '1'), ('ROSDEP_SKIP_PACKAGES', 'fastcdr rti-connext-dds-6.0.1 urdfdom_headers'), ('HOSTNAME', 'nuce01'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/root/colcon_ws/install/orbslam3_interfaces/lib:/root/colcon_ws/install/fastrtps/lib:/opt/ros/humble/install/opt/rviz_ogre_vendor/lib:/opt/ros/humble/install/lib::/usr/local/lib/'), ('HOME', '/root'), ('OLDPWD', '/root/colcon_ws'), ('TERM_PROGRAM_VERSION', '3.2a'), ('ROS_PYTHON_VERSION', '3'), ('SKIP_ROSDEP', ''), ('COLCON_PREFIX_PATH', '/opt/ros/humble/install:/root/colcon_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('PKG_CONFIG_PATH', '/opt/ros/humble/install/lib/x86_64-linux-gnu/pkgconfig:/opt/ros/humble/install/lib/pkgconfig'), ('TERM', 'screen'), ('ROS_LOCALHOST_ONLY', '0'), ('FASTDDS_STATISTICS', 'HISTORY_LATENCY_TOPIC;NETWORK_LATENCY_TOPIC;PUBLICATION_THROUGHPUT_TOPIC;SUBSCRIPTION_THROUGHPUT_TOPIC;RTPS_SENT_TOPIC;RTPS_LOST_TOPIC;HEARTBEAT_COUNT_TOPIC;ACKNACK_COUNT_TOPIC;NACKFRAG_COUNT_TOPIC;GAP_COUNT_TOPIC;DATA_COUNT_TOPIC;RESENT_DATAS_TOPIC;SAMPLE_DATAS_TOPIC;PDP_PACKETS_TOPIC;EDP_PACKETS_TOPIC;DISCOVERY_TOPIC;PHYSICAL_DATA_TOPIC;MONITOR_SERVICE_TOPIC'), ('PATH', '/root/colcon_ws/install/fastrtps/bin:/opt/ros/humble/install/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('RTI_NC_LICENSE_ACCEPTED', 'yes'), ('DISPLAY', 'docker.for.mac.host.internal:0'), ('LANG', 'en_US.UTF-8'), ('RMW_IMPLEMENTATION', 'rmw_fastrtps_cpp'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_ROOT', '/opt/ros/humble'), ('TERM_PROGRAM', 'tmux'), ('AMENT_PREFIX_PATH', '/root/colcon_ws/install/orbslam3:/root/colcon_ws/install/orbslam3_interfaces:/opt/ros/humble/install'), ('DEBIAN_FRONTEND', 'noninteractive'), ('SHELL', '/bin/bash'), ('SLAM_SYSTEM_ID', 'LM'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('PWD', '/root/ORB_SLAM3-dev/build/ORB_SLAM3'), ('ORB_SLAM3_DIR', '/root/ORB_SLAM3-dev'), ('PYTHONPATH', '/root/colcon_ws/install/orbslam3_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/install/local/lib/python3.10/dist-packages:/opt/ros/humble/install/lib/python3.10/site-packages'), ('COLCON', '1'), ('TMUX_PANE', '%0'), ('CMAKE_PREFIX_PATH', '/root/colcon_ws/install/orbslam3:/root/colcon_ws/install/orbslam3_interfaces:/root/colcon_ws/install/fastrtps:/opt/ros/humble/install')]), 'shell': False}
+[0.051783] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):\n'}
+[0.051887] (ORB_SLAM3) StderrLine: {'line': b'  Compatibility with CMake < 3.5 will be removed from a future version of\n'}
+[0.051938] (ORB_SLAM3) StderrLine: {'line': b'  CMake.\n'}
+[0.051984] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.052027] (ORB_SLAM3) StderrLine: {'line': b'  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n'}
+[0.052071] (ORB_SLAM3) StderrLine: {'line': b'  CMake that the project does not need compatibility with older versions.\n'}
+[0.052115] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.052158] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0m\n'}
+[0.099746] (-) TimerEvent: {}
+[0.112529] (ORB_SLAM3) StdoutLine: {'line': b'-- The C compiler identification is GNU 8.4.0\n'}
+[0.154845] (ORB_SLAM3) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 8.4.0\n'}
+[0.163384] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.199835] (-) TimerEvent: {}
+[0.200539] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.211999] (ORB_SLAM3) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.212353] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.212743] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.215987] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.258839] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.270112] (ORB_SLAM3) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.270339] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.270743] (ORB_SLAM3) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.271252] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0mBuild type: Debug\x1b[0m\n'}
+[0.272508] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test COMPILER_SUPPORTS_CXX11\n'}
+[0.299949] (-) TimerEvent: {}
+[0.316398] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test COMPILER_SUPPORTS_CXX11 - Success\n'}
+[0.317006] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test COMPILER_SUPPORTS_CXX0X\n'}
+[0.360829] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test COMPILER_SUPPORTS_CXX0X - Success\n'}
+[0.360919] (ORB_SLAM3) StdoutLine: {'line': b'-- Using flag -std=c++14.\n'}
+[0.367970] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0mOPENCV VERSION:\x1b[0m\n'}
+[0.368042] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0m4.2.0\x1b[0m\n'}
+[0.368075] (ORB_SLAM3) StdoutLine: {'line': b'-- Found OpenCV: /usr/local (found suitable version "4.2.0", minimum required is "4.2")\n'}
+[0.376524] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[0.400111] (-) TimerEvent: {}
+[0.424177] (ORB_SLAM3) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[0.424775] (ORB_SLAM3) StdoutLine: {'line': b'-- Found Threads: TRUE\n'}
+[0.432208] (ORB_SLAM3) StderrLine: {'line': b'\x1b[33mCMake Warning at CMakeLists.txt:49 (find_package):\n'}
+[0.432244] (ORB_SLAM3) StderrLine: {'line': b'  By not providing "Findrealsense2.cmake" in CMAKE_MODULE_PATH this project\n'}
+[0.432278] (ORB_SLAM3) StderrLine: {'line': b'  has asked CMake to find a package configuration file provided by\n'}
+[0.432304] (ORB_SLAM3) StderrLine: {'line': b'  "realsense2", but CMake did not find one.\n'}
+[0.432329] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432355] (ORB_SLAM3) StderrLine: {'line': b'  Could not find a package configuration file provided by "realsense2" with\n'}
+[0.432379] (ORB_SLAM3) StderrLine: {'line': b'  any of the following names:\n'}
+[0.432406] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432429] (ORB_SLAM3) StderrLine: {'line': b'    realsense2Config.cmake\n'}
+[0.432453] (ORB_SLAM3) StderrLine: {'line': b'    realsense2-config.cmake\n'}
+[0.432475] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432498] (ORB_SLAM3) StderrLine: {'line': b'  Add the installation prefix of "realsense2" to CMAKE_PREFIX_PATH or set\n'}
+[0.432521] (ORB_SLAM3) StderrLine: {'line': b'  "realsense2_DIR" to a directory containing one of the above files.  If\n'}
+[0.432544] (ORB_SLAM3) StderrLine: {'line': b'  "realsense2" provides a separate development package or SDK, be sure it has\n'}
+[0.432568] (ORB_SLAM3) StderrLine: {'line': b'  been installed.\n'}
+[0.432591] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432613] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0m\n'}
+[0.432744] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0mCMake Deprecation Warning at Thirdparty/g2o/CMakeLists.txt:1 (CMAKE_MINIMUM_REQUIRED):\n'}
+[0.432773] (ORB_SLAM3) StderrLine: {'line': b'  Compatibility with CMake < 3.5 will be removed from a future version of\n'}
+[0.432798] (ORB_SLAM3) StderrLine: {'line': b'  CMake.\n'}
+[0.432822] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432845] (ORB_SLAM3) StderrLine: {'line': b'  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n'}
+[0.432869] (ORB_SLAM3) StderrLine: {'line': b'  CMake that the project does not need compatibility with older versions.\n'}
+[0.432892] (ORB_SLAM3) StderrLine: {'line': b'\n'}
+[0.432936] (ORB_SLAM3) StderrLine: {'line': b'\x1b[0m\n'}
+[0.433050] (ORB_SLAM3) StdoutLine: {'line': b'-- BUILD TYPE:Debug\n'}
+[0.433080] (ORB_SLAM3) StdoutLine: {'line': b'-- Compiling on Unix\n'}
+[0.500241] (-) TimerEvent: {}
+[0.573885] (ORB_SLAM3) StdoutLine: {'line': b'-- Found OpenMP_C: -fopenmp (found version "4.5")\n'}
+[0.600329] (-) TimerEvent: {}
+[0.622601] (ORB_SLAM3) StdoutLine: {'line': b'-- Found OpenMP_CXX: -fopenmp (found version "4.5")\n'}
+[0.622933] (ORB_SLAM3) StdoutLine: {'line': b'-- Found OpenMP: TRUE (found version "4.5")\n'}
+[0.624134] (ORB_SLAM3) StdoutLine: {'line': b'-- Configuring done (0.6s)\n'}
+[0.635272] (ORB_SLAM3) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[0.635439] (ORB_SLAM3) StdoutLine: {'line': b'-- Build files have been written to: /root/ORB_SLAM3-dev/build/ORB_SLAM3\n'}
+[0.646506] (ORB_SLAM3) CommandEnded: {'returncode': 0}
+[0.646824] (ORB_SLAM3) JobProgress: {'identifier': 'ORB_SLAM3', 'progress': 'build'}
+[0.646840] (ORB_SLAM3) Command: {'cmd': ['/usr/local/bin/cmake', '--build', '/root/ORB_SLAM3-dev/build/ORB_SLAM3', '--', '-j32', '-l32'], 'cwd': '/root/ORB_SLAM3-dev/build/ORB_SLAM3', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('TARGET_BUILD', 'dev'), ('ARCH', 'amd64'), ('TMUX', '/tmp/tmux-0/default,27901,0'), ('PYTHONBUFFERED', '1'), ('ROSDEP_SKIP_PACKAGES', 'fastcdr rti-connext-dds-6.0.1 urdfdom_headers'), ('HOSTNAME', 'nuce01'), ('SHLVL', '2'), ('LD_LIBRARY_PATH', '/root/colcon_ws/install/orbslam3_interfaces/lib:/root/colcon_ws/install/fastrtps/lib:/opt/ros/humble/install/opt/rviz_ogre_vendor/lib:/opt/ros/humble/install/lib::/usr/local/lib/'), ('HOME', '/root'), ('OLDPWD', '/root/colcon_ws'), ('TERM_PROGRAM_VERSION', '3.2a'), ('ROS_PYTHON_VERSION', '3'), ('SKIP_ROSDEP', ''), ('COLCON_PREFIX_PATH', '/opt/ros/humble/install:/root/colcon_ws/install'), ('ROS_DISTRO', 'humble'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('PKG_CONFIG_PATH', '/opt/ros/humble/install/lib/x86_64-linux-gnu/pkgconfig:/opt/ros/humble/install/lib/pkgconfig'), ('TERM', 'screen'), ('ROS_LOCALHOST_ONLY', '0'), ('FASTDDS_STATISTICS', 'HISTORY_LATENCY_TOPIC;NETWORK_LATENCY_TOPIC;PUBLICATION_THROUGHPUT_TOPIC;SUBSCRIPTION_THROUGHPUT_TOPIC;RTPS_SENT_TOPIC;RTPS_LOST_TOPIC;HEARTBEAT_COUNT_TOPIC;ACKNACK_COUNT_TOPIC;NACKFRAG_COUNT_TOPIC;GAP_COUNT_TOPIC;DATA_COUNT_TOPIC;RESENT_DATAS_TOPIC;SAMPLE_DATAS_TOPIC;PDP_PACKETS_TOPIC;EDP_PACKETS_TOPIC;DISCOVERY_TOPIC;PHYSICAL_DATA_TOPIC;MONITOR_SERVICE_TOPIC'), ('PATH', '/root/colcon_ws/install/fastrtps/bin:/opt/ros/humble/install/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('RTI_NC_LICENSE_ACCEPTED', 'yes'), ('DISPLAY', 'docker.for.mac.host.internal:0'), ('LANG', 'en_US.UTF-8'), ('RMW_IMPLEMENTATION', 'rmw_fastrtps_cpp'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('ROS_ROOT', '/opt/ros/humble'), ('TERM_PROGRAM', 'tmux'), ('AMENT_PREFIX_PATH', '/root/colcon_ws/install/orbslam3:/root/colcon_ws/install/orbslam3_interfaces:/opt/ros/humble/install'), ('DEBIAN_FRONTEND', 'noninteractive'), ('SHELL', '/bin/bash'), ('SLAM_SYSTEM_ID', 'LM'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('PWD', '/root/ORB_SLAM3-dev/build/ORB_SLAM3'), ('ORB_SLAM3_DIR', '/root/ORB_SLAM3-dev'), ('PYTHONPATH', '/root/colcon_ws/install/orbslam3_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/install/local/lib/python3.10/dist-packages:/opt/ros/humble/install/lib/python3.10/site-packages'), ('COLCON', '1'), ('TMUX_PANE', '%0'), ('CMAKE_PREFIX_PATH', '/root/colcon_ws/install/orbslam3:/root/colcon_ws/install/orbslam3_interfaces:/root/colcon_ws/install/fastrtps:/opt/ros/humble/install')]), 'shell': False}
+[0.700405] (-) TimerEvent: {}
+[0.706304] (ORB_SLAM3) StdoutLine: {'line': b'[  3%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_sba.cpp.o\x1b[0m\n'}
+[0.706518] (ORB_SLAM3) StdoutLine: {'line': b'[  3%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/System.cc.o\x1b[0m\n'}
+[0.706582] (ORB_SLAM3) StdoutLine: {'line': b'[  5%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_six_dof_expmap.cpp.o\x1b[0m\n'}
+[0.706634] (ORB_SLAM3) StdoutLine: {'line': b'[  6%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Tracking.cc.o\x1b[0m\n'}
+[0.706846] (ORB_SLAM3) StdoutLine: {'line': b'[ 10%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/LocalMapping.cc.o\x1b[0m\n'}
+[0.706930] (ORB_SLAM3) StdoutLine: {'line': b'[ 10%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_seven_dof_expmap.cpp.o\x1b[0m\n'}
+[0.707037] (ORB_SLAM3) StdoutLine: {'line': b'[ 13%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/hyper_graph_action.cpp.o\x1b[0m\n'}
+[0.707117] (ORB_SLAM3) StdoutLine: {'line': b'[ 13%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/LoopClosing.cc.o\x1b[0m\n'}
+[0.707209] (ORB_SLAM3) StdoutLine: {'line': b'[ 15%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/ORBextractor.cc.o\x1b[0m\n'}
+[0.707897] (ORB_SLAM3) StdoutLine: {'line': b'[ 16%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/hyper_graph.cpp.o\x1b[0m\n'}
+[0.707993] (ORB_SLAM3) StdoutLine: {'line': b'[ 18%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/marginal_covariance_cholesky.cpp.o\x1b[0m\n'}
+[0.708052] (ORB_SLAM3) StdoutLine: {'line': b'[ 20%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/FrameDrawer.cc.o\x1b[0m\n'}
+[0.708106] (ORB_SLAM3) StdoutLine: {'line': b'[ 21%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/matrix_structure.cpp.o\x1b[0m\n'}
+[0.708159] (ORB_SLAM3) StdoutLine: {'line': b'[ 23%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/ORBmatcher.cc.o\x1b[0m\n'}
+[0.708208] (ORB_SLAM3) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/MapPoint.cc.o\x1b[0m\n'}
+[0.708274] (ORB_SLAM3) StdoutLine: {'line': b'[ 26%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Atlas.cc.o\x1b[0m\n'}
+[0.708427] (ORB_SLAM3) StdoutLine: {'line': b'[ 28%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/KeyFrame.cc.o\x1b[0m\n'}
+[0.708572] (ORB_SLAM3) StdoutLine: {'line': b'[ 30%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Converter.cc.o\x1b[0m\n'}
+[0.708635] (ORB_SLAM3) StdoutLine: {'line': b'[ 33%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/parameter.cpp.o\x1b[0m\n'}
+[0.708692] (ORB_SLAM3) StdoutLine: {'line': b'[ 33%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/batch_stats.cpp.o\x1b[0m\n'}
+[0.708746] (ORB_SLAM3) StdoutLine: {'line': b'[ 35%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Map.cc.o\x1b[0m\n'}
+[0.708798] (ORB_SLAM3) StdoutLine: {'line': b'[ 36%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/cache.cpp.o\x1b[0m\n'}
+[0.708849] (ORB_SLAM3) StdoutLine: {'line': b'[ 38%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/optimizable_graph.cpp.o\x1b[0m\n'}
+[0.709000] (ORB_SLAM3) StdoutLine: {'line': b'[ 41%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/MapDrawer.cc.o\x1b[0m\n'}
+[0.709111] (ORB_SLAM3) StdoutLine: {'line': b'[ 41%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/solver.cpp.o\x1b[0m\n'}
+[0.709399] (ORB_SLAM3) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Optimizer.cc.o\x1b[0m\n'}
+[0.709481] (ORB_SLAM3) StdoutLine: {'line': b'[ 45%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/optimization_algorithm_factory.cpp.o\x1b[0m\n'}
+[0.709587] (ORB_SLAM3) StdoutLine: {'line': b'[ 46%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Frame.cc.o\x1b[0m\n'}
+[0.709669] (ORB_SLAM3) StdoutLine: {'line': b'[ 48%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/estimate_propagator.cpp.o\x1b[0m\n'}
+[0.709773] (ORB_SLAM3) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/KeyFrameDatabase.cc.o\x1b[0m\n'}
+[0.710741] (ORB_SLAM3) StdoutLine: {'line': b'[ 51%] \x1b[32mBuilding CXX object Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/factory.cpp.o\x1b[0m\n'}
+[0.710957] (ORB_SLAM3) StdoutLine: {'line': b'[ 53%] \x1b[32mBuilding CXX object CMakeFiles/ORB_SLAM3.dir/src/Sim3Solver.cc.o\x1b[0m\n'}
+[0.745591] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:174: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/batch_stats.cpp.o] Interrupt\n'}
+[0.745888] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:216: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/optimizable_graph.cpp.o] Interrupt\n'}
+[0.745950] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:230: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/solver.cpp.o] Interrupt\n'}
+[0.746003] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:90: CMakeFiles/ORB_SLAM3.dir/src/Tracking.cc.o] Interrupt\n'}
+[0.746054] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:118: CMakeFiles/ORB_SLAM3.dir/src/LoopClosing.cc.o] Interrupt\n'}
+[0.746111] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:202: CMakeFiles/ORB_SLAM3.dir/src/KeyFrame.cc.o] Interrupt\n'}
+[0.746158] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:216: CMakeFiles/ORB_SLAM3.dir/src/Atlas.cc.o] Interrupt\n'}
+[0.746204] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:244: CMakeFiles/ORB_SLAM3.dir/src/MapDrawer.cc.o] Interrupt\n'}
+[0.746274] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:272: CMakeFiles/ORB_SLAM3.dir/src/Frame.cc.o] Interrupt\n'}
+[0.746352] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:286: CMakeFiles/ORB_SLAM3.dir/src/KeyFrameDatabase.cc.o] Interrupt\n'}
+[0.746386] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:300: CMakeFiles/ORB_SLAM3.dir/src/Sim3Solver.cc.o] Interrupt\n'}
+[0.746419] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:132: CMakeFiles/ORB_SLAM3.dir/src/ORBextractor.cc.o] Interrupt\n'}
+[0.746446] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:160: CMakeFiles/ORB_SLAM3.dir/src/FrameDrawer.cc.o] Interrupt\n'}
+[0.746472] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:146: CMakeFiles/ORB_SLAM3.dir/src/ORBmatcher.cc.o] Interrupt\n'}
+[0.746496] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:188: CMakeFiles/ORB_SLAM3.dir/src/MapPoint.cc.o] Interrupt\n'}
+[0.746520] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:230: CMakeFiles/ORB_SLAM3.dir/src/Map.cc.o] Interrupt\n'}
+[0.746545] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:174: CMakeFiles/ORB_SLAM3.dir/src/Converter.cc.o] Interrupt\n'}
+[0.746569] (ORB_SLAM3) StderrLine: {'line': b'Traceback (most recent call last):\n'}
+[0.746593] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/local/bin/cmake", line 8, in <module>\n'}
+[0.746618] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:104: CMakeFiles/ORB_SLAM3.dir/src/LocalMapping.cc.o] Interrupt\n'}
+[0.746642] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:76: CMakeFiles/ORB_SLAM3.dir/src/System.cc.o] Interrupt\n'}
+[0.746666] (ORB_SLAM3) StderrLine: {'line': b'    sys.exit(cmake())\n'}
+[0.746689] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/local/lib/python3.10/dist-packages/cmake/__init__.py", line 51, in cmake\n'}
+[0.746714] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:90: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_six_dof_expmap.cpp.o] Interrupt\n'}
+[0.746739] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:146: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/marginal_covariance_cholesky.cpp.o] Interrupt\n'}
+[0.746763] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:132: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/hyper_graph.cpp.o] Interrupt\n'}
+[0.746790] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:188: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/parameter.cpp.o] Interrupt\n'}
+[0.746814] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:244: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/optimization_algorithm_factory.cpp.o] Interrupt\n'}
+[0.746837] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:272: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/factory.cpp.o] Interrupt\n'}
+[0.746861] (ORB_SLAM3) StderrLine: {'line': b"    raise SystemExit(_program('cmake', sys.argv[1:]))\n"}
+[0.746883] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/local/lib/python3.10/dist-packages/cmake/__init__.py", line 47, in _program\n'}
+[0.746907] (ORB_SLAM3) StderrLine: {'line': b'    return subprocess.call([os.path.join(CMAKE_BIN_DIR, name), *args], close_fds=False)\n'}
+[0.746932] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/lib/python3.10/subprocess.py", line 347, in call\n'}
+[0.746955] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:76: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_sba.cpp.o] Interrupt\n'}
+[0.746978] (ORB_SLAM3) StderrLine: {'line': b'    return p.wait(timeout=timeout)\n'}
+[0.747001] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/lib/python3.10/subprocess.py", line 1209, in wait\n'}
+[0.747024] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:258: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/estimate_propagator.cpp.o] Interrupt\n'}
+[0.747048] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:202: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/cache.cpp.o] Interrupt\n'}
+[0.747071] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:104: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/types/types_seven_dof_expmap.cpp.o] Interrupt\n'}
+[0.747094] (ORB_SLAM3) StderrLine: {'line': b'    return self._wait(timeout=timeout)\n'}
+[0.747117] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/lib/python3.10/subprocess.py", line 1959, in _wait\n'}
+[0.747141] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/ORB_SLAM3.dir/build.make:258: CMakeFiles/ORB_SLAM3.dir/src/Optimizer.cc.o] Interrupt\n'}
+[0.747164] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:118: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/hyper_graph_action.cpp.o] Interrupt\n'}
+[0.747188] (ORB_SLAM3) StderrLine: {'line': b'gmake[2]: *** [Thirdparty/g2o/CMakeFiles/g2o.dir/build.make:160: Thirdparty/g2o/CMakeFiles/g2o.dir/g2o/core/matrix_structure.cpp.o] Interrupt\n'}
+[0.747210] (ORB_SLAM3) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:100: CMakeFiles/ORB_SLAM3.dir/all] Interrupt\n'}
+[0.747234] (ORB_SLAM3) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:126: Thirdparty/g2o/CMakeFiles/g2o.dir/all] Interrupt\n'}
+[0.747265] (ORB_SLAM3) StderrLine: {'line': b'    (pid, sts) = self._try_wait(0)\n'}
+[0.747290] (ORB_SLAM3) StderrLine: {'line': b'  File "/usr/lib/python3.10/subprocess.py", line 1917, in _try_wait\n'}
+[0.747314] (ORB_SLAM3) StderrLine: {'line': b'gmake: *** [Makefile:91: all] Interrupt\n'}
+[0.747337] (ORB_SLAM3) StderrLine: {'line': b'    (pid, sts) = os.waitpid(self.pid, wait_flags)\n'}
+[0.747360] (ORB_SLAM3) StderrLine: {'line': b'KeyboardInterrupt\n'}
+[0.753793] (ORB_SLAM3) CommandEnded: {'returncode': -2}
+[0.753981] (ORB_SLAM3) JobEnded: {'identifier': 'ORB_SLAM3', 'rc': 'SIGINT'}
+[0.764051] (-) EventReactorShutdown: {}

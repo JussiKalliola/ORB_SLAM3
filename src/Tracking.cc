@@ -3334,7 +3334,7 @@ bool Tracking::NeedNewKeyFrame()
 
     if(mSensor==System::MONOCULAR)
     {
-        thRefRatio = 0.70f;
+        thRefRatio = 0.80f;
         mMinFrames=2; //3
         //if(mpAtlas->GetCurrentMap()->KeyFramesInMap() <= 3)
         //{
@@ -3411,6 +3411,8 @@ bool Tracking::NeedNewKeyFrame()
         else
             thRefRatio = 0.90f;
     }
+std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << std::endl;
+
 
     //std::cout << "nKFs=" << nKFs << ", mnMatchesInliers=" << mnMatchesInliers << ", nRefMatches=" << nRefMatches << ", nRefMatches*thRefRatio=" << nRefMatches*thRefRatio << ", thRefRatio=" << thRefRatio << ", bNeedToInsertClose=" << bNeedToInsertClose << ", nTrackedClose=" << nTrackedClose << ", nNonTrackedClose=" << nNonTrackedClose << ", mnLastKeyFrameId=" << mnLastKeyFrameId << ", mnMapUpdateLastKFId=" << mnMapUpdateLastKFId << ", mMinFrames=" << mMinFrames << ", mMaxFrames=" << mMaxFrames << std::endl;
     //Condition 1c: tracking is weak

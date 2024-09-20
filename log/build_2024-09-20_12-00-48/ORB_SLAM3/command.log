@@ -1,0 +1,4 @@
+Invoking command in '/root/ORB_SLAM3-dev/build/ORB_SLAM3': /usr/local/bin/cmake /root/ORB_SLAM3-dev -DCMAKE_INSTALL_PREFIX=/root/ORB_SLAM3-dev/install/ORB_SLAM3
+Invoked command in '/root/ORB_SLAM3-dev/build/ORB_SLAM3' returned '0': /usr/local/bin/cmake /root/ORB_SLAM3-dev -DCMAKE_INSTALL_PREFIX=/root/ORB_SLAM3-dev/install/ORB_SLAM3
+Invoking command in '/root/ORB_SLAM3-dev/build/ORB_SLAM3': /usr/local/bin/cmake --build /root/ORB_SLAM3-dev/build/ORB_SLAM3 -- -j32 -l32
+Invoked command in '/root/ORB_SLAM3-dev/build/ORB_SLAM3' returned '-2': /usr/local/bin/cmake --build /root/ORB_SLAM3-dev/build/ORB_SLAM3 -- -j32 -l32

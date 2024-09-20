@@ -392,14 +392,11 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
     //SetWorldPos(mp.mWorldPos);
 
     {
-        //unique_lock<mutex> lock1(mMutexModule);
-        unique_lock<mutex> lock1(mMutexMap, std::defer_lock);
-        unique_lock<mutex> lock3(mMutexPos,std::defer_lock);
-        //unique_lock<mutex> lock4(mGlobalMutex, std::defer_lock);
-        //
-        lock(lock1, /*lock2,*/ lock3/*, lock4*/);
         
-        mWorldPos = mp.mWorldPos;
+        {
+            unique_lock<mutex> lock(mMutexPos);
+            mWorldPos = mp.mWorldPos;
+        }
 
         mnFirstKFid               = mp.mnFirstKFid;
         mnFirstFrame              = mp.mnFirstFrame;
@@ -436,7 +433,7 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
         mnOriginMapId             = mp.mnOriginMapId;
         //mObservations             = mp.mObservations;
         if(!mp.mObservations.empty()){
-            unique_lock<mutex> lock2(mMutexFeatures);
+            unique_lock<mutex> lock(mMutexFeatures);
             mObservations.clear();
             mBackupObservationsId1.clear();
             mBackupObservationsId2.clear();
@@ -467,7 +464,10 @@ void MapPoint::UpdateMapPoint(const MapPoint& mp)
         //mBackupReplacedStrId      = mp->mBackupReplacedStrId;
         mfMinDistance             = mp.mfMinDistance;
         mfMaxDistance             = mp.mfMaxDistance;
-        mpMap                     = mp.mpMap;
+        {
+            unique_lock<mutex> lock(mMutexMap);
+            mpMap                     = mp.mpMap;
+        }
         mnLastModule              = mp.mnLastModule;
 
     }

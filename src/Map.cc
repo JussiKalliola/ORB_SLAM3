@@ -93,7 +93,8 @@ Map::~Map()
 void Map::UpdateMap(const Map &tempMap, const int nFromModule)
 {
     {
-        unique_lock<mutex> lock(mMutexMap);
+        //unique_lock<mutex> lock(mMutexMap);
+        unique_lock<mutex> lock(mMutexMapUpdate);
         mbFail = tempMap.mbFail; 
         msOptKFs = tempMap.msOptKFs; 
         msFixedKFs = tempMap.msFixedKFs;

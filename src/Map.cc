@@ -240,24 +240,28 @@ void Map::UpdateMap(const bool mbFail_, const std::set<long unsigned int>& msOpt
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
     //cout << "Thread1=Map::AddKeyFrame : Insert KF to map." << endl;
-    unique_lock<mutex> lock(mMutexMap);
-    if(mspKeyFrames.empty()){
-        //cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
-        mnInitKFid = pKF->mnId;
-        mpKFinitial = pKF;
-        mpKFlowerID = pKF;
-    }
-    notifyNewKeyFrameAdded(pKF);
-    mspKeyFrames.insert(pKF);
+    {
+        unique_lock<mutex> lock(mMutexMap);
+        if(mspKeyFrames.empty()){
+            //cout << "Thread1=Map::AddKeyFrame : First KF:" << pKF->mnId << "; Map init KF:" << mnInitKFid << endl;
+            mnInitKFid = pKF->mnId;
+            mpKFinitial = pKF;
+            mpKFlowerID = pKF;
+        }
+        mspKeyFrames.insert(pKF);
 
-    if(pKF->mnId>mnMaxKFid)
-    {
-        mnMaxKFid=pKF->mnId;
+        if(pKF->mnId>mnMaxKFid)
+        {
+            mnMaxKFid=pKF->mnId;
+        }
+        if(pKF->mnId<mpKFlowerID->mnId)
+        {
+            mpKFlowerID = pKF;
+        }
+
     }
-    if(pKF->mnId<mpKFlowerID->mnId)
-    {
-        mpKFlowerID = pKF;
-    }
+    
+    notifyNewKeyFrameAdded(pKF);
 }
 
 void Map::AddMapPoint(MapPoint *pMP)

@@ -2336,8 +2336,10 @@ void KeyFrame::PostLoad(map<long unsigned int, KeyFrame*>& mpKFid, map<std::stri
         ORB_SLAM3::KeyFrame* tempNextKF = mpKFid[mBackupNextKFId];
         if(!tempNextKF && !mpKFid.empty()) {          
             unsigned long int mnLastId=mpKFid.rbegin()->first;
-            for (int i = this->mnId+1; i <= mnLastId; ++i) {
+            for(unsigned long int i = this->mnId+1; i <= mnLastId; ++i) {
                 
+                if(i > 10000)
+                    break;
                 tempNextKF = mpKFid[i];
                 if(tempNextKF && i != this->mnId)
                 {

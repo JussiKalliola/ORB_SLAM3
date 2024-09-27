@@ -772,12 +772,12 @@ void System::SaveTrajectoryEuRoC(const string &filename)
         Sophus::SE3f Trw;
 
         // If the reference keyframe was culled, traverse the spanning tree to get a suitable keyframe.
-        if (!pKF)
+        if (!pKF || pKF->isBad() || pKF->GetLastModule() <= 1)
             continue;
 
         //cout << "2.5" << endl;
 
-        while(!pKF || pKF->isBad())
+        while(!pKF || pKF->isBad() || pKF->GetLastModule() <= 1)
         {
             //cout << " 2.bad" << endl;
             Trw = Trw * pKF->mTcp;

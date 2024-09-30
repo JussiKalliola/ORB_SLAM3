@@ -31,6 +31,7 @@
 
 #include <iostream>
 
+#include <thread>
 #include <mutex>
 #include <chrono>
 
@@ -2760,6 +2761,7 @@ void Tracking::CreateInitialMapMonocular()
 
     pKFini->mnNextTarget = 2;
     pKFcur->mnNextTarget = 2;
+
     notifyDistributorAddKeyframe(pKFini); // Send KF to LM (Module 2)
     notifyDistributorAddKeyframe(pKFcur); // Send KF to LM (Module 2)
     
@@ -3628,7 +3630,10 @@ void Tracking::CreateNewKeyFrame()
     //ProcessNewKeyFrame(pKF);
     // TODO: Here the keyframe needs to be sent to ros network!!
     pKF->mnNextTarget = 2;
-    notifyDistributorAddKeyframe(pKF); // Send KF to LM (module 2)
+
+    thread threadDistributor(&Tracking::notifyDistributorAddKeyframe,this,pKF);
+    threadDistributor.join();
+    //notifyDistributorAddKeyframe(pKF); // Send KF to LM (module 2)
     
     //mpLocalMapper->InsertKeyFrame(pKF);
 

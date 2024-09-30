@@ -3619,7 +3619,7 @@ void Tracking::CreateNewKeyFrame()
         }
     }
     //notifyDistributorAddKeyframe(pKF);
-    mpAtlas->AddKeyFrame(pKF); 
+    //mpAtlas->AddKeyFrame(pKF); 
     mapUpToDate = false;
     //pKF->UpdateConnections();
     //mpKeyFrameDB->add(pKF);

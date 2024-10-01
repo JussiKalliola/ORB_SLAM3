@@ -73,7 +73,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, KeyFrame *pRefKF, Map* pMap):
 
     const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
     std::string strSystemId(cSystemId);
-    mstrHexId=createHashId("", mnId);
+    mstrHexId=createHashId(strSystemId, mnId);
     //std::cout << "MP Constructor0: Hash=" << mstrHexId << ", " << createHashId("main", mnId) << std::endl;
     pMap->notifyNewMapPointCreated(this);
 }
@@ -108,7 +108,7 @@ MapPoint::MapPoint(const double invDepth, cv::Point2f uv_init, KeyFrame* pRefKF,
     
     const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
     std::string strSystemId(cSystemId);
-    mstrHexId=createHashId("", mnId);
+    mstrHexId=createHashId(strSystemId, mnId);
     //std::cout << "MP Constructor1: Hash=" << mstrHexId << std::endl;
     pMap->notifyNewMapPointCreated(this);
 
@@ -165,7 +165,7 @@ MapPoint::MapPoint(const Eigen::Vector3f &Pos, Map* pMap, Frame* pFrame, const i
     
     const char* cSystemId = std::getenv("SLAM_SYSTEM_ID");
     std::string strSystemId(cSystemId);
-    mstrHexId=createHashId("", mnId);
+    mstrHexId=createHashId(strSystemId, mnId);
     //std::cout << "MP Constructor2: Hash=" << mstrHexId << std::endl;
     pMap->notifyNewMapPointCreated(this);
     

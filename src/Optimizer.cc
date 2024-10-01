@@ -146,8 +146,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(pMP->GetWorldPos().cast<double>());
         const int id = pMP->mnId+maxKFid+1;
-        //if(optimizer.vertex(id) != NULL)
-        //    continue;
+        if(optimizer.vertex(id) != NULL)
+            continue;
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
@@ -161,8 +161,8 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             KeyFrame* pKF = mit->first;
             if(pKF->isBad() || pKF->mnId>maxKFid)
                 continue;
-            //if(optimizer.vertex(id) == NULL || optimizer.vertex(pKF->mnId) == NULL)
-            //    continue;
+            if(optimizer.vertex(id) == NULL || optimizer.vertex(pKF->mnId) == NULL)
+                continue;
             nEdges++;
             nTotalEdges++;
 

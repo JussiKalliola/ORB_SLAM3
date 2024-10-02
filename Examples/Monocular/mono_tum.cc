@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     // Retrieve paths to images
     vector<string> vstrImageFilenames;
     vector<double> vTimestamps;
-    string strFile = string(argv[3])+"/rgb.txt";
+    string strFile = string(argv[3])+"/data.csv";
     LoadImages(strFile, vstrImageFilenames, vTimestamps);
 
     int nImages = vstrImageFilenames.size();
@@ -66,13 +66,13 @@ int main(int argc, char **argv)
     for(int ni=0; ni<nImages; ni++)
     {
         // Read image from file
-        im = cv::imread(string(argv[3])+"/"+vstrImageFilenames[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
+        im = cv::imread(string(argv[3])+"/data/"+vstrImageFilenames[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
         double tframe = vTimestamps[ni];
 
         if(im.empty())
         {
             cerr << endl << "Failed to load image at: "
-                 << string(argv[3]) << "/" << vstrImageFilenames[ni] << endl;
+                 << string(argv[3]) << "data/" << vstrImageFilenames[ni] << endl;
             return 1;
         }
 
@@ -171,14 +171,25 @@ void LoadImages(const string &strFile, vector<string> &vstrImageFilenames, vecto
         getline(f,s);
         if(!s.empty())
         {
-            stringstream ss;
-            ss << s;
-            double t;
-            string sRGB;
-            ss >> t;
-            vTimestamps.push_back(t);
-            ss >> sRGB;
-            vstrImageFilenames.push_back(sRGB);
+            if (s[0] == '#')
+                continue;
+
+            int pos = s.find(',');
+            string item = s.substr(0, pos);
+
+            vstrImageFilenames.push_back(item + ".png");
+            double t = stod(item);
+            vTimestamps.push_back(t/1e9);
+            //stringstream ss;
+            //int pos = s.find(',');
+            //string item = s.substr(0, pos);
+            ////ss << s;
+            //double t;
+            //string sRGB;
+            //ss >> t;
+            //vTimestamps.push_back(t);
+            //ss >> sRGB;
+            //vstrImageFilenames.push_back(sRGB);
         }
     }
 }
